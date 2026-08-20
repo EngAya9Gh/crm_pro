@@ -110,26 +110,15 @@ class ApiClient {
     required T Function(Object? json) fromJson,
   }) async {
     try {
-      print('--- GET Request ---');
-      print('URL: $path');
-      print('Params: $queryParameters');
-
       final response = await _dio.get(path, queryParameters: queryParameters);
 
-      print('Response Status: ${response.statusCode}');
-      print('Response Data: ${response.data}');
-
       if (response.data == null || response.data is! Map<String, dynamic>) {
-        print('Error: Invalid Response Format');
         throw UnknownException(message: "استجابة الخادم غير صالحة");
       }
       return ApiResponse.fromJson(response.data, fromJson);
     } on DioException catch (e) {
-      print('DioError: ${e.message}');
-      print('DioError Response: ${e.response?.data}');
       throw _handleDioError(e);
     } catch (e) {
-      print('Unexpected Error: $e');
       throw UnknownException(message: e.toString());
     }
   }
@@ -142,30 +131,19 @@ class ApiClient {
     bool isFormData = false,
   }) async {
     try {
-      print('--- POST Request ---');
-      print('URL: $path');
-      print('Data: $data');
-
       final response = await _dio.post(
         path,
         data: isFormData ? FormData.fromMap(data) : data,
         queryParameters: queryParameters,
       );
 
-      print('Response Status: ${response.statusCode}');
-      print('Response Data: ${response.data}');
-
       if (response.data == null || response.data is! Map<String, dynamic>) {
-        print('Error: Invalid Response Format');
         throw UnknownException(message: "استجابة الخادم غير صالحة");
       }
       return ApiResponse.fromJson(response.data, fromJson);
     } on DioException catch (e) {
-      print('DioError: ${e.message}');
-      print('DioError Response: ${e.response?.data}');
       throw _handleDioError(e);
     } catch (e) {
-      print('Unexpected Error: $e');
       throw UnknownException(message: e.toString());
     }
   }
@@ -177,30 +155,19 @@ class ApiClient {
     required T Function(Object? json) fromJson,
   }) async {
     try {
-      print('--- PUT Request ---');
-      print('URL: $path');
-      print('Data: $data');
-
       final response = await _dio.put(
         path,
         data: data,
         queryParameters: queryParameters,
       );
 
-      print('Response Status: ${response.statusCode}');
-      print('Response Data: ${response.data}');
-
       if (response.data == null || response.data is! Map<String, dynamic>) {
-        print('Error: Invalid Response Format');
         throw UnknownException(message: "استجابة الخادم غير صالحة");
       }
       return ApiResponse.fromJson(response.data, fromJson);
     } on DioException catch (e) {
-      print('DioError: ${e.message}');
-      print('DioError Response: ${e.response?.data}');
       throw _handleDioError(e);
     } catch (e) {
-      print('Unexpected Error: $e');
       throw UnknownException(message: e.toString());
     }
   }
@@ -212,30 +179,19 @@ class ApiClient {
     required T Function(Object? json) fromJson,
   }) async {
     try {
-      print('--- DELETE Request ---');
-      print('URL: $path');
-      print('Data: $data');
-
       final response = await _dio.delete(
         path,
         data: data,
         queryParameters: queryParameters,
       );
 
-      print('Response Status: ${response.statusCode}');
-      print('Response Data: ${response.data}');
-
       if (response.data == null || response.data is! Map<String, dynamic>) {
-        print('Error: Invalid Response Format');
         throw UnknownException(message: "استجابة الخادم غير صالحة");
       }
       return ApiResponse.fromJson(response.data, fromJson);
     } on DioException catch (e) {
-      print('DioError: ${e.message}');
-      print('DioError Response: ${e.response?.data}');
       throw _handleDioError(e);
     } catch (e) {
-      print('Unexpected Error: $e');
       throw UnknownException(message: e.toString());
     }
   }
@@ -247,30 +203,19 @@ class ApiClient {
     required T Function(Object? json) fromJson,
   }) async {
     try {
-      print('--- PATCH Request ---');
-      print('URL: $path');
-      print('Data: $data');
-
       final response = await _dio.patch(
         path,
         data: data,
         queryParameters: queryParameters,
       );
 
-      print('Response Status: ${response.statusCode}');
-      print('Response Data: ${response.data}');
-
       if (response.data == null || response.data is! Map<String, dynamic>) {
-        print('Error: Invalid Response Format');
         throw UnknownException(message: "استجابة الخادم غير صالحة");
       }
       return ApiResponse.fromJson(response.data, fromJson);
     } on DioException catch (e) {
-      print('DioError: ${e.message}');
-      print('DioError Response: ${e.response?.data}');
       throw _handleDioError(e);
     } catch (e) {
-      print('Unexpected Error: $e');
       throw UnknownException(message: e.toString());
     }
   }
@@ -281,11 +226,6 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
   }) async {
     try {
-      print('--- DOWNLOAD Request ---');
-      print('URL: $path');
-      print('Save Path: $savePath');
-      print('kIsWeb: $kIsWeb');
-
       if (kIsWeb) {
         // Web: Fetch bytes and trigger browser download
         final response = await _dio.get(
@@ -314,13 +254,9 @@ class ApiClient {
         // Mobile: Download to file directly (Efficient streaming)
         await _dio.download(path, savePath, queryParameters: queryParameters);
       }
-
-      print('Download Completed');
     } on DioException catch (e) {
-      print('DioError: ${e.message}');
       throw _handleDioError(e);
     } catch (e) {
-      print('Unexpected Error: $e');
       throw UnknownException(message: e.toString());
     }
   }
@@ -337,7 +273,11 @@ class ApiClient {
     if (response != null) {
       switch (response.statusCode) {
         case 401:
-          return UnauthorizedException();
+          String? msg;
+          if (response.data is Map<String, dynamic>) {
+            msg = response.data['message'];
+          }
+          return UnauthorizedException(message: msg);
         case 404:
           return NotFoundException();
         case 422:

@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../utils/end_points.dart';
 import '../../services/storage/token_storage.dart';
 import '../../services/network/api_client.dart';
+import '../../services/network/api_logger.dart';
 import '../../../features/auth/data/data_sources/auth_remote_data_source.dart';
 import '../../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../../features/auth/domain/repositories/auth_repository.dart';
@@ -133,20 +134,22 @@ Future<void> initDi() async {
     () => const FlutterSecureStorage(),
   );
 
-  getIt.registerLazySingleton(
-    () => Dio(
-      BaseOptions(
-        baseUrl: EndPoints.baseUrl,
-        receiveDataWhenStatusError: true,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        connectTimeout: const Duration(seconds: 20),
-        receiveTimeout: const Duration(seconds: 20),
-      ),
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: EndPoints.baseUrl,
+      receiveDataWhenStatusError: true,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      connectTimeout: const Duration(seconds: 20),
+      receiveTimeout: const Duration(seconds: 20),
     ),
   );
+
+  dio.interceptors.add(ApiLoggingInterceptor());
+
+  getIt.registerLazySingleton(() => dio);
 
   // Core Services
   getIt.registerLazySingleton<TokenStorage>(
