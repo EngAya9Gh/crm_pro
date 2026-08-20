@@ -14,6 +14,7 @@ import 'package:crm_wakeel/features/clients/presentation/views/clients_screen.da
 import 'package:crm_wakeel/features/invoices/presentation/views/invoices_screen.dart';
 import 'package:crm_wakeel/features/appointments/presentation/views/appointments_screen.dart';
 import 'package:crm_wakeel/features/stock/presentation/views/stock_check_screen.dart';
+import 'package:crm_wakeel/features/whatsapp/presentation/pages/whatsapp_inbox_screen.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
@@ -61,6 +62,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(width: 8),
         ],
         drawer: const AppDrawer(),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: const Color(0xFF25D366),
+          child: const Icon(Icons.chat, color: Colors.white, size: 30),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const WhatsappInboxScreen()),
+            );
+          },
+        ),
         body: BlocBuilder<DashboardBloc, DashboardState>(
           builder: (context, state) {
             if (state.status == DashboardStatus.loading &&

@@ -5,6 +5,16 @@ import '../../utils/end_points.dart';
 import '../../services/storage/token_storage.dart';
 import '../../services/network/api_client.dart';
 import '../../services/network/api_logger.dart';
+import '../../services/network/pusher_service.dart';
+import '../../../features/whatsapp/data/datasources/whatsapp_remote_datasource.dart';
+import '../../../features/whatsapp/data/repositories/whatsapp_repository_impl.dart';
+import '../../../features/whatsapp/domain/repositories/whatsapp_repository.dart';
+import '../../../features/whatsapp/domain/usecases/get_threads_usecase.dart';
+import '../../../features/whatsapp/domain/usecases/get_thread_messages_usecase.dart';
+import '../../../features/whatsapp/domain/usecases/reply_to_thread_usecase.dart';
+import '../../../features/whatsapp/domain/usecases/send_message_usecase.dart';
+import '../../../features/whatsapp/presentation/bloc/whatsapp_threads_cubit.dart';
+import '../../../features/whatsapp/presentation/bloc/whatsapp_chat_cubit.dart';
 import '../../../features/auth/data/data_sources/auth_remote_data_source.dart';
 import '../../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../../features/auth/domain/repositories/auth_repository.dart';
@@ -154,6 +164,10 @@ Future<void> initDi() async {
   // Core Services
   getIt.registerLazySingleton<TokenStorage>(
     () => TokenStorage(storage: getIt()),
+  );
+
+  getIt.registerLazySingleton<PusherService>(
+    () => PusherService(),
   );
 
   getIt.registerLazySingleton<ApiClient>(
@@ -574,6 +588,32 @@ Future<void> initDi() async {
       scanProductUseCase: getIt(),
       validateStockUseCase: getIt(),
       syncProductsUseCase: getIt(),
+    ),
+  );
+
+  // --- WhatsApp Feature ---
+  getIt.registerLazySingleton<WhatsappRemoteDataSource>(
+    () => WhatsappRemoteDataSourceImpl(apiClient: getIt()),
+  );
+
+  getIt.registerLazySingleton<WhatsappRepository>(
+    () => WhatsappRepositoryImpl(remoteDataSource: getIt()),
+  );
+
+  getIt.registerLazySingleton(() => GetWhatsappThreadsUseCase(getIt()));
+  getIt.registerLazySingleton(() => GetThreadMessagesUseCase(getIt()));
+  getIt.registerLazySingleton(() => SendWhatsappMessageUseCase(getIt()));
+  getIt.registerLazySingleton(() => ReplyToThreadUseCase(getIt()));
+
+  getIt.registerFactory(
+    () => WhatsappThreadsCubit(getThreadsUseCase: getIt()),
+  );
+
+  getIt.registerFactory(
+    () => WhatsappChatCubit(
+      getThreadMessagesUseCase: getIt(),
+      replyToThreadUseCase: getIt(),
+      pusherService: getIt(),
     ),
   );
 }

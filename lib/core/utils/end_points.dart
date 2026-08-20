@@ -104,4 +104,9 @@ class EndPoints {
   static const String dashboardCharts = '/dashboard/charts';
   static const String dashboardRecentActivities =
       '/dashboard/recent-activities';
+
+  // WhatsApp & Chat
+  static const String whatsappSend = '/whatsapp/send';
+  static const String whatsappThreads = '/whatsapp/threads';
+  static String whatsappThreadMessages(String threadId) => '/whatsapp/threads/$threadId/messages';
 }
