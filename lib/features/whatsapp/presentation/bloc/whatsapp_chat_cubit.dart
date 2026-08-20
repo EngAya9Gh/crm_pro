@@ -92,10 +92,10 @@ class WhatsappChatCubit extends Cubit<WhatsappChatState> {
 
   void _subscribeToPusher(String threadId) {
     _pusherSubscription?.cancel();
-    pusherService.subscribeToChannel('private-thread.$threadId');
+    pusherService.subscribeToChannel('private-chat.$threadId');
     _pusherSubscription = pusherService.onMessageReceived.listen((eventData) {
       // Check if event is for this thread
-      if (eventData['channel'] == 'private-thread.$threadId') {
+      if (eventData['channel'] == 'private-chat.$threadId' && eventData['event'] == 'NewMessageReceived') {
         final data = eventData['data'];
         // Parse incoming message and add to state
         try {
@@ -119,7 +119,7 @@ class WhatsappChatCubit extends Cubit<WhatsappChatState> {
   @override
   Future<void> close() {
     if (_currentThreadId != null) {
-      pusherService.unsubscribeFromChannel('private-thread.$_currentThreadId!');
+      pusherService.unsubscribeFromChannel('private-chat.$_currentThreadId!');
     }
     _pusherSubscription?.cancel();
     return super.close();

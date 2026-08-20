@@ -11,10 +11,11 @@ class PusherService {
   Stream<Map<String, dynamic>> get onMessageReceived =>
       _messageController.stream;
 
-  // TODO: Update these with the actual Laravel backend Pusher/Reverb credentials
-  final String _apiKey = "REPLACE_WITH_PUSHER_KEY";
-  final String _cluster = "REPLACE_WITH_PUSHER_CLUSTER";
-  // If using Laravel Reverb/WebSockets (local server), you may need custom host/wsPort settings
+  final String _apiKey = "wakeel_crm_key_2026";
+  final String _cluster = "mt1";
+  final String _host = "app.wakeel.cc";
+  final int _wsPort = 8080;
+  final int _wssPort = 8080;
 
   Future<void> init() async {
     try {
@@ -22,6 +23,7 @@ class PusherService {
       await pusher.init(
         apiKey: _apiKey,
         cluster: _cluster,
+        useTLS: true,
         onEvent: _onEvent,
         onSubscriptionSucceeded: _onSubscriptionSucceeded,
         onSubscriptionError: _onSubscriptionError,

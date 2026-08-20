@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/common/widgets/app_loader.dart';
 import '../../../../core/common/widgets/app_text.dart';
 import '../../../../core/config/theme/color_scheme.dart';
@@ -244,8 +245,10 @@ class _ChatBubble extends StatelessWidget {
         ? message.mediaUrl! 
         : 'https://app.wakeel.cc${message.mediaUrl}';
 
+    Widget mediaWidget;
+
     if (message.type.toUpperCase() == 'IMAGE') {
-      return Padding(
+      mediaWidget = Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
@@ -258,19 +261,19 @@ class _ChatBubble extends StatelessWidget {
         ),
       );
     } else if (message.type.toUpperCase() == 'AUDIO') {
-      return Padding(
+      mediaWidget = Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.mic, color: Colors.grey),
             const SizedBox(width: 8),
-            AppText.bodyMedium('رسالة صوتية', color: Colors.blue),
+            AppText.bodyMedium('رسالة صوتية (اضغط للتشغيل)', color: Colors.blue),
           ],
         ),
       );
     } else {
-      return Padding(
+      mediaWidget = Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -279,7 +282,7 @@ class _ChatBubble extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: AppText.bodyMedium(
-                message.mediaUrl?.split('/').last ?? 'ملف مرفق',
+                message.mediaUrl?.split('/').last ?? 'ملف مرفق (اضغط للفتح)',
                 color: Colors.blue,
               ),
             ),
@@ -287,6 +290,16 @@ class _ChatBubble extends StatelessWidget {
         ),
       );
     }
+
+    return InkWell(
+      onTap: () async {
+        final uri = Uri.parse(fullUrl);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+      },
+      child: mediaWidget,
+    );
   }
 
   @override
