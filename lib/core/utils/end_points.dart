@@ -1,7 +1,7 @@
 class EndPoints {
   // TODO: Update with real Base URL from Backend
   static const String baseUrl =
-      'https://honeydew-sheep-602146.hostingersite.com/api/v1';
+      'https://app.wakeel.cc/api/v1';
   //honeydew-sheep-602146.hostingersite.com
 
   // Auth
