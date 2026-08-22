@@ -109,4 +109,6 @@ class EndPoints {
   static const String whatsappSend = '/whatsapp/send';
   static const String whatsappThreads = '/whatsapp/threads';
   static String whatsappThreadMessages(String threadId) => '/whatsapp/threads/$threadId/messages';
+  static String whatsappMediaUpload(String threadId) => '/whatsapp/threads/$threadId/media-upload';
+  static const String whatsappMedia = '/whatsapp/media';
 }

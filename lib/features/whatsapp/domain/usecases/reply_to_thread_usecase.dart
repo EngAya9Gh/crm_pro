@@ -10,16 +10,24 @@ class ReplyToThreadUseCase {
   Future<Either<ApiException, void>> call({
     required String threadId,
     required String type,
-    String? content,
-    String? mediaUrl,
     String? mediaType,
+    String? content,
+    int? clientId,
+    String? clientPhone,
+    List<int>? fileBytes,
+    String? fileName,
+    bool useSendEndpoint = false,
   }) {
     return repository.replyToThread(
       threadId: threadId,
       type: type,
-      content: content,
-      mediaUrl: mediaUrl,
       mediaType: mediaType,
+      content: content,
+      clientId: clientId,
+      clientPhone: clientPhone,
+      fileBytes: fileBytes,
+      fileName: fileName,
+      useSendEndpoint: useSendEndpoint,
     );
   }
 }

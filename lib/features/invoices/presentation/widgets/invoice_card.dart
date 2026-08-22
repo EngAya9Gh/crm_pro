@@ -159,8 +159,10 @@ class InvoiceCard extends StatelessWidget {
                   ),
 
                   // Info Grid
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.spaceBetween,
                     children: [
                       _buildInfoItem(
                         Icons.inventory_2_outlined,

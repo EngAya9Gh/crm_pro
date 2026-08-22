@@ -340,7 +340,7 @@ class RolesView extends StatelessWidget {
                               label: 'الفريق التابع له',
                               hint: 'اختر الفريق',
                               value: selectedTeam,
-                              items: teams
+                              legacyItems: teams
                                   .map(
                                     (t) => DropdownMenuItem(
                                       value: t,
@@ -348,6 +348,7 @@ class RolesView extends StatelessWidget {
                                     ),
                                   )
                                   .toList(),
+                              itemLabel: (team) => team.name,
                               onChanged: (val) {
                                 setState(() {
                                   selectedTeam = val;

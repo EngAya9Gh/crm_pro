@@ -7,7 +7,9 @@ abstract class WhatsappRemoteDataSource {
   Future<List<WhatsappThreadModel>> getThreads({int page = 1});
   Future<List<WhatsappMessageModel>> getThreadMessages(String threadId, {int page = 1});
   Future<WhatsappMessageModel> sendMessage(Map<String, dynamic> data);
-  Future<void> replyToThread(String threadId, {required Map<String, dynamic> data});
+  Future<void> replyToThread(String threadId, {required Map<String, dynamic> data, bool isFormData = false});
+  Future<void> sendMediaFormData(Map<String, dynamic> data);
+  Future<String> uploadMedia(String threadId, {required Map<String, dynamic> data});
 }
 
 class WhatsappRemoteDataSourceImpl implements WhatsappRemoteDataSource {
@@ -54,11 +56,34 @@ class WhatsappRemoteDataSourceImpl implements WhatsappRemoteDataSource {
   }
 
   @override
-  Future<void> replyToThread(String threadId, {required Map<String, dynamic> data}) async {
+  Future<void> replyToThread(String threadId, {required Map<String, dynamic> data, bool isFormData = false}) async {
     await apiClient.post(
       EndPoints.whatsappThreadMessages(threadId),
       data: data,
-      fromJson: (json) => null, // Ignore response data since it's just a success message
+      isFormData: isFormData,
+      fromJson: (json) => null,
     );
+  }
+
+  @override
+  Future<void> sendMediaFormData(Map<String, dynamic> data) async {
+    // POST /whatsapp/send with FormData (for media files)
+    await apiClient.post(
+      EndPoints.whatsappSend,
+      data: data,
+      isFormData: true,
+      fromJson: (json) => null,
+    );
+  }
+
+  @override
+  Future<String> uploadMedia(String threadId, {required Map<String, dynamic> data}) async {
+    final response = await apiClient.post(
+      EndPoints.whatsappMediaUpload(threadId),
+      data: data,
+      isFormData: true,
+      fromJson: (json) => (json as Map<String, dynamic>)['url'] as String,
+    );
+    return response.data!;
   }
 }

@@ -89,7 +89,7 @@ abstract class ClientsRemoteDataSource {
   Future<void> deleteDynamicField(String type, String fieldId);
 
   Future<void> downloadClientPdf(String clientId, String savePath);
-  Future<void> exportClients(ClientFilter? filter, String savePath);
+  Future<void> exportClients(ClientFilter? filter, String savePath, {String format = 'csv'});
 
   Future<List<SavedFilter>> getSavedFilters();
   Future<void> deleteSavedFilter(String id);

@@ -123,6 +123,23 @@ class ApiClient {
     }
   }
 
+  Future<Uint8List> getBytes(String path, {Map<String, dynamic>? queryParameters}) async {
+    try {
+      final response = await _dio.get(
+        path,
+        queryParameters: queryParameters,
+        options: Options(responseType: ResponseType.bytes),
+      );
+      return response.data is Uint8List
+          ? response.data
+          : Uint8List.fromList(List<int>.from(response.data));
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } catch (e) {
+      throw UnknownException(message: e.toString());
+    }
+  }
+
   Future<ApiResponse<T>> post<T>(
     String path, {
     dynamic data,
@@ -131,13 +148,30 @@ class ApiClient {
     bool isFormData = false,
   }) async {
     try {
+      if (isFormData && data is Map) {
+        print('====== FORM DATA FIELDS ======');
+        data.forEach((k, v) {
+          print('$k: ${v.runtimeType}');
+          if (v is! MultipartFile) {
+            print('Value: $v');
+          }
+        });
+        print('==============================');
+      }
       final response = await _dio.post(
         path,
-        data: isFormData ? FormData.fromMap(data) : data,
+        data: isFormData ? FormData.fromMap(data as Map<String, dynamic>) : data,
         queryParameters: queryParameters,
+        options: isFormData
+            ? Options(contentType: 'multipart/form-data')
+            : null,
       );
 
       if (response.data == null || response.data is! Map<String, dynamic>) {
+        if (isFormData) {
+          // FormData endpoints (like media send) may return non-standard responses
+          return ApiResponse<T>(data: null, message: 'success', success: true);
+        }
         throw UnknownException(message: "استجابة الخادم غير صالحة");
       }
       return ApiResponse.fromJson(response.data, fromJson);
@@ -234,20 +268,18 @@ class ApiClient {
           options: Options(responseType: ResponseType.bytes),
         );
 
-        final fileName = path
-            .split('/')
-            .lastWhere(
+        final fileName = savePath.split('/').last.isNotEmpty 
+            ? savePath.split('/').last 
+            : path.split('/').lastWhere(
               (element) => element.isNotEmpty,
-              orElse: () => 'download',
+              orElse: () => 'download.pdf',
             );
 
         DownloadService.download(
           bytes: response.data is Uint8List
               ? response.data
               : Uint8List.fromList(List<int>.from(response.data)),
-          fileName: fileName.contains('.')
-              ? fileName
-              : '$fileName.pdf', // Fallback extension
+          fileName: fileName,
           savePath: null, // Web doesn't use savePath
         );
       } else {

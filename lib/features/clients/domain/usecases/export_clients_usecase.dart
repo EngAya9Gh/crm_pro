@@ -8,7 +8,7 @@ class ExportClientsUseCase {
 
   ExportClientsUseCase(this.repository);
 
-  Future<Either<Failure, String>> call(ClientFilter? filter) async {
-    return await repository.exportClients(filter);
+  Future<Either<Failure, String>> call(ClientFilter? filter, {String format = 'csv'}) async {
+    return await repository.exportClients(filter, format: format);
   }
 }

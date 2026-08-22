@@ -149,25 +149,7 @@ class _ClientsViewState extends State<ClientsView> {
               ),
             ],
       drawer: _isSelectionMode ? null : const AppDrawer(),
-      body: BlocListener<ClientsBloc, ClientsState>(
-        listener: (context, state) {
-          if (state is ClientsLoaded && state.exportedFilePath != null) {
-            // Open the exported file
-            // We need open_file_plus package or similar, but for now we just show snackbar
-            // as usage of external package in Screen usually requires import.
-            // Assuming open_file_plus is used elsewhere (Download PDF).
-            // Let's print path for now or use OpenFile.open(state.exportedFilePath!);
-
-            // We can show success and path
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: AppText('تم التصدير بنجاح: ${state.exportedFilePath}'),
-              ),
-            );
-            // OpenFile.open(state.exportedFilePath); // Uncomment if package available and imported
-          }
-        },
-        child: Column(
+      body: Column(
           children: [
             if (!_isSelectionMode) ...[
               _buildStatusTabs(),
@@ -202,6 +184,14 @@ class _ClientsViewState extends State<ClientsView> {
 
             Expanded(
               child: BlocListener<ClientsBloc, ClientsState>(
+                listenWhen: (previous, current) {
+                  if (current is ClientsError) return previous != current;
+                  if (previous is ClientsLoaded && current is ClientsLoaded) {
+                    return previous.exportedFilePath != current.exportedFilePath &&
+                        current.exportedFilePath != null;
+                  }
+                  return current is ClientsLoaded && current.exportedFilePath != null;
+                },
                 listener: (context, state) {
                   if (state is ClientsError) {
                     ScaffoldMessenger.of(
@@ -209,7 +199,7 @@ class _ClientsViewState extends State<ClientsView> {
                     ).showSnackBar(SnackBar(content: AppText(state.message)));
                   } else if (state is ClientsLoaded &&
                       state.exportedFilePath != null) {
-                    // Success export
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: AppText('تم تصدير الملف بنجاح')),
                     );
@@ -310,7 +300,6 @@ class _ClientsViewState extends State<ClientsView> {
             ),
           ],
         ),
-      ),
       bottomNavigationBar: _isSelectionMode ? _buildBulkActionsBar() : null,
       floatingActionButton: _isSelectionMode
           ? null
@@ -873,14 +862,16 @@ class _ClientsViewState extends State<ClientsView> {
     );
   }
 
-  Future<void> _exportClients(BuildContext context) async {
+  Future<void> _exportClients(String format) async {
     final statusId = _currentStatusFilter;
     final filter = ClientFilter(
       statusIds: statusId != null ? [statusId.toString()] : null,
     );
 
-    context.read<ClientsBloc>().add(ExportClientsEvent(filter: filter));
+    if (!mounted) return;
+    context.read<ClientsBloc>().add(ExportClientsEvent(filter: filter, format: format));
 
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: AppText('جاري التصدير... سيتم إشعارك عند الانتهاء'),
@@ -1048,7 +1039,7 @@ class _ClientsViewState extends State<ClientsView> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => Container(
+      builder: (sheetContext) => Container(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1066,8 +1057,8 @@ class _ClientsViewState extends State<ClientsView> {
               ),
               title: const AppText('تصدير إلى Excel'),
               onTap: () {
-                Navigator.pop(context);
-                _exportClients(context);
+                Navigator.pop(sheetContext);
+                _exportClients('excel');
               },
             ),
             ListTile(
@@ -1077,8 +1068,8 @@ class _ClientsViewState extends State<ClientsView> {
               ),
               title: const AppText('تصدير إلى CSV'),
               onTap: () {
-                Navigator.pop(context);
-                _exportClients(context);
+                Navigator.pop(sheetContext);
+                _exportClients('csv');
               },
             ),
             ListTile(
@@ -1087,7 +1078,10 @@ class _ClientsViewState extends State<ClientsView> {
                 color: Colors.red,
               ),
               title: const AppText('تصدير إلى PDF'),
-              onTap: () => Navigator.pop(context),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _exportClients('pdf');
+              },
             ),
           ],
         ),

@@ -42,6 +42,11 @@ dependencies:
   mobile_scanner: ^5.0.0
   pusher_channels_flutter: ^2.6.0
   emoji_picker_flutter: ^4.4.0
+  record: ^6.2.1
+  permission_handler: ^11.3.1
+  audioplayers: ^6.7.1
+  dropdown_search: ^7.0.0
+  dropdown_button2: ^2.3.9
 
 dev_dependencies:
   flutter_test:

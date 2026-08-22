@@ -109,9 +109,9 @@ class ClientsStatsScreen extends StatelessWidget {
 
     return GridView.count(
       crossAxisCount: 2,
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      childAspectRatio: 1.5,
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+      childAspectRatio: 1.3,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       children: [
@@ -159,10 +159,12 @@ class ClientsStatsScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColorScheme.surface),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
           Row(
             children: [
               Container(
@@ -203,7 +205,8 @@ class ClientsStatsScreen extends StatelessWidget {
           ],
         ],
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildSectionTitle(String title) {

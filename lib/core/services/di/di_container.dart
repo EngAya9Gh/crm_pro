@@ -152,8 +152,8 @@ Future<void> initDi() async {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      connectTimeout: const Duration(seconds: 20),
-      receiveTimeout: const Duration(seconds: 20),
+      connectTimeout: const Duration(seconds: 60),
+      receiveTimeout: const Duration(seconds: 60),
     ),
   );
 

@@ -400,30 +400,28 @@ class _ClientCommentsTabState extends State<ClientCommentsTab> {
                 Row(
                   children: [
                     Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _buildOutcomeTag(
-                              CommentOutcome.positive,
-                              'إيجابي',
-                              AppColorScheme.success,
-                            ),
-                            _buildOutcomeTag(
-                              CommentOutcome.neutral,
-                              'محايد',
-                              AppColorScheme.silver,
-                            ),
-                            _buildOutcomeTag(
-                              CommentOutcome.negative,
-                              'سلبي',
-                              AppColorScheme.error,
-                            ),
-                            const SizedBox(width: 8),
-                            _buildTypeSelector(),
-                          ],
-                        ),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          _buildTypeSelector(),
+                          _buildOutcomeTag(
+                            CommentOutcome.positive,
+                            'إيجابي',
+                            AppColorScheme.success,
+                          ),
+                          _buildOutcomeTag(
+                            CommentOutcome.neutral,
+                            'محايد',
+                            AppColorScheme.silver,
+                          ),
+                          _buildOutcomeTag(
+                            CommentOutcome.negative,
+                            'سلبي',
+                            AppColorScheme.error,
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -576,7 +574,6 @@ class _ClientCommentsTabState extends State<ClientCommentsTab> {
       onTap: () =>
           setState(() => _selectedOutcome = isSelected ? null : outcome),
       child: Container(
-        margin: const EdgeInsets.only(left: 8),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
           color: isSelected ? color.withValues(alpha: 0.1) : Colors.transparent,
@@ -628,6 +625,7 @@ class _ClientCommentsTabState extends State<ClientCommentsTab> {
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             AppText(
               _selectedTypeId != null

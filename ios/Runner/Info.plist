@@ -51,5 +51,7 @@
 		<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>This app needs camera access to scan barcodes</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>نحتاج إلى صلاحية الميكروفون لتسجيل الملاحظات الصوتية</string>
 	</dict>
 </plist>

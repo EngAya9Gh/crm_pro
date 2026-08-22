@@ -21,8 +21,12 @@ abstract class WhatsappRepository {
   Future<Either<ApiException, void>> replyToThread({
     required String threadId,
     required String type,
-    String? content,
-    String? mediaUrl,
     String? mediaType,
+    String? content,
+    int? clientId,
+    String? clientPhone,
+    List<int>? fileBytes,
+    String? fileName,
+    bool useSendEndpoint = false,
   });
 }

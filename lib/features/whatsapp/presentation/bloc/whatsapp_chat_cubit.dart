@@ -4,6 +4,7 @@ import '../../../../core/services/network/pusher_service.dart';
 import '../../domain/usecases/get_thread_messages_usecase.dart';
 import '../../domain/usecases/reply_to_thread_usecase.dart';
 import '../../domain/entities/whatsapp_message.dart';
+import '../../domain/entities/whatsapp_thread.dart';
 import '../../data/models/whatsapp_message_model.dart';
 import 'whatsapp_chat_state.dart';
 
@@ -37,7 +38,13 @@ class WhatsappChatCubit extends Cubit<WhatsappChatState> {
       page = currentState.currentPage + 1;
       currentMessages = currentState.messages;
     } else {
-      emit(WhatsappChatLoading());
+      if (state is WhatsappChatLoaded) {
+        currentMessages = List.from((state as WhatsappChatLoaded).messages);
+        // Remove optimistic messages before merging real ones from API
+        currentMessages.removeWhere((m) => m.id.startsWith('optimistic_'));
+      } else {
+        emit(WhatsappChatLoading());
+      }
     }
 
     final result = await getThreadMessagesUseCase(threadId, page: page);
@@ -48,38 +55,110 @@ class WhatsappChatCubit extends Cubit<WhatsappChatState> {
       (messages) {
         if (messages.isEmpty) {
           emit(WhatsappChatLoaded(
-            messages: List.from(currentMessages),
+            messages: currentMessages,
             hasReachedMax: true,
             currentPage: page,
           ));
         } else {
-          emit(WhatsappChatLoaded(
-            // Append new messages (typically older messages when paginating)
-            messages: List.from(currentMessages)..addAll(messages),
-            hasReachedMax: messages.length < 50,
-            currentPage: page,
-          ));
+          final newMessages = messages.where(
+            (msg) => !currentMessages.any((existing) => existing.id == msg.id)
+          ).toList();
+
+          if (refresh && state is WhatsappChatLoaded) {
+            final currentState = state as WhatsappChatLoaded;
+            emit(WhatsappChatLoaded(
+              messages: [...newMessages, ...currentMessages],
+              hasReachedMax: currentState.hasReachedMax,
+              currentPage: currentState.currentPage,
+            ));
+          } else {
+            emit(WhatsappChatLoaded(
+              messages: [...currentMessages, ...newMessages],
+              hasReachedMax: messages.length < 10, // Adjust per_page if needed
+              currentPage: page,
+            ));
+          }
         }
       },
     );
   }
 
+  Future<void> sendMedia({
+    required WhatsappThread thread,
+    required String mediaType,
+    required List<int> fileBytes,
+    required String fileName,
+  }) async {
+    // Optimistic UI for media upload
+    if (state is WhatsappChatLoaded) {
+      final currentState = state as WhatsappChatLoaded;
+      final optimisticMsg = WhatsappMessageModel(
+        id: 'optimistic_${DateTime.now().millisecondsSinceEpoch}',
+        threadId: thread.id,
+        direction: 'OUTBOUND',
+        type: mediaType.toUpperCase(),
+        content: fileName,
+        mediaUrl: null,
+        status: 'UPLOADING',
+        createdAt: DateTime.now(),
+      );
+      
+      emit(currentState.copyWith(
+        messages: [optimisticMsg, ...currentState.messages],
+      ));
+    }
+
+    final result = await replyToThreadUseCase(
+      threadId: thread.id,
+      type: 'media',
+      mediaType: mediaType,
+      clientId: thread.clientId,
+      clientPhone: thread.clientPhone,
+      fileBytes: fileBytes,
+      fileName: fileName,
+      useSendEndpoint: true,
+    );
+
+    result.fold(
+      (failure) => emit(WhatsappChatError(failure.message)),
+      (_) => loadMessages(_currentThreadId!, refresh: true),
+    );
+  }
+
   Future<void> reply({
     required String type,
-    String? content,
-    String? mediaUrl,
     String? mediaType,
+    String? content,
+    List<int>? fileBytes,
+    String? fileName,
   }) async {
     if (_currentThreadId == null) return;
     
-    // Optional: Optimistic UI update could be added here
+    // Optimistic UI update
+    if (state is WhatsappChatLoaded && type == 'text' && content != null && content.isNotEmpty) {
+      final currentState = state as WhatsappChatLoaded;
+      final optimisticMsg = WhatsappMessageModel(
+        id: 'optimistic_${DateTime.now().millisecondsSinceEpoch}',
+        threadId: _currentThreadId!,
+        direction: 'OUTBOUND',
+        type: 'TEXT',
+        content: content,
+        status: 'PENDING',
+        createdAt: DateTime.now(),
+      );
+      
+      emit(currentState.copyWith(
+        messages: [optimisticMsg, ...currentState.messages],
+      ));
+    }
     
     final result = await replyToThreadUseCase(
       threadId: _currentThreadId!,
       type: type,
-      content: content,
-      mediaUrl: mediaUrl,
       mediaType: mediaType,
+      content: content,
+      fileBytes: fileBytes,
+      fileName: fileName,
     );
 
     result.fold(

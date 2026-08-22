@@ -149,12 +149,18 @@ class _AddEditAppointmentScreenState extends State<AddEditAppointmentScreen> {
                     label: 'العميل',
                     hint: 'اختر العميل',
                     value: _selectedClientId,
-                    items: state.clientList.map((client) {
+                    legacyItems: state.clientList.map((client) {
                       return DropdownMenuItem<int>(
                         value: client.id,
                         child: AppText(client.name),
                       );
                     }).toList(),
+                    itemLabel: (id) {
+                      final client = state.clientList
+                          .where((c) => c.id == id)
+                          .firstOrNull;
+                      return client?.name ?? '';
+                    },
                     onChanged: (value) {
                       setState(() {
                         _selectedClientId = value;

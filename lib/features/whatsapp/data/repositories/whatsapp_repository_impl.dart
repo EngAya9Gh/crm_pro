@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/error/api_exception.dart';
 import '../../domain/entities/whatsapp_message.dart';
 import '../../domain/entities/whatsapp_thread.dart';
@@ -39,18 +40,44 @@ class WhatsappRepositoryImpl implements WhatsappRepository {
   Future<Either<ApiException, void>> replyToThread({
     required String threadId,
     required String type,
-    String? content,
-    String? mediaUrl,
     String? mediaType,
+    String? content,
+    int? clientId,
+    String? clientPhone,
+    List<int>? fileBytes,
+    String? fileName,
+    bool useSendEndpoint = false,
   }) async {
     try {
-      final data = {
-        'type': type,
-        if (content != null) 'content': content,
-        if (mediaUrl != null) 'media_url': mediaUrl,
-        if (mediaType != null) 'media_type': mediaType,
-      };
-      await remoteDataSource.replyToThread(threadId, data: data);
+      if (useSendEndpoint && fileBytes != null && fileBytes.isNotEmpty) {
+        // Step 1: Upload media
+        final uploadData = <String, dynamic>{
+          'type': type,
+          if (mediaType != null) 'media_type': mediaType,
+          'file': MultipartFile.fromBytes(
+            fileBytes,
+            filename: fileName ?? 'file',
+          ),
+        };
+        
+        final mediaUrl = await remoteDataSource.uploadMedia(threadId, data: uploadData);
+
+        // Step 2: Send message with media url
+        final messageData = <String, dynamic>{
+          'type': type, // media
+          if (mediaType != null) 'media_type': mediaType,
+          'url': mediaUrl,
+        };
+        
+        await remoteDataSource.replyToThread(threadId, data: messageData, isFormData: false);
+      } else {
+        // Use /whatsapp/threads/{id}/messages for text replies
+        final data = <String, dynamic>{
+          'type': type,  // should be 'text'
+          if (content != null && content.isNotEmpty) 'content': content,
+        };
+        await remoteDataSource.replyToThread(threadId, data: data, isFormData: false);
+      }
       return const Right(null);
     } on ApiException catch (e) {
       return Left(e);
@@ -73,8 +100,8 @@ class WhatsappRepositoryImpl implements WhatsappRepository {
         if (clientId != null) 'client_id': clientId,
         if (phone != null) 'phone': phone,
         'type': type,
-        if (content != null) 'message': content, // as per docs: 'message' for content
-        if (mediaUrl != null) 'url': mediaUrl, // as per docs: 'url' for media
+        if (content != null) 'message': content,
+        if (mediaUrl != null) 'url': mediaUrl,
         if (mediaType != null) 'media_type': mediaType,
       };
       final result = await remoteDataSource.sendMessage(data);

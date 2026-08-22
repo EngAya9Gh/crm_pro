@@ -128,9 +128,7 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
     ExportClientsEvent event,
     Emitter<ClientsState> emit,
   ) async {
-    print('ClientsBloc: ExportClientsEvent received. UseCase: $exportClients');
     if (exportClients == null) {
-      print('ClientsBloc: ExportClientsUseCase is NULL!');
       return;
     }
 
@@ -152,7 +150,7 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
     // I will do similarly.
     // Wait, Export is global action, likely initiated from FAB or AppBar.
 
-    final result = await exportClients!(event.filter);
+    final result = await exportClients!(event.filter, format: event.format);
 
     result.fold((failure) => emit(ClientsError(failure.message)), (path) {
       if (state is ClientsLoaded) {

@@ -325,7 +325,7 @@ class GenericLookupView extends StatelessWidget {
                         label: 'المنطقة',
                         hint: 'اختر المنطقة',
                         value: selectedRegion,
-                        items: regions
+                        legacyItems: regions
                             .map(
                               (e) => DropdownMenuItem(
                                 value: e,
@@ -333,6 +333,7 @@ class GenericLookupView extends StatelessWidget {
                               ),
                             )
                             .toList(),
+                        itemLabel: (region) => region.name,
                         onChanged: (val) {
                           setState(() {
                             selectedRegion = val;

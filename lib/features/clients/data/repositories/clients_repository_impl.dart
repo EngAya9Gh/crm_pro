@@ -385,19 +385,21 @@ class ClientsRepositoryImpl implements ClientsRepository {
   }
 
   @override
-  Future<Either<Failure, String>> exportClients(ClientFilter? filter) async {
+  Future<Either<Failure, String>> exportClients(ClientFilter? filter, {String format = 'csv'}) async {
     try {
       String savePath;
+      final formatLower = format.toLowerCase();
+      final extension = formatLower == 'excel' ? 'xlsx' : formatLower;
       if (kIsWeb) {
         final timestamp = DateTime.now().millisecondsSinceEpoch;
-        savePath = 'clients_export_$timestamp.csv';
+        savePath = 'clients_export_$timestamp.$extension';
       } else {
         final dir = await getApplicationDocumentsDirectory();
         final timestamp = DateTime.now().millisecondsSinceEpoch;
-        savePath = '${dir.path}/clients_export_$timestamp.csv';
+        savePath = '${dir.path}/clients_export_$timestamp.$extension';
       }
 
-      await remoteDataSource.exportClients(filter, savePath);
+      await remoteDataSource.exportClients(filter, savePath, format: format);
       return Right(savePath);
     } catch (e) {
       return Left(ServerFailure(e.toString()));
