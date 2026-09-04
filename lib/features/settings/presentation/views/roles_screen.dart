@@ -13,6 +13,7 @@ import '../bloc/lookups_state.dart';
 import '../bloc/settings_crud_bloc.dart';
 import '../bloc/settings_crud_event.dart';
 import '../bloc/settings_crud_state.dart';
+import 'package:crm_wakeel/core/utils/permission_extension.dart';
 
 class RolesScreen extends StatelessWidget {
   const RolesScreen({super.key});
@@ -37,17 +38,18 @@ class RolesView extends StatelessWidget {
     return AppScaffold(
       title: 'الأدوار الوظيفية',
       actions: [
-        IconButton(
-          onPressed: () => _showAddEditRoleDialog(context),
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColorScheme.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+        if (context.hasPermission('settings.manage'))
+          IconButton(
+            onPressed: () => _showAddEditRoleDialog(context),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.add, color: AppColorScheme.primary),
             ),
-            child: const Icon(Icons.add, color: AppColorScheme.primary),
           ),
-        ),
       ],
       body: BlocListener<SettingsCrudBloc, SettingsCrudState>(
         listener: (context, state) {
@@ -270,7 +272,7 @@ class RolesView extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (dialogContext) {
         return StatefulBuilder(
-          builder: (context, setState) {
+          builder: (stateContext, setState) {
             return Container(
               height: MediaQuery.of(context).size.height * 0.85,
               decoration: const BoxDecoration(

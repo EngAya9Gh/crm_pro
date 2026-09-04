@@ -12,6 +12,7 @@ import 'package:crm_wakeel/features/clients/presentation/views/clients_kpi_scree
 import 'package:crm_wakeel/features/invoices/presentation/views/invoices_screen.dart';
 import 'package:crm_wakeel/features/appointments/presentation/views/appointments_screen.dart';
 import 'package:crm_wakeel/features/settings/presentation/views/settings_screen.dart';
+import 'package:crm_wakeel/core/utils/permission_extension.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -37,29 +38,33 @@ class AppDrawer extends StatelessWidget {
                   destination: const DashboardScreen(),
                   isActive: true,
                 ),
-                _buildExpandableClientsMenu(context),
-                _buildMenuItem(
-                  context,
-                  title: AppStrings.invoices,
-                  icon: Icons.receipt_long_outlined,
-                  destination: const InvoicesScreen(),
-                ),
-                _buildMenuItem(
-                  context,
-                  title: AppStrings.appointments,
-                  icon: Icons.event_note_rounded,
-                  destination: const AppointmentsScreen(),
-                ),
+                if (context.hasPermission('clients.view'))
+                  _buildExpandableClientsMenu(context),
+                if (context.hasPermission('invoices.view'))
+                  _buildMenuItem(
+                    context,
+                    title: AppStrings.invoices,
+                    icon: Icons.receipt_long_outlined,
+                    destination: const InvoicesScreen(),
+                  ),
+                if (context.hasPermission('appointments.view'))
+                  _buildMenuItem(
+                    context,
+                    title: AppStrings.appointments,
+                    icon: Icons.event_note_rounded,
+                    destination: const AppointmentsScreen(),
+                  ),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
                   child: Divider(color: AppColorScheme.surface, thickness: 2),
                 ),
-                _buildMenuItem(
-                  context,
-                  title: AppStrings.settings,
-                  icon: Icons.settings_outlined,
-                  destination: const SettingsScreen(),
-                ),
+                if (context.hasPermission('settings.view') || context.hasPermission('users.view') || context.hasPermission('teams.view'))
+                  _buildMenuItem(
+                    context,
+                    title: AppStrings.settings,
+                    icon: Icons.settings_outlined,
+                    destination: const SettingsScreen(),
+                  ),
               ],
             ),
           ),

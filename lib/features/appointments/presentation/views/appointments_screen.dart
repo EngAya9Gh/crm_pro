@@ -20,6 +20,7 @@ import '../../../clients/presentation/bloc/clients_bloc.dart' as crm_client_bloc
 import '../../../clients/domain/entities/client.dart' as client_entity;
 import '../../../clients/domain/entities/client_enums.dart' as client_enums;
 import '../../../clients/domain/entities/status_entity.dart' as status_entity;
+import 'package:crm_wakeel/core/utils/permission_extension.dart';
 
 class AppointmentsScreen extends StatefulWidget {
   const AppointmentsScreen({super.key});
@@ -173,27 +174,29 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
             ),
           ],
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => BlocProvider.value(
-                  value: _appointmentsBloc,
-                  child: const AddEditAppointmentScreen(),
+        floatingActionButton: context.hasPermission('appointments.create') 
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider.value(
+                      value: _appointmentsBloc,
+                      child: const AddEditAppointmentScreen(),
+                    ),
+                  ),
+                );
+              },
+              backgroundColor: AppColorScheme.primary,
+              icon: const Icon(Icons.add, color: AppColorScheme.white),
+              label: AppText(
+                'موعد جديد',
+                style: AppTypography.labelMedium.copyWith(
+                  color: AppColorScheme.white,
                 ),
               ),
-            );
-          },
-          backgroundColor: AppColorScheme.primary,
-          icon: const Icon(Icons.add, color: AppColorScheme.white),
-          label: AppText(
-            'موعد جديد',
-            style: AppTypography.labelMedium.copyWith(
-              color: AppColorScheme.white,
-            ),
-          ),
-        ),
+            )
+          : null,
       ),
     );
   }

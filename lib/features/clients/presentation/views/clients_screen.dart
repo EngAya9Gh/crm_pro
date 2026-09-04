@@ -18,6 +18,7 @@ import '../../presentation/bloc/clients_event.dart';
 import '../../presentation/bloc/clients_state.dart';
 import '../../../../core/services/di/di_container.dart';
 import '../../../../core/common/widgets/app_scaffold.dart';
+import 'package:crm_wakeel/core/utils/permission_extension.dart';
 
 import '../../../../features/settings/presentation/bloc/lookups_bloc.dart';
 import '../../../../features/settings/presentation/bloc/lookups_state.dart';
@@ -303,21 +304,23 @@ class _ClientsViewState extends State<ClientsView> {
       bottomNavigationBar: _isSelectionMode ? _buildBulkActionsBar() : null,
       floatingActionButton: _isSelectionMode
           ? null
-          : FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BlocProvider.value(
-                      value: context.read<ClientsBloc>(),
-                      child: const AddClientScreen(),
-                    ),
-                  ),
-                );
-              },
-              backgroundColor: AppColorScheme.primary,
-              child: const Icon(Icons.add, color: AppColorScheme.white),
-            ),
+          : (context.hasPermission('clients.create') 
+              ? FloatingActionButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => BlocProvider.value(
+                          value: context.read<ClientsBloc>(),
+                          child: const AddClientScreen(),
+                        ),
+                      ),
+                    );
+                  },
+                  backgroundColor: AppColorScheme.primary,
+                  child: const Icon(Icons.add, color: AppColorScheme.white),
+                )
+              : null),
     );
   }
 
