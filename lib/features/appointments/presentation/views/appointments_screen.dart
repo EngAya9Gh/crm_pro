@@ -35,6 +35,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   final ScrollController _scrollController = ScrollController();
   final ScrollController _calendarScrollController = ScrollController();
   bool _isCalendarView = false;
+  CalendarFormat _calendarFormat = CalendarFormat.month;
 
   @override
   void initState() {
@@ -89,90 +90,109 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         backgroundColor: AppColorScheme.background,
         title: 'المواعيد',
         drawer: const AppDrawer(),
-        body: Column(
-          children: [
-            _buildHeader(),
-            if (_isCalendarView)
-              _buildFullCalendar()
-            else
-              _buildCalendarStrip(),
-            const SizedBox(height: 24),
-            _buildListHeader(),
-            Expanded(
-              child: BlocBuilder<AppointmentsBloc, AppointmentsState>(
+        body: RefreshIndicator(
+          onRefresh: () async => _loadAppointments(isRefresh: true),
+          child: CustomScrollView(
+            controller: _scrollController,
+            slivers: [
+              SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    _buildHeader(),
+                    AnimatedCrossFade(
+                      firstChild: _buildCalendarStrip(),
+                      secondChild: _buildFullCalendar(),
+                      crossFadeState: _isCalendarView
+                          ? CrossFadeState.showSecond
+                          : CrossFadeState.showFirst,
+                      duration: const Duration(milliseconds: 300),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildListHeader(),
+                  ],
+                ),
+              ),
+              BlocBuilder<AppointmentsBloc, AppointmentsState>(
                 builder: (context, state) {
                   if (state.status == AppointmentsStatus.loading &&
                       state.appointments.isEmpty) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const SliverFillRemaining(
+                      child: Center(child: CircularProgressIndicator()),
+                    );
                   }
 
                   if (state.status == AppointmentsStatus.failure &&
                       state.appointments.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.error_outline,
-                            size: 48,
-                            color: AppColorScheme.error,
-                          ),
-                          const SizedBox(height: 16),
-                          AppText(state.errorMessage),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () => _loadAppointments(isRefresh: true),
-                            child: const AppText('إعادة المحاولة'),
-                          ),
-                        ],
+                    return SliverFillRemaining(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              size: 48,
+                              color: AppColorScheme.error,
+                            ),
+                            const SizedBox(height: 16),
+                            AppText(state.errorMessage),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () => _loadAppointments(isRefresh: true),
+                              child: const AppText('إعادة المحاولة'),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   }
 
                   if (state.appointments.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.calendar_today_outlined,
-                            size: 64,
-                            color: AppColorScheme.textMuted.withValues(
-                              alpha: 0.5,
+                    return SliverFillRemaining(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.calendar_today_outlined,
+                              size: 64,
+                              color: AppColorScheme.textMuted.withValues(
+                                alpha: 0.5,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          const AppText(
-                            'لا توجد مواعيد مقررة لهذا اليوم',
-                            style: TextStyle(color: AppColorScheme.textMuted),
-                          ),
-                        ],
+                            const SizedBox(height: 16),
+                            const AppText(
+                              'لا توجد مواعيد مقررة لهذا اليوم',
+                              style: TextStyle(color: AppColorScheme.textMuted),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   }
 
-                  return RefreshIndicator(
-                    onRefresh: () async => _loadAppointments(isRefresh: true),
-                    child: AppListView.builder(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.all(24),
-                      itemCount: state.hasReachedMax
-                          ? state.appointments.length
-                          : state.appointments.length + 1,
-                      itemBuilder: (context, index) {
-                        if (index >= state.appointments.length) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                        return _buildAppointmentItem(state.appointments[index]);
-                      },
+                  return SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          if (index >= state.appointments.length) {
+                            return const Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
+                          return _buildAppointmentItem(state.appointments[index]);
+                        },
+                        childCount: state.hasReachedMax
+                            ? state.appointments.length
+                            : state.appointments.length + 1,
+                      ),
                     ),
                   );
                 },
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         floatingActionButton: context.hasPermission('appointments.create') 
           ? FloatingActionButton.extended(
@@ -323,8 +343,8 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       }
     });
 
-    return Transform.translate(
-      offset: const Offset(0, -20),
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
       child: BlocBuilder<AppointmentsBloc, AppointmentsState>(
         builder: (context, state) {
           return Container(
@@ -442,8 +462,8 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   }
 
   Widget _buildFullCalendar() {
-    return Transform.translate(
-      offset: const Offset(0, -20),
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
       child: BlocBuilder<AppointmentsBloc, AppointmentsState>(
         builder: (context, state) {
           return Container(
@@ -465,8 +485,35 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
               lastDay: DateTime.utc(2030, 12, 31),
               focusedDay: _selectedDate,
               currentDay: _selectedDate,
-              calendarFormat: CalendarFormat.month,
-              headerVisible: false,
+              calendarFormat: _calendarFormat,
+              headerVisible: true,
+              headerStyle: HeaderStyle(
+                formatButtonVisible: true,
+                formatButtonShowsNext: false,
+                formatButtonDecoration: BoxDecoration(
+                  color: AppColorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                formatButtonTextStyle: AppTypography.labelSmall.copyWith(
+                  color: AppColorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+                leftChevronVisible: false,
+                rightChevronVisible: false,
+                headerPadding: const EdgeInsets.only(bottom: 8),
+              ),
+              availableCalendarFormats: const {
+                CalendarFormat.month: 'شهر',
+                CalendarFormat.twoWeeks: 'أسبوعين',
+                CalendarFormat.week: 'أسبوع',
+              },
+              onFormatChanged: (format) {
+                if (_calendarFormat != format) {
+                  setState(() {
+                    _calendarFormat = format;
+                  });
+                }
+              },
               daysOfWeekStyle: DaysOfWeekStyle(
                 weekdayStyle: AppTypography.labelSmall,
                 weekendStyle: AppTypography.labelSmall.copyWith(color: AppColorScheme.textMuted),
@@ -663,11 +710,14 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            AppText(
-                              appointment.clientName!,
-                              style: AppTypography.bodyMedium.copyWith(
-                                color: AppColorScheme.primary,
-                                decoration: TextDecoration.underline,
+                            Flexible(
+                              child: AppText(
+                                appointment.clientName!,
+                                style: AppTypography.bodyMedium.copyWith(
+                                  color: AppColorScheme.primary,
+                                  decoration: TextDecoration.underline,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             if (appointment.clientStatusName != null) ...[
