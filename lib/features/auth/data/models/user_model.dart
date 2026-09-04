@@ -20,9 +20,11 @@ class UserModel extends UserEntity {
           : (json['role_id'] != null
                 ? RoleModel(id: json['role_id'], name: 'Unknown')
                 : const RoleModel(id: 0, name: 'Guest')),
-      permissions: json['permissions'] != null 
+      permissions: (json['permissions'] != null)
           ? Set<String>.from((json['permissions'] as List).map((e) => e is Map ? e['name'].toString() : e.toString()))
-          : const <String>{},
+          : (json['permissions_list'] != null)
+              ? Set<String>.from((json['permissions_list'] as List).map((e) => e.toString()))
+              : const <String>{},
       team: json['team'] != null ? TeamModel.fromJson(json['team']) : null,
     );
   }

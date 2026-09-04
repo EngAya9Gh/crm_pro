@@ -8,6 +8,8 @@ extension PermissionExtension on BuildContext {
     try {
       final authState = read<AuthCubit>().state;
       if (authState is AuthAuthenticated) {
+        print('Checking permission: $permission');
+        print('User permissions: ${authState.user.permissions}');
         // البحث في Set سريع جداً O(1)
         return authState.user.permissions.contains(permission);
       }
