@@ -45,6 +45,7 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
     on<DeleteAppointmentEvent>(_onDeleteAppointment);
     on<ChangeAppointmentStatusEvent>(_onChangeStatus);
     on<GetAppointmentClientsEvent>(_onGetAppointmentClients);
+    on<LoadMonthAppointmentsDates>(_onLoadMonthAppointmentsDates);
   }
 
   // ... (existing handlers)
@@ -59,8 +60,36 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
       (failure) => emit(
         state.copyWith(isClientsLoading: false, errorMessage: failure.message),
       ),
-      (list) =>
-          emit(state.copyWith(isClientsLoading: false, clientList: list.items)),
+      (list) => emit(
+        state.copyWith(isClientsLoading: false, clientList: list.items),
+      ),
+    );
+  }
+
+  Future<void> _onLoadMonthAppointmentsDates(
+    LoadMonthAppointmentsDates event,
+    Emitter<AppointmentsState> emit,
+  ) async {
+    final firstDay = DateTime(event.month.year, event.month.month, 1);
+    final lastDay = DateTime(event.month.year, event.month.month + 1, 0, 23, 59, 59);
+    
+    // Fetch with a large limit just for indicators
+    final result = await getAppointments(
+      dateFrom: firstDay,
+      dateTo: lastDay,
+    );
+    
+    result.fold(
+      (failure) {
+        print("❌ Failed to load month dates: ${failure.message}");
+      },
+      (data) {
+        final dates = data.items
+            .map((e) => "${e.startAt.year}-${e.startAt.month.toString().padLeft(2, '0')}-${e.startAt.day.toString().padLeft(2, '0')}")
+            .toList();
+        print("✅ Loaded month dates (${dates.length}): $dates");
+        emit(state.copyWith(monthAppointmentsDates: dates));
+      },
     );
   }
 
@@ -104,14 +133,25 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
           errorMessage: failure.message,
         ),
       ),
-      (paginatedList) => emit(
-        state.copyWith(
-          status: AppointmentsStatus.success,
-          appointments: paginatedList.items,
-          page: paginatedList.currentPage,
-          hasReachedMax: paginatedList.currentPage >= paginatedList.lastPage,
-        ),
-      ),
+      (paginatedList) {
+        // Update month indicators: add current day if it has appointments
+        final updatedDates = List<String>.from(state.monthAppointmentsDates);
+        if (event.dateFrom != null) {
+          final dayStr = "${event.dateFrom!.year}-${event.dateFrom!.month.toString().padLeft(2, '0')}-${event.dateFrom!.day.toString().padLeft(2, '0')}";
+          if (paginatedList.items.isNotEmpty && !updatedDates.contains(dayStr)) {
+            updatedDates.add(dayStr);
+          }
+        }
+        emit(
+          state.copyWith(
+            status: AppointmentsStatus.success,
+            appointments: paginatedList.items,
+            page: paginatedList.currentPage,
+            hasReachedMax: paginatedList.currentPage >= paginatedList.lastPage,
+            monthAppointmentsDates: updatedDates,
+          ),
+        );
+      },
     );
   }
 

@@ -12,6 +12,8 @@ class AppointmentModel extends Appointment {
     super.location,
     super.clientName,
     super.clientId,
+    super.clientStatusName,
+    super.clientStatusColor,
   });
 
   factory AppointmentModel.fromJson(Map<String, dynamic> json) {
@@ -32,6 +34,12 @@ class AppointmentModel extends Appointment {
       clientId: json['client'] is Map
           ? int.tryParse(json['client']['id']?.toString() ?? '0')
           : int.tryParse(json['client_id']?.toString() ?? '0'),
+      clientStatusName: json['client'] is Map && json['client']['status'] is Map
+          ? json['client']['status']['name']
+          : null,
+      clientStatusColor: json['client'] is Map && json['client']['status'] is Map
+          ? json['client']['status']['color']
+          : null,
     );
   }
 

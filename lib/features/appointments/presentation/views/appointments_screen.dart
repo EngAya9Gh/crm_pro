@@ -11,9 +11,15 @@ import 'package:crm_wakeel/core/services/di/di_container.dart';
 import '../bloc/appointments_bloc.dart';
 import '../bloc/appointments_event.dart';
 import '../bloc/appointments_state.dart';
+import 'package:table_calendar/table_calendar.dart';
 import '../../domain/entities/appointment.dart';
 import 'appointment_details_screen.dart';
 import 'add_edit_appointment_screen.dart';
+import '../../../clients/presentation/views/client_profile_screen.dart' as crm_client;
+import '../../../clients/presentation/bloc/clients_bloc.dart' as crm_client_bloc;
+import '../../../clients/domain/entities/client.dart' as client_entity;
+import '../../../clients/domain/entities/client_enums.dart' as client_enums;
+import '../../../clients/domain/entities/status_entity.dart' as status_entity;
 
 class AppointmentsScreen extends StatefulWidget {
   const AppointmentsScreen({super.key});
@@ -26,11 +32,14 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   late final AppointmentsBloc _appointmentsBloc;
   DateTime _selectedDate = DateTime.now();
   final ScrollController _scrollController = ScrollController();
+  final ScrollController _calendarScrollController = ScrollController();
+  bool _isCalendarView = false;
 
   @override
   void initState() {
     super.initState();
     _appointmentsBloc = getIt<AppointmentsBloc>();
+    _appointmentsBloc.add(LoadMonthAppointmentsDates(_selectedDate));
     _loadAppointments();
     _scrollController.addListener(_onScroll);
   }
@@ -39,6 +48,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   void dispose() {
     _appointmentsBloc.close();
     _scrollController.dispose();
+    _calendarScrollController.dispose();
     super.dispose();
   }
 
@@ -81,7 +91,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         body: Column(
           children: [
             _buildHeader(),
-            _buildCalendarStrip(),
+            if (_isCalendarView)
+              _buildFullCalendar()
+            else
+              _buildCalendarStrip(),
             const SizedBox(height: 24),
             _buildListHeader(),
             Expanded(
@@ -196,12 +209,76 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AppText(
-            DateFormat('MMMM yyyy', 'ar').format(_selectedDate),
-            style: AppTypography.titleLarge.copyWith(
-              color: AppColorScheme.white,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              InkWell(
+                onTap: () async {
+                  final DateTime? picked = await showDatePicker(
+                    context: context,
+                    initialDate: _selectedDate,
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime(2030),
+                    builder: (context, child) {
+                      return Theme(
+                        data: Theme.of(context).copyWith(
+                          colorScheme: const ColorScheme.light(
+                            primary: AppColorScheme.primary,
+                            onPrimary: Colors.white,
+                            onSurface: AppColorScheme.textPrimary,
+                          ),
+                        ),
+                        child: child!,
+                      );
+                    },
+                  );
+                  if (picked != null && picked != _selectedDate) {
+                    setState(() {
+                      _selectedDate = picked;
+                    });
+                    _loadAppointments(isRefresh: true);
+                  }
+                },
+                child: Row(
+                  children: [
+                    AppText(
+                      DateFormat('MMMM yyyy', 'ar').format(_selectedDate),
+                      style: AppTypography.titleLarge.copyWith(
+                        color: AppColorScheme.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Icon(Icons.arrow_drop_down, color: Colors.white),
+                  ],
+                ),
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.chevron_right, color: Colors.white),
+                    onPressed: () {
+                      setState(() {
+                        // Subtract a month (using 1st day to avoid overflow issues like Mar 31 -> Feb 28)
+                        _selectedDate = DateTime(_selectedDate.year, _selectedDate.month - 1, 1);
+                      });
+                      _appointmentsBloc.add(LoadMonthAppointmentsDates(_selectedDate));
+                      _loadAppointments(isRefresh: true);
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.chevron_left, color: Colors.white),
+                    onPressed: () {
+                      setState(() {
+                        // Add a month
+                        _selectedDate = DateTime(_selectedDate.year, _selectedDate.month + 1, 1);
+                      });
+                      _appointmentsBloc.add(LoadMonthAppointmentsDates(_selectedDate));
+                      _loadAppointments(isRefresh: true);
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
           const SizedBox(height: 4),
           BlocBuilder<AppointmentsBloc, AppointmentsState>(
@@ -224,88 +301,209 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   }
 
   Widget _buildCalendarStrip() {
+    final int daysInMonth = DateTime(_selectedDate.year, _selectedDate.month + 1, 0).day;
+    
+    // Auto-scroll to the selected day if possible
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_calendarScrollController.hasClients) {
+        // Approximate width of a calendar item (around 64 width + 8 spacing)
+        final double targetScroll = (_selectedDate.day - 1) * 72.0;
+        // Don't scroll beyond max scroll extent
+        final double maxScroll = _calendarScrollController.position.maxScrollExtent;
+        final double finalScroll = targetScroll > maxScroll ? maxScroll : targetScroll;
+        
+        _calendarScrollController.animateTo(
+          finalScroll,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+
     return Transform.translate(
       offset: const Offset(0, -20),
-      child: Container(
-        height: 110, // Increased from 100 to prevent overflow
-        margin: const EdgeInsets.symmetric(horizontal: 20),
-        decoration: BoxDecoration(
-          color: AppColorScheme.background,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: AppColorScheme.black.withValues(alpha: 0.05),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
+      child: BlocBuilder<AppointmentsBloc, AppointmentsState>(
+        builder: (context, state) {
+          return Container(
+            height: 100,
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            decoration: BoxDecoration(
+              color: AppColorScheme.background,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColorScheme.black.withValues(alpha: 0.05),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: AppListView.builder(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          itemCount: 60, // Show 2 months
-          itemBuilder: (context, index) {
-            final date = DateTime.now()
-                .subtract(const Duration(days: 7))
-                .add(Duration(days: index));
-            final isSelected =
-                date.day == _selectedDate.day &&
-                date.month == _selectedDate.month &&
-                date.year == _selectedDate.year;
+            child: ListView.builder(
+              controller: _calendarScrollController,
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              itemCount: daysInMonth,
+              itemBuilder: (context, index) {
+                final date = DateTime(_selectedDate.year, _selectedDate.month, index + 1);
+                final isSelected =
+                    date.day == _selectedDate.day &&
+                    date.month == _selectedDate.month &&
+                    date.year == _selectedDate.year;
+                final dateStr = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+                final hasAppointments = state.monthAppointmentsDates.contains(dateStr);
 
-            return GestureDetector(
-              onTap: () {
-                setState(() => _selectedDate = date);
+                return GestureDetector(
+                  onTap: () {
+                    setState(() => _selectedDate = date);
+                    _loadAppointments(isRefresh: true);
+                  },
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.center,
+                    children: [
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        width: 64,
+                        height: 72,
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          gradient: isSelected
+                              ? const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [AppColorScheme.primary, Color(0xFFFF8533)],
+                                )
+                              : null,
+                          color: isSelected ? null : AppColorScheme.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: isSelected
+                              ? null
+                              : Border.all(color: AppColorScheme.grey100),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            AppText(
+                              _getWeekDayName(date.weekday),
+                              style: AppTypography.labelSmall.copyWith(
+                                color: isSelected
+                                    ? AppColorScheme.white.withValues(alpha: 0.9)
+                                    : AppColorScheme.textMuted,
+                                fontSize: 10,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            AppText(
+                              '${date.day}',
+                              style: AppTypography.titleMedium.copyWith(
+                                color: isSelected
+                                    ? AppColorScheme.white
+                                    : AppColorScheme.textMain,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Dot badge — top-right corner
+                      if (hasAppointments)
+                        Positioned(
+                          top: 0,
+                          right: 4,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: isSelected ? AppColorScheme.white : AppColorScheme.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isSelected
+                                    ? AppColorScheme.primary.withValues(alpha: 0.5)
+                                    : AppColorScheme.white,
+                                width: 1.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFullCalendar() {
+    return Transform.translate(
+      offset: const Offset(0, -20),
+      child: BlocBuilder<AppointmentsBloc, AppointmentsState>(
+        builder: (context, state) {
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+            decoration: BoxDecoration(
+              color: AppColorScheme.background,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColorScheme.black.withValues(alpha: 0.05),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: TableCalendar(
+              firstDay: DateTime.utc(2020, 1, 1),
+              lastDay: DateTime.utc(2030, 12, 31),
+              focusedDay: _selectedDate,
+              currentDay: _selectedDate,
+              calendarFormat: CalendarFormat.month,
+              headerVisible: false,
+              daysOfWeekStyle: DaysOfWeekStyle(
+                weekdayStyle: AppTypography.labelSmall,
+                weekendStyle: AppTypography.labelSmall.copyWith(color: AppColorScheme.textMuted),
+              ),
+              onDaySelected: (selectedDay, focusedDay) {
+                setState(() {
+                  _selectedDate = selectedDay;
+                });
                 _loadAppointments(isRefresh: true);
               },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                width: 58, // Increased width slightly
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  gradient: isSelected
-                      ? const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [AppColorScheme.primary, Color(0xFFFF8533)],
-                        )
-                      : null,
-                  color: isSelected ? null : AppColorScheme.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  border: isSelected
-                      ? null
-                      : Border.all(color: AppColorScheme.grey100),
+              onPageChanged: (focusedDay) {
+                setState(() => _selectedDate = focusedDay);
+                _appointmentsBloc.add(LoadMonthAppointmentsDates(focusedDay));
+                _loadAppointments(isRefresh: true);
+              },
+              eventLoader: (day) {
+                final dateStr = "${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}";
+                if (state.monthAppointmentsDates.contains(dateStr)) {
+                  return ['event'];
+                }
+                return [];
+              },
+              calendarStyle: CalendarStyle(
+                markerDecoration: const BoxDecoration(
+                  color: AppColorScheme.primary,
+                  shape: BoxShape.circle,
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AppText(
-                      _getWeekDayName(date.weekday),
-                      style: AppTypography.labelSmall.copyWith(
-                        color: isSelected
-                            ? AppColorScheme.white.withValues(alpha: 0.9)
-                            : AppColorScheme.textMuted,
-                        fontSize: 9, // Reduced from 10
-                      ),
-                    ),
-                    const SizedBox(height: 1), // Reduced from 2
-                    AppText(
-                      '${date.day}',
-                      style: AppTypography.titleMedium.copyWith(
-                        color: isSelected
-                            ? AppColorScheme.white
-                            : AppColorScheme.textMain,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14, // Explicitly set smaller font size
-                      ),
-                    ),
-                  ],
+                selectedDecoration: const BoxDecoration(
+                  color: AppColorScheme.primary,
+                  shape: BoxShape.circle,
                 ),
+                todayDecoration: BoxDecoration(
+                  color: AppColorScheme.primary.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                todayTextStyle: AppTypography.bodyMedium.copyWith(color: AppColorScheme.primary),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -334,6 +532,17 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                 ),
               ),
             ],
+          ),
+          IconButton(
+            icon: Icon(
+              _isCalendarView ? Icons.view_agenda_outlined : Icons.calendar_month_outlined,
+              color: AppColorScheme.primary,
+            ),
+            onPressed: () {
+              setState(() {
+                _isCalendarView = !_isCalendarView;
+              });
+            },
           ),
         ],
       ),
@@ -412,10 +621,75 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                     ),
                     const SizedBox(height: 4),
                     if (appointment.clientName != null)
-                      AppText(
-                        appointment.clientName!,
-                        style: AppTypography.bodyMedium.copyWith(
-                          color: AppColorScheme.textMuted,
+                      InkWell(
+                        onTap: appointment.clientId != null
+                            ? () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => BlocProvider(
+                                      create: (_) => getIt<crm_client_bloc.ClientsBloc>(),
+                                      child: crm_client.ClientProfileScreen(
+                                        client: client_entity.Client(
+                                          id: appointment.clientId!.toString(),
+                                          name: appointment.clientName ?? 'بدون اسم',
+                                          phone: '',
+                                          region: '',
+                                          city: '',
+                                          status: const status_entity.StatusEntity(
+                                            id: 0,
+                                            name: 'غير محدد',
+                                            color: '#000000',
+                                          ),
+                                          priority: client_enums.ClientPriority.low,
+                                          sourceStatus: client_enums.SourceStatus.valid,
+                                          createdAt: DateTime.now(),
+                                          tags: const [],
+                                          files: const [],
+                                          comments: const [],
+                                          invoices: const [],
+                                          appointments: const [],
+                                          timeline: const [],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                            : null,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            AppText(
+                              appointment.clientName!,
+                              style: AppTypography.bodyMedium.copyWith(
+                                color: AppColorScheme.primary,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                            if (appointment.clientStatusName != null) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: (appointment.clientStatusColor != null 
+                                          ? Color(int.parse(appointment.clientStatusColor!.replaceFirst('#', '0xFF'))) 
+                                          : AppColorScheme.primary).withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: AppText(
+                                  appointment.clientStatusName!,
+                                  style: AppTypography.labelSmall.copyWith(
+                                    color: appointment.clientStatusColor != null 
+                                          ? Color(int.parse(appointment.clientStatusColor!.replaceFirst('#', '0xFF'))) 
+                                          : AppColorScheme.primary,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                     const SizedBox(height: 16),
@@ -433,21 +707,31 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                             color: AppColorScheme.textMuted,
                           ),
                         ),
-                        const Spacer(),
-                        if (appointment.location != null) ...[
-                          const Icon(
-                            Icons.location_on_outlined,
-                            size: 14,
-                            color: AppColorScheme.primary,
-                          ),
-                          const SizedBox(width: 4),
-                          AppText(
-                            appointment.location!,
-                            style: AppTypography.labelSmall.copyWith(
-                              color: AppColorScheme.primary,
+                        const SizedBox(width: 16),
+                        if (appointment.location != null)
+                          Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                const Icon(
+                                  Icons.location_on_outlined,
+                                  size: 14,
+                                  color: AppColorScheme.primary,
+                                ),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: AppText(
+                                    appointment.location!.replaceAll('\n', ' '),
+                                    style: AppTypography.labelSmall.copyWith(
+                                      color: AppColorScheme.primary,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
                       ],
                     ),
                   ],
@@ -479,6 +763,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       case 'pending':
         color = AppColorScheme.warning;
         label = 'قيد الانتظار';
+        break;
+      case 'no_show':
+        color = AppColorScheme.error;
+        label = 'لم يحضر';
         break;
       default:
         color = AppColorScheme.textMuted;

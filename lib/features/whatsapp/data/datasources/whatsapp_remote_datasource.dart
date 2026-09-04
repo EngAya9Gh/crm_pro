@@ -23,9 +23,9 @@ class WhatsappRemoteDataSourceImpl implements WhatsappRemoteDataSource {
       EndPoints.whatsappThreads,
       queryParameters: {'page': page},
       fromJson: (json) {
-        final data = json as Map<String, dynamic>;
-        final threadsList = (data['threads'] as List?) ?? (data['data'] as List?) ?? [];
-        return threadsList.map((e) => WhatsappThreadModel.fromJson(e)).toList();
+        final map = json as Map<String, dynamic>;
+        final threadsList = map['threads'] as List<dynamic>? ?? [];
+        return threadsList.map((e) => WhatsappThreadModel.fromJson(e as Map<String, dynamic>)).toList();
       },
     );
     return response.data ?? [];
@@ -37,9 +37,9 @@ class WhatsappRemoteDataSourceImpl implements WhatsappRemoteDataSource {
       EndPoints.whatsappThreadMessages(threadId),
       queryParameters: {'page': page},
       fromJson: (json) {
-        final data = json as Map<String, dynamic>;
-        final messagesList = (data['messages'] as List?) ?? (data['data'] as List?) ?? [];
-        return messagesList.reversed.map((e) => WhatsappMessageModel.fromJson(e)).toList();
+        final map = json as Map<String, dynamic>;
+        final messagesList = map['messages'] as List<dynamic>? ?? [];
+        return messagesList.reversed.map((e) => WhatsappMessageModel.fromJson(e as Map<String, dynamic>)).toList();
       },
     );
     return response.data ?? [];

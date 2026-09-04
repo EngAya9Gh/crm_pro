@@ -22,6 +22,8 @@ class AppointmentsState extends Equatable {
   final List<ClientBrief> clientList;
   final bool isClientsLoading;
 
+  final List<String> monthAppointmentsDates;
+
   const AppointmentsState({
     this.status = AppointmentsStatus.initial,
     this.appointments = const [],
@@ -34,6 +36,7 @@ class AppointmentsState extends Equatable {
     this.operationMessage = '',
     this.clientList = const [],
     this.isClientsLoading = false,
+    this.monthAppointmentsDates = const [],
   });
 
   AppointmentsState copyWith({
@@ -48,6 +51,7 @@ class AppointmentsState extends Equatable {
     String? operationMessage,
     List<ClientBrief>? clientList,
     bool? isClientsLoading,
+    List<String>? monthAppointmentsDates,
   }) {
     return AppointmentsState(
       status: status ?? this.status,
@@ -61,6 +65,7 @@ class AppointmentsState extends Equatable {
       operationMessage: operationMessage ?? this.operationMessage,
       clientList: clientList ?? this.clientList,
       isClientsLoading: isClientsLoading ?? this.isClientsLoading,
+      monthAppointmentsDates: monthAppointmentsDates ?? this.monthAppointmentsDates,
     );
   }
 
@@ -77,5 +82,6 @@ class AppointmentsState extends Equatable {
     operationMessage,
     clientList,
     isClientsLoading,
+    monthAppointmentsDates,
   ];
 }

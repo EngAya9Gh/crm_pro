@@ -175,11 +175,12 @@ class GenericLookupView extends StatelessWidget {
       id = item.id;
     } catch (_) {}
 
+    Color circleColor = AppColorScheme.primary;
+
     if (item is StatusEntity) {
-      // Assuming color is hex string? Or Color object? Entity usually has helper.
-      // If it's a string like "#FFFFFF", we might need parsing.
-      // Usually entities don't have Color objects but strings.
-      // Let's assume it's just a string for now or ignored.
+      try {
+        circleColor = Color(int.parse(item.color.replaceFirst('#', '0xFF')));
+      } catch (_) {}
     }
 
     if (item is Product) {
@@ -216,13 +217,13 @@ class GenericLookupView extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: AppColorScheme.primary.withOpacity(0.1),
+            color: circleColor.withOpacity(0.1),
             shape: BoxShape.circle,
           ),
-          child: const Icon(
+          child: Icon(
             Icons.circle,
             size: 12,
-            color: AppColorScheme.primary,
+            color: circleColor,
           ),
         ),
         trailing: Row(
@@ -250,7 +251,7 @@ class GenericLookupView extends StatelessWidget {
     );
   }
 
-  void _showAddEditDialog(BuildContext context, {dynamic item}) {
+  void _showAddEditDialog(BuildContext screenContext, {dynamic item}) {
     final nameController = TextEditingController(text: item?.name ?? '');
     final extraController =
         TextEditingController(); // For price, description, etc.
@@ -260,7 +261,7 @@ class GenericLookupView extends StatelessWidget {
     dynamic selectedRegion;
     List<RegionEntity> regions = [];
     if (type == LookupType.city) {
-      final state = context.read<LookupsBloc>().state;
+      final state = screenContext.read<LookupsBloc>().state;
       if (state is LookupsLoaded) {
         regions = state.lookups.regions;
         if (isEditing && item is CityEntity) {
@@ -271,12 +272,22 @@ class GenericLookupView extends StatelessWidget {
       }
     }
 
+    // Special handling for Status (Color picker)
+    String selectedColor = '#9CA3AF';
+    if (isEditing && item is StatusEntity) {
+      selectedColor = item.color;
+    }
+    final List<String> statusColors = [
+      '#9CA3AF', '#3B82F6', '#8B5CF6', '#F59E0B', 
+      '#EF4444', '#10B981', '#34D399', '#F472B6', '#60A5FA'
+    ];
+
     if (item is Product) {
       extraController.text = item.price.toString();
     }
 
     showModalBottomSheet(
-      context: context,
+      context: screenContext,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (dialogContext) {
@@ -341,6 +352,41 @@ class GenericLookupView extends StatelessWidget {
                         },
                       ),
 
+                    if (type == LookupType.status)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 16),
+                          AppText('اللون', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: statusColors.map((colorHex) {
+                              final color = Color(int.parse(colorHex.replaceFirst('#', '0xFF')));
+                              final isSelected = selectedColor == colorHex;
+                              return GestureDetector(
+                                onTap: () => setState(() => selectedColor = colorHex),
+                                child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: color,
+                                    shape: BoxShape.circle,
+                                    border: isSelected
+                                        ? Border.all(color: AppColorScheme.textMain, width: 3)
+                                        : null,
+                                  ),
+                                  child: isSelected 
+                                      ? const Icon(Icons.check, color: Colors.white, size: 20) 
+                                      : null,
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: () {
@@ -358,8 +404,11 @@ class GenericLookupView extends StatelessWidget {
                           if (selectedRegion == null) return;
                           data['region_id'] = selectedRegion.id;
                         }
+                        if (type == LookupType.status) {
+                          data['color'] = selectedColor;
+                        }
 
-                        final bloc = context.read<SettingsCrudBloc>();
+                        final bloc = screenContext.read<SettingsCrudBloc>();
 
                         if (isEditing) {
                           _dispatchUpdate(bloc, type, item.id, data);

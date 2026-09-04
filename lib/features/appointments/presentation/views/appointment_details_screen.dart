@@ -5,9 +5,16 @@ import 'package:crm_wakeel/core/common/widgets/app_text.dart';
 import 'package:crm_wakeel/core/common/widgets/app_scaffold.dart';
 import 'package:crm_wakeel/core/config/theme/color_scheme.dart';
 import 'package:crm_wakeel/core/config/theme/typography.dart';
+import '../../../clients/presentation/views/client_profile_screen.dart' as crm_client;
+import '../../../clients/presentation/bloc/clients_bloc.dart' as crm_client_bloc;
+import '../../../clients/domain/entities/client.dart' as client_entity;
+import '../../../clients/domain/entities/client_enums.dart' as client_enums;
+import '../../../clients/domain/entities/status_entity.dart' as status_entity;
+import '../../domain/entities/appointment.dart';
 import '../bloc/appointments_bloc.dart';
 import '../bloc/appointments_event.dart';
 import '../bloc/appointments_state.dart';
+import 'package:crm_wakeel/core/services/di/di_container.dart';
 import 'add_edit_appointment_screen.dart';
 
 class AppointmentDetailsScreen extends StatefulWidget {
@@ -132,19 +139,60 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
                 ),
                 const SizedBox(height: 8),
                 if (appointment.clientName != null) ...[
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.person_outline,
-                        size: 18,
-                        color: AppColorScheme.textMuted,
-                      ),
-                      const SizedBox(width: 8),
-                      AppText(
-                        appointment.clientName!,
-                        style: AppTypography.bodyMedium,
-                      ),
-                    ],
+                  InkWell(
+                    onTap: appointment.clientId != null
+                        ? () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => BlocProvider(
+                                  create: (_) => getIt<crm_client_bloc.ClientsBloc>(),
+                                  child: crm_client.ClientProfileScreen(
+                                    client: client_entity.Client(
+                                      id: appointment.clientId!.toString(),
+                                      name: appointment.clientName ?? 'بدون اسم',
+                                      phone: '',
+                                      region: '',
+                                      city: '',
+                                      status: const status_entity.StatusEntity(
+                                        id: 0,
+                                        name: 'غير محدد',
+                                        color: '#000000',
+                                      ),
+                                      priority: client_enums.ClientPriority.low,
+                                      sourceStatus: client_enums.SourceStatus.valid,
+                                      createdAt: DateTime.now(),
+                                      tags: const [],
+                                      files: const [],
+                                      comments: const [],
+                                      invoices: const [],
+                                      appointments: const [],
+                                      timeline: const [],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                        : null,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.person_outline,
+                          size: 18,
+                          color: AppColorScheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        AppText(
+                          appointment.clientName!,
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: AppColorScheme.primary,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 16),
                 ],

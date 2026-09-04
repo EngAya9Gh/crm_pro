@@ -40,6 +40,14 @@ class LoadAppointments extends AppointmentsEvent {
 
 class LoadMoreAppointments extends AppointmentsEvent {}
 
+class LoadMonthAppointmentsDates extends AppointmentsEvent {
+  final DateTime month;
+  const LoadMonthAppointmentsDates(this.month);
+  
+  @override
+  List<Object?> get props => [month];
+}
+
 class GetAppointmentDetailsEvent extends AppointmentsEvent {
   final int id;
   const GetAppointmentDetailsEvent(this.id);
