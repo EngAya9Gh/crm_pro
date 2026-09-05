@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/config/theme/color_scheme.dart';
 import '../../../../core/config/theme/typography.dart';
+import 'package:crm_wakeel/core/utils/permission_extension.dart';
 
 import '../../../../core/utils/app_strings.dart';
 import '../../../../core/common/widgets/app_text.dart';
@@ -132,38 +133,40 @@ class ClientProfileScreen extends StatelessWidget {
               ),
               onPressed: () => _downloadPdf(context),
             ),
-            IconButton(
-              icon: const Icon(
-                Icons.calendar_today_outlined,
-                color: AppColorScheme.textMain,
-              ),
-              onPressed: () {
-                // Navigate to Add Appointment Screen
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('سيتم إضافة شاشة حجز موعد قريباً'),
-                  ),
-                );
-              },
-            ),
-            IconButton(
-              icon: const Icon(
-                Icons.edit_outlined,
-                color: AppColorScheme.textMain,
-              ),
-              onPressed: () {
-                final clientsBloc = context.read<ClientsBloc>();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BlocProvider.value(
-                      value: clientsBloc,
-                      child: AddClientScreen(client: client),
+            if (context.hasPermission('appointments.create'))
+              IconButton(
+                icon: const Icon(
+                  Icons.calendar_today_outlined,
+                  color: AppColorScheme.textMain,
+                ),
+                onPressed: () {
+                  // Navigate to Add Appointment Screen
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('سيتم إضافة شاشة حجز موعد قريباً'),
                     ),
-                  ),
-                );
-              },
-            ),
+                  );
+                },
+              ),
+            if (context.hasPermission('clients.update'))
+              IconButton(
+                icon: const Icon(
+                  Icons.edit_outlined,
+                  color: AppColorScheme.textMain,
+                ),
+                onPressed: () {
+                  final clientsBloc = context.read<ClientsBloc>();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BlocProvider.value(
+                        value: clientsBloc,
+                        child: AddClientScreen(client: client),
+                      ),
+                    ),
+                  );
+                },
+              ),
             PopupMenuButton<String>(
               onSelected: (value) {
                 if (value == 'delete') {

@@ -44,6 +44,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
         IconButton(
           icon: const Icon(Icons.edit_outlined),
           onPressed: () {
+            context.read<AppointmentsBloc>().add(ResetAppointmentOperationStatusEvent());
             Navigator.push(
               context,
               MaterialPageRoute(

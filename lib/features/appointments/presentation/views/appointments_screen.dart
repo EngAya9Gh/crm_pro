@@ -197,6 +197,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         floatingActionButton: context.hasPermission('appointments.create') 
           ? FloatingActionButton.extended(
               onPressed: () {
+                _appointmentsBloc.add(ResetAppointmentOperationStatusEvent());
                 Navigator.push(
                   context,
                   MaterialPageRoute(

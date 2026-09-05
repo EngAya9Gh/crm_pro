@@ -19,9 +19,9 @@ class TimelineEventModel extends TimelineEvent {
       ),
       description: json['description'] ?? '',
       occurredAt:
-          DateTime.tryParse(json['occurred_at']?.toString() ?? '') ??
+          DateTime.tryParse(json['occurred_at']?.toString() ?? json['created_at']?.toString() ?? '')?.toLocal() ??
           DateTime.now(),
-      performedBy: json['performed_by'],
+      performedBy: json['performed_by']?.toString() ?? (json['user'] != null ? json['user']['name']?.toString() : null),
       metadata: json['metadata'],
     );
   }

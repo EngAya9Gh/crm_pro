@@ -46,6 +46,11 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
     on<ChangeAppointmentStatusEvent>(_onChangeStatus);
     on<GetAppointmentClientsEvent>(_onGetAppointmentClients);
     on<LoadMonthAppointmentsDates>(_onLoadMonthAppointmentsDates);
+    on<ResetAppointmentOperationStatusEvent>(
+      (event, emit) => emit(
+        state.copyWith(operationStatus: AppointmentOperationStatus.initial),
+      ),
+    );
   }
 
   // ... (existing handlers)

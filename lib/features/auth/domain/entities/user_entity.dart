@@ -6,6 +6,7 @@ class UserEntity extends Equatable {
   final String email;
   final RoleEntity role;
   final TeamEntity? team;
+  final TenantEntity? tenant;
   final Set<String> permissions;
 
   const UserEntity({
@@ -15,10 +16,11 @@ class UserEntity extends Equatable {
     required this.role,
     required this.permissions,
     this.team,
+    this.tenant,
   });
 
   @override
-  List<Object?> get props => [id, name, email, role, team, permissions];
+  List<Object?> get props => [id, name, email, role, team, tenant, permissions];
 }
 
 class RoleEntity extends Equatable {
@@ -39,4 +41,19 @@ class TeamEntity extends Equatable {
 
   @override
   List<Object?> get props => [id, name];
+}
+
+class TenantEntity extends Equatable {
+  final int id;
+  final String name;
+  final Set<String> enabledFeatures;
+
+  const TenantEntity({
+    required this.id,
+    required this.name,
+    required this.enabledFeatures,
+  });
+
+  @override
+  List<Object?> get props => [id, name, enabledFeatures];
 }

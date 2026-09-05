@@ -20,6 +20,7 @@ import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
 import '../widgets/dashboard_stat_card.dart';
 import '../widgets/dashboard_charts.dart';
+import 'package:crm_wakeel/core/utils/permission_extension.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -62,16 +63,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(width: 8),
         ],
         drawer: const AppDrawer(),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: const Color(0xFF25D366),
-          child: const Icon(Icons.chat, color: Colors.white, size: 30),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const WhatsappInboxScreen()),
-            );
-          },
-        ),
+        floatingActionButton: context.hasFeature('whatsapp')
+            ? FloatingActionButton(
+                backgroundColor: const Color(0xFF25D366),
+                child: const Icon(Icons.chat, color: Colors.white, size: 30),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const WhatsappInboxScreen()),
+                  );
+                },
+              )
+            : null,
         body: BlocBuilder<DashboardBloc, DashboardState>(
           builder: (context, state) {
             if (state.status == DashboardStatus.loading &&
@@ -226,93 +230,107 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildBentoGrid(BuildContext context, DashboardState state) {
     final summary = state.summary;
+    final bool hasClientsView = context.hasPermission('clients.view') && context.hasFeature('clients');
+    final bool hasInvoicesView = context.hasPermission('invoices.view') && context.hasFeature('invoices');
+    final bool hasAppointmentsView = context.hasPermission('appointments.view') && context.hasFeature('appointments');
+    final bool hasInventoryView = context.hasFeature('inventory');
+
     return Column(
       children: [
-        Row(
-          children: [
-            Expanded(
-              flex: 3,
-              child: DashboardStatCard(
-                title: AppStrings.totalClients,
-                value: summary?.totalClients.toString() ?? '...',
-                icon: Icons.people_alt_rounded,
-                color: AppColorScheme.info,
-                isLarge: true,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ClientsScreen(),
+        if (hasClientsView) ...[
+          Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: DashboardStatCard(
+                  title: AppStrings.totalClients,
+                  value: summary?.totalClients.toString() ?? '...',
+                  icon: Icons.people_alt_rounded,
+                  color: AppColorScheme.info,
+                  isLarge: true,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ClientsScreen(),
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              flex: 2,
-              child: DashboardStatCard(
-                title: AppStrings.activeClients,
-                value: summary?.activeClients.toString() ?? '...',
-                icon: Icons.star_rounded,
-                color: AppColorScheme.success,
+              const SizedBox(width: 16),
+              Expanded(
+                flex: 2,
+                child: DashboardStatCard(
+                  title: AppStrings.activeClients,
+                  value: summary?.activeClients.toString() ?? '...',
+                  icon: Icons.star_rounded,
+                  color: AppColorScheme.success,
+                ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: DashboardStatCard(
-                title: "الفواتير",
-                value: summary?.totalInvoices.toString() ?? '...',
-                icon: Icons.account_balance_wallet_rounded,
-                color: AppColorScheme.warning,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const InvoicesScreen(),
+            ],
+          ),
+          const SizedBox(height: 16),
+        ],
+        if (hasInvoicesView || hasAppointmentsView) ...[
+          Row(
+            children: [
+              if (hasInvoicesView)
+                Expanded(
+                  child: DashboardStatCard(
+                    title: "الفواتير",
+                    value: summary?.totalInvoices.toString() ?? '...',
+                    icon: Icons.account_balance_wallet_rounded,
+                    color: AppColorScheme.warning,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const InvoicesScreen(),
+                      ),
+                    ),
+                  ),
+                ),
+              if (hasInvoicesView && hasAppointmentsView)
+                const SizedBox(width: 16),
+              if (hasAppointmentsView)
+                Expanded(
+                  child: DashboardStatCard(
+                    title: "المواعيد",
+                    value: summary?.totalAppointments.toString() ?? '...',
+                    icon: Icons.event_available_rounded,
+                    color: AppColorScheme.primary,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AppointmentsScreen(),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+        ],
+        if (hasInventoryView) ...[
+          Row(
+            children: [
+              Expanded(
+                child: DashboardStatCard(
+                  title: "المخزون",
+                  value: "فحص",
+                  icon: Icons.qr_code_scanner_rounded,
+                  color: AppColorScheme.secondary,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const StockCheckScreen(),
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: DashboardStatCard(
-                title: "المواعيد",
-                value: summary?.totalAppointments.toString() ?? '...',
-                icon: Icons.event_available_rounded,
-                color: AppColorScheme.primary,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AppointmentsScreen(),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: DashboardStatCard(
-                title: "المخزون",
-                value: "فحص",
-                icon: Icons.qr_code_scanner_rounded,
-                color: AppColorScheme.secondary,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const StockCheckScreen(),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            const Expanded(child: SizedBox()),
-          ],
-        ),
+              const SizedBox(width: 16),
+              const Expanded(child: SizedBox()),
+            ],
+          ),
+        ],
       ],
     );
   }

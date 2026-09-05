@@ -8,6 +8,7 @@ class UserModel extends UserEntity {
     required super.role,
     required super.permissions,
     super.team,
+    super.tenant,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -26,6 +27,7 @@ class UserModel extends UserEntity {
               ? Set<String>.from((json['permissions_list'] as List).map((e) => e.toString()))
               : const <String>{},
       team: json['team'] != null ? TeamModel.fromJson(json['team']) : null,
+      tenant: json['tenant'] != null ? TenantModel.fromJson(json['tenant']) : null,
     );
   }
 
@@ -37,6 +39,7 @@ class UserModel extends UserEntity {
       'role': (role as RoleModel).toJson(),
       'permissions': permissions.toList(),
       'team': team != null ? (team as TeamModel).toJson() : null,
+      'tenant': tenant != null ? (tenant as TenantModel).toJson() : null,
     };
   }
 }
@@ -59,6 +62,30 @@ class TeamModel extends TeamEntity {
   }
 
   Map<String, dynamic> toJson() => {'id': id, 'name': name};
+}
+
+class TenantModel extends TenantEntity {
+  const TenantModel({
+    required super.id,
+    required super.name,
+    required super.enabledFeatures,
+  });
+
+  factory TenantModel.fromJson(Map<String, dynamic> json) {
+    return TenantModel(
+      id: json['id'],
+      name: json['name'],
+      enabledFeatures: (json['enabled_features'] != null)
+          ? Set<String>.from((json['enabled_features'] as List).map((e) => e.toString()))
+          : const <String>{},
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'enabled_features': enabledFeatures.toList(),
+      };
 }
 
 class AuthResponseModel {

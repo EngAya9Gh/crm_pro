@@ -12,7 +12,11 @@ import 'package:crm_wakeel/features/clients/presentation/views/clients_kpi_scree
 import 'package:crm_wakeel/features/invoices/presentation/views/invoices_screen.dart';
 import 'package:crm_wakeel/features/appointments/presentation/views/appointments_screen.dart';
 import 'package:crm_wakeel/features/settings/presentation/views/settings_screen.dart';
+import 'package:crm_wakeel/features/settings/presentation/views/roles_screen.dart';
 import 'package:crm_wakeel/core/utils/permission_extension.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:crm_wakeel/features/auth/presentation/bloc/auth_cubit.dart';
+import 'package:crm_wakeel/features/auth/presentation/views/login_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -38,16 +42,16 @@ class AppDrawer extends StatelessWidget {
                   destination: const DashboardScreen(),
                   isActive: true,
                 ),
-                if (context.hasPermission('clients.view'))
+                if (context.hasPermission('clients.view') && context.hasFeature('clients'))
                   _buildExpandableClientsMenu(context),
-                if (context.hasPermission('invoices.view'))
+                if (context.hasPermission('invoices.view') && context.hasFeature('invoices'))
                   _buildMenuItem(
                     context,
                     title: AppStrings.invoices,
                     icon: Icons.receipt_long_outlined,
                     destination: const InvoicesScreen(),
                   ),
-                if (context.hasPermission('appointments.view'))
+                if (context.hasPermission('appointments.view') && context.hasFeature('appointments'))
                   _buildMenuItem(
                     context,
                     title: AppStrings.appointments,
@@ -58,7 +62,7 @@ class AppDrawer extends StatelessWidget {
                   padding: EdgeInsets.symmetric(vertical: 20),
                   child: Divider(color: AppColorScheme.surface, thickness: 2),
                 ),
-                if (context.hasPermission('settings.view') || context.hasPermission('users.view') || context.hasPermission('teams.view'))
+                if ((context.hasPermission('settings.view') || context.hasPermission('users.view') || context.hasPermission('teams.view')) && context.hasFeature('settings'))
                   _buildMenuItem(
                     context,
                     title: AppStrings.settings,
@@ -75,6 +79,16 @@ class AppDrawer extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final authState = context.watch<AuthCubit>().state;
+    String name = "مستخدم";
+    String email = "";
+    String roleName = "";
+    if (authState is AuthAuthenticated) {
+      name = authState.user.name;
+      email = authState.user.email;
+      roleName = authState.user.role.name;
+    }
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.only(
@@ -105,30 +119,42 @@ class AppDrawer extends StatelessWidget {
                   color: AppColorScheme.primary,
                   shape: BoxShape.circle,
                 ),
-                child: const CircleAvatar(
+                child: CircleAvatar(
                   radius: 25,
                   backgroundImage: NetworkImage(
-                    'https://ui-avatars.com/api/?name=Admin&background=FF8533&color=fff',
+                    'https://ui-avatars.com/api/?name=${Uri.encodeComponent(name)}&background=FF8533&color=fff',
                   ),
                 ),
               ),
               const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppText(
-                    "مدير النظام",
-                    style: AppTypography.titleMedium.copyWith(
-                      color: AppColorScheme.white,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(
+                      name,
+                      style: AppTypography.titleMedium.copyWith(
+                        color: AppColorScheme.white,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  AppText(
-                    "admin@wakeel.sa",
-                    style: AppTypography.labelSmall.copyWith(
-                      color: AppColorScheme.silver,
+                    if (roleName.isNotEmpty)
+                      AppText(
+                        roleName,
+                        style: AppTypography.labelSmall.copyWith(
+                          color: AppColorScheme.primary.withValues(alpha: 0.8),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    AppText(
+                      email,
+                      style: AppTypography.labelSmall.copyWith(
+                        color: AppColorScheme.silver,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -186,10 +212,19 @@ class AppDrawer extends StatelessWidget {
     return ListTile(
       onTap: () {
         Navigator.pop(context);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => destination),
-        );
+        if (destination is DashboardScreen) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => destination),
+            (route) => false,
+          );
+        } else {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => destination),
+            (route) => route.isFirst,
+          );
+        }
       },
       title: AppText(
         title,
@@ -219,10 +254,19 @@ class AppDrawer extends StatelessWidget {
         onTap: () {
           if (destination != null) {
             Navigator.pop(context);
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => destination),
-            );
+            if (destination is DashboardScreen) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => destination),
+                (route) => false,
+              );
+            } else {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => destination),
+                (route) => route.isFirst,
+              );
+            }
           }
         },
         leading: Icon(
@@ -246,7 +290,15 @@ class AppDrawer extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: InkWell(
-        onTap: () {},
+        onTap: () async {
+          await context.read<AuthCubit>().logout();
+          if (context.mounted) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const LoginScreen()),
+              (route) => false,
+            );
+          }
+        },
         borderRadius: BorderRadius.circular(20),
         child: Container(
           padding: const EdgeInsets.all(16),

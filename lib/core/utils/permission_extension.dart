@@ -18,4 +18,20 @@ extension PermissionExtension on BuildContext {
     }
     return false;
   }
+
+  /// يتحقق مما إذا كان المستأجر (Tenant) يملك الميزة المطلوبة (مثلاً: whatsapp, invoices)
+  bool hasFeature(String feature) {
+    try {
+      final authState = read<AuthCubit>().state;
+      if (authState is AuthAuthenticated) {
+        final tenant = authState.user.tenant;
+        if (tenant != null) {
+          return tenant.enabledFeatures.contains(feature);
+        }
+      }
+    } catch (_) {
+      // إذا لم يكن الـ AuthCubit متاحاً في السياق الحالي
+    }
+    return false;
+  }
 }

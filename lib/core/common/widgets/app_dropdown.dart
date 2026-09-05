@@ -150,7 +150,7 @@ class AppDropdown<T> extends StatelessWidget {
           validator: validator != null ? (item) => validator!(item?.value) : null,
           decoratorProps: DropDownDecoratorProps(
             decoration: InputDecoration(
-              hintText: hint,
+              hintText: null, // Used in dropdownBuilder instead
               filled: true,
               fillColor: AppColorScheme.surface,
               border: OutlineInputBorder(

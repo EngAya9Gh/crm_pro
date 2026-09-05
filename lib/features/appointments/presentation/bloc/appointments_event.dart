@@ -91,3 +91,5 @@ class GetAppointmentClientsEvent extends AppointmentsEvent {
   @override
   List<Object?> get props => [search];
 }
+
+class ResetAppointmentOperationStatusEvent extends AppointmentsEvent {}

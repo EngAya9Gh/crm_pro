@@ -6,6 +6,7 @@ import '../../../../core/config/theme/typography.dart';
 import '../../../../core/utils/enum_helpers.dart';
 import '../../domain/entities/client.dart';
 import '../../domain/entities/client_enums.dart';
+import 'package:crm_wakeel/core/utils/permission_extension.dart';
 import '../../domain/entities/status_entity.dart';
 import '../../domain/entities/tag_entity.dart';
 import '../../data/models/client_model.dart';
@@ -252,16 +253,21 @@ class ClientCard extends StatelessWidget {
       ),
       onSelected: (value) => _handleMenuSelection(context, value),
       itemBuilder: (context) => [
-        _buildMenuItem('status', Icons.swap_horiz_rounded, 'تغيير الحالة'),
-        _buildMenuItem('edit', Icons.edit_outlined, 'تعديل'),
-        _buildMenuItem('assign', Icons.person_add_alt_1_outlined, 'إسناد'),
-        _buildMenuItem('tag', Icons.sell_outlined, 'وسم'),
-        _buildMenuItem(
-          'delete',
-          Icons.delete_outline,
-          'حذف',
-          isDestructive: true,
-        ),
+        if (context.hasPermission('clients.update'))
+          _buildMenuItem('status', Icons.swap_horiz_rounded, 'تغيير الحالة'),
+        if (context.hasPermission('clients.update'))
+          _buildMenuItem('edit', Icons.edit_outlined, 'تعديل'),
+        if (context.hasPermission('clients.assign'))
+          _buildMenuItem('assign', Icons.person_add_alt_1_outlined, 'إسناد'),
+        if (context.hasPermission('clients.update'))
+          _buildMenuItem('tag', Icons.sell_outlined, 'وسم'),
+        if (context.hasPermission('clients.delete'))
+          _buildMenuItem(
+            'delete',
+            Icons.delete_outline,
+            'حذف',
+            isDestructive: true,
+          ),
       ],
     );
   }
