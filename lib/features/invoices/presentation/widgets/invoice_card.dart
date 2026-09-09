@@ -2,8 +2,14 @@ import 'package:flutter/material.dart';
 import '../../../../core/common/widgets/app_text.dart';
 import '../../../../core/config/theme/color_scheme.dart';
 import '../../domain/entities/invoice.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
 import '../../../settings/domain/entities/lookup_entities.dart';
+import '../../../settings/presentation/bloc/lookups_bloc.dart';
+import '../../../settings/presentation/bloc/lookups_state.dart';
+import '../bloc/invoices_bloc.dart';
+import '../bloc/invoices_event.dart';
+import '../../../../core/common/widgets/app_elevated_button.dart';
 
 class InvoiceCard extends StatelessWidget {
   final Invoice invoice;
@@ -84,7 +90,43 @@ class InvoiceCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  _buildStatusBadge(invoice.status),
+                  Row(
+                    children: [
+                      _buildStatusBadge(invoice.status),
+                      PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_vert),
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            value: 'tag',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.sell_outlined, size: 20),
+                                const SizedBox(width: 8),
+                                const AppText('إضافة وسم'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'status',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.sync_alt, size: 20),
+                                const SizedBox(width: 8),
+                                const AppText('تغيير الحالة'),
+                              ],
+                            ),
+                          ),
+                        ],
+                        onSelected: (value) {
+                          if (value == 'tag') {
+                            _showTagDialog(context);
+                          } else if (value == 'status') {
+                            _showStatusDialog(context);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -302,6 +344,147 @@ class InvoiceCard extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
       ),
+    );
+  }
+
+  void _showTagDialog(BuildContext context) {
+    final lookupsState = context.read<LookupsBloc>().state;
+    if (lookupsState is! LookupsLoaded) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: AppText('جاري تحميل الوسوم، يرجى الانتظار...')),
+      );
+      return;
+    }
+
+    final allTags = lookupsState.lookups.invoiceTags;
+    List<TagEntity> selectedTags = List.from(invoice.tags ?? []);
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const AppText('وسوم الفاتورة'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: allTags.isEmpty
+                    ? const Center(child: AppText('لا توجد وسوم متاحة'))
+                    : SingleChildScrollView(
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: allTags.map((tag) {
+                            final isSelected = selectedTags
+                                .any((selected) => selected.id == tag.id);
+                            return FilterChip(
+                              label: AppText(
+                                tag.name,
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? AppColorScheme.white
+                                      : _parseColor(tag.color),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              selected: isSelected,
+                              selectedColor: _parseColor(tag.color),
+                              checkmarkColor: AppColorScheme.white,
+                              backgroundColor: _parseColor(
+                                tag.color,
+                              ).withValues(alpha: 0.1),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                side: BorderSide(
+                                  color: _parseColor(
+                                    tag.color,
+                                  ).withValues(alpha: 0.2),
+                                ),
+                              ),
+                              onSelected: (selected) {
+                                setState(() {
+                                  if (selected) {
+                                    selectedTags.add(TagEntity(
+                                      id: tag.id,
+                                      name: tag.name,
+                                      color: tag.color,
+                                    ));
+                                  } else {
+                                    selectedTags.removeWhere((t) => t.id == tag.id);
+                                  }
+                                });
+                              },
+                            );
+                          }).toList(),
+                        ),
+                      ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const AppText('إلغاء'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    context.read<InvoicesBloc>().add(
+                          AssignInvoiceTagsEvent(
+                            invoice.id,
+                            selectedTags.map((t) => t.id).toList(),
+                          ),
+                        );
+                  },
+                  child: const AppText('حفظ'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showStatusDialog(BuildContext context) {
+    final currentStatus = invoice.status;
+    final List<String> availableStatuses = ['draft', 'sent', 'paid', 'partially_paid', 'overdue', 'cancelled'];
+    
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const AppText('تغيير حالة الفاتورة'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: availableStatuses.map((status) {
+                  return RadioListTile<String>(
+                    title: AppText(status),
+                    value: status,
+                    groupValue: currentStatus,
+                    onChanged: (value) {
+                      if (value != null && value != currentStatus) {
+                        Navigator.pop(ctx);
+                        context.read<InvoicesBloc>().add(
+                          ChangeInvoiceStatusEvent(invoice.id, value),
+                        );
+                      }
+                    },
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const AppText('إلغاء'),
+            ),
+          ],
+        );
+      },
     );
   }
 

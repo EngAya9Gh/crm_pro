@@ -18,6 +18,7 @@ class GetInvoicesUseCase {
     String? search,
     DateTime? dateFrom,
     DateTime? dateTo,
+    List<int>? tagIds,
   }) async {
     return await repository.getInvoices(
       page: page,
@@ -28,6 +29,7 @@ class GetInvoicesUseCase {
       search: search,
       dateFrom: dateFrom,
       dateTo: dateTo,
+      tagIds: tagIds,
     );
   }
 }

@@ -9,6 +9,7 @@ import '../../domain/usecases/delete_invoice_usecase.dart';
 import '../../domain/usecases/change_invoice_status_usecase.dart';
 import '../../domain/usecases/send_invoice_usecase.dart';
 import '../../domain/usecases/download_invoice_pdf_usecase.dart';
+import '../../domain/usecases/assign_invoice_tags_usecase.dart';
 
 import '../../../clients/domain/usecases/get_clients_list_usecase.dart';
 import '../../../settings/domain/usecases/settings_usecases.dart';
@@ -22,6 +23,7 @@ class InvoicesBloc extends Bloc<InvoicesEvent, InvoicesState> {
   final ChangeInvoiceStatusUseCase changeStatus;
   final SendInvoiceUseCase sendInvoice;
   final DownloadInvoicePdfUseCase downloadPdf;
+  final AssignInvoiceTagsUseCase assignInvoiceTags;
   final GetClientsListUseCase getClientsList;
   final GetProductsUseCase getProducts;
 
@@ -32,6 +34,7 @@ class InvoicesBloc extends Bloc<InvoicesEvent, InvoicesState> {
   String? _currentSearch;
   DateTime? _currentDateFrom;
   DateTime? _currentDateTo;
+  List<int>? _currentTagIds;
 
   static const int? _limit = null;
 
@@ -44,6 +47,7 @@ class InvoicesBloc extends Bloc<InvoicesEvent, InvoicesState> {
     required this.changeStatus,
     required this.sendInvoice,
     required this.downloadPdf,
+    required this.assignInvoiceTags,
     required this.getClientsList,
     required this.getProducts,
   }) : super(const InvoicesState()) {
@@ -56,6 +60,7 @@ class InvoicesBloc extends Bloc<InvoicesEvent, InvoicesState> {
     on<ChangeInvoiceStatusEvent>(_onChangeStatus);
     on<SendInvoiceEvent>(_onSendInvoice);
     on<DownloadInvoicePdfEvent>(_onDownloadPdf);
+    on<AssignInvoiceTagsEvent>(_onAssignInvoiceTags);
     on<GetInvoiceClientsEvent>(_onGetInvoiceClients);
     on<GetInvoiceProductsEvent>(_onGetInvoiceProducts);
   }
@@ -82,6 +87,7 @@ class InvoicesBloc extends Bloc<InvoicesEvent, InvoicesState> {
     _currentSearch = event.search;
     _currentDateFrom = event.dateFrom;
     _currentDateTo = event.dateTo;
+    _currentTagIds = event.tagIds;
 
     final result = await getInvoices(
       page: 1,
@@ -91,6 +97,7 @@ class InvoicesBloc extends Bloc<InvoicesEvent, InvoicesState> {
       search: event.search,
       dateFrom: event.dateFrom,
       dateTo: event.dateTo,
+      tagIds: event.tagIds,
     );
 
     result.fold(
@@ -125,6 +132,7 @@ class InvoicesBloc extends Bloc<InvoicesEvent, InvoicesState> {
       search: _currentSearch,
       dateFrom: _currentDateFrom,
       dateTo: _currentDateTo,
+      tagIds: _currentTagIds,
     );
 
     result.fold(
@@ -281,6 +289,31 @@ class InvoicesBloc extends Bloc<InvoicesEvent, InvoicesState> {
             invoiceDetail: invoice,
           ),
         );
+      },
+    );
+  }
+
+  Future<void> _onAssignInvoiceTags(
+    AssignInvoiceTagsEvent event,
+    Emitter<InvoicesState> emit,
+  ) async {
+    emit(state.copyWith(operationStatus: InvoiceOperationStatus.loading));
+    final result = await assignInvoiceTags(event.id, event.tagIds);
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          operationStatus: InvoiceOperationStatus.failure,
+          operationMessage: failure.message,
+        ),
+      ),
+      (invoice) {
+        emit(
+          state.copyWith(
+            operationStatus: InvoiceOperationStatus.success,
+            operationMessage: 'تم تحديث الوسوم بنجاح',
+          ),
+        );
+        add(const LoadInvoices(isRefresh: true));
       },
     );
   }

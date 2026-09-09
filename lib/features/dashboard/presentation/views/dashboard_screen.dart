@@ -60,7 +60,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             onPressed: () {},
           ),
-          const SizedBox(width: 8),
         ],
         drawer: const AppDrawer(),
         floatingActionButton: context.hasFeature('whatsapp')
@@ -131,11 +130,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               letterSpacing: -0.5,
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 16),
                           _buildBentoGrid(context, state),
-                          const SizedBox(height: 32),
+                          const SizedBox(height: 16),
                           DashboardCharts(chartData: state.charts),
-                          const SizedBox(height: 32),
+                          const SizedBox(height: 8),
                           _buildActivitySection(context, state),
                           const SizedBox(height: 40),
                         ],
@@ -256,7 +255,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 10),
               Expanded(
                 flex: 2,
                 child: DashboardStatCard(
@@ -268,7 +267,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
         ],
         if (hasInvoicesView || hasAppointmentsView) ...[
           Row(
@@ -289,7 +288,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
               if (hasInvoicesView && hasAppointmentsView)
-                const SizedBox(width: 16),
+                const SizedBox(width: 10),
               if (hasAppointmentsView)
                 Expanded(
                   child: DashboardStatCard(
@@ -307,7 +306,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
         ],
         if (hasInventoryView) ...[
           Row(
@@ -326,7 +325,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              // const SizedBox(width: 16),
               const Expanded(child: SizedBox()),
             ],
           ),

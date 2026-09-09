@@ -14,6 +14,7 @@ class LoadInvoices extends InvoicesEvent {
   final String? search;
   final DateTime? dateFrom;
   final DateTime? dateTo;
+  final List<int>? tagIds;
   final bool isRefresh;
 
   const LoadInvoices({
@@ -23,6 +24,7 @@ class LoadInvoices extends InvoicesEvent {
     this.search,
     this.dateFrom,
     this.dateTo,
+    this.tagIds,
     this.isRefresh = false,
   });
 
@@ -34,6 +36,7 @@ class LoadInvoices extends InvoicesEvent {
     search,
     dateFrom,
     dateTo,
+    tagIds,
     isRefresh,
   ];
 }
@@ -101,3 +104,11 @@ class GetInvoiceClientsEvent extends InvoicesEvent {
 }
 
 class GetInvoiceProductsEvent extends InvoicesEvent {}
+
+class AssignInvoiceTagsEvent extends InvoicesEvent {
+  final int id;
+  final List<int> tagIds;
+  const AssignInvoiceTagsEvent(this.id, this.tagIds);
+  @override
+  List<Object?> get props => [id, tagIds];
+}

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:crm_wakeel/features/settings/presentation/bloc/lookups_bloc.dart';
+import 'package:crm_wakeel/features/settings/presentation/bloc/lookups_state.dart';
+import 'package:crm_wakeel/features/settings/presentation/bloc/lookups_event.dart';
 import 'package:crm_wakeel/core/common/widgets/app_drawer.dart';
 import 'package:crm_wakeel/core/common/widgets/app_list_view.dart';
 import 'package:crm_wakeel/core/common/widgets/app_text.dart';
@@ -26,6 +29,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   String? _selectedStatus;
+  List<int>? _selectedTagIds;
 
   @override
   void initState() {
@@ -65,10 +69,171 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
       LoadInvoices(
         status: status,
         search: _searchController.text.isEmpty ? null : _searchController.text,
+        tagIds: _selectedTagIds,
         isRefresh: true,
       ),
     );
   }
+
+  void _onFilterByTags(List<int>? tagIds) {
+    setState(() => _selectedTagIds = tagIds);
+    _invoicesBloc.add(
+      LoadInvoices(
+        status: _selectedStatus,
+        search: _searchController.text.isEmpty ? null : _searchController.text,
+        tagIds: tagIds,
+        isRefresh: true,
+      ),
+    );
+  }
+
+  void _showFiltersBottomSheet() {
+    String? tempSelectedStatus = _selectedStatus;
+    List<int> tempSelectedTags = List.from(_selectedTagIds ?? []);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return BlocProvider.value(
+          value: context.read<LookupsBloc>(),
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return Container(
+                padding: EdgeInsets.only(
+                  top: 24,
+                  left: 24,
+                  right: 24,
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                ),
+                child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const AppText('تصفية الفواتير', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    const AppText('حالة الفاتورة', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [null, 'paid', 'pending', 'overdue', 'draft'].map((status) {
+                        return ChoiceChip(
+                          label: AppText(status == null ? 'الكل' : _getStatusLabel(status)),
+                          selected: tempSelectedStatus == status,
+                          selectedColor: AppColorScheme.primary.withValues(alpha: 0.1),
+                          onSelected: (selected) {
+                            setState(() => tempSelectedStatus = status);
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 24),
+                    const AppText('الوسوم', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    BlocBuilder<LookupsBloc, LookupsState>(
+                      builder: (context, state) {
+                        if (state is LookupsLoading || state is LookupsInitial) {
+                          if (state is LookupsInitial) {
+                            context.read<LookupsBloc>().add(LoadAllLookups());
+                          }
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        }
+                        if (state is LookupsLoaded) {
+                          final allTags = state.lookups.invoiceTags;
+                          if (allTags.isEmpty) {
+                            return const AppText('لا توجد وسوم متاحة');
+                          }
+                          return Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: allTags.map((tag) {
+                              final isSelected = tempSelectedTags.contains(tag.id);
+                              return FilterChip(
+                                label: AppText(tag.name),
+                                selected: isSelected,
+                                selectedColor: AppColorScheme.primary.withValues(alpha: 0.1),
+                                onSelected: (selected) {
+                                  setState(() {
+                                    if (selected) {
+                                      tempSelectedTags.add(tag.id);
+                                    } else {
+                                      tempSelectedTags.remove(tag.id);
+                                    }
+                                  });
+                                },
+                              );
+                            }).toList(),
+                          );
+                        }
+                        return const AppText('حدث خطأ أثناء تحميل الوسوم');
+                      },
+                    ),
+                    const SizedBox(height: 32),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              setState(() {
+                                tempSelectedStatus = null;
+                                tempSelectedTags.clear();
+                              });
+                            },
+                            child: const AppText('مسح الفلاتر'),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              this.setState(() {
+                                _selectedStatus = tempSelectedStatus;
+                                _selectedTagIds = tempSelectedTags.isEmpty ? null : tempSelectedTags;
+                              });
+                              _invoicesBloc.add(
+                                LoadInvoices(
+                                  status: _selectedStatus,
+                                  search: _searchController.text.isEmpty ? null : _searchController.text,
+                                  tagIds: _selectedTagIds,
+                                  isRefresh: true,
+                                ),
+                              );
+                            },
+                            child: const AppText('تطبيق'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -131,51 +296,47 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                           ),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: PopupMenuButton<String>(
+                        child: IconButton(
                           icon: const Icon(
                             Icons.filter_list,
                             color: AppColorScheme.secondary,
                           ),
-                          onSelected: _onFilterByStatus,
-                          itemBuilder: (context) => [
-                            const PopupMenuItem(
-                              value: null,
-                              child: AppText('الكل'),
-                            ),
-                            const PopupMenuItem(
-                              value: 'paid',
-                              child: AppText('مدفوعة'),
-                            ),
-                            const PopupMenuItem(
-                              value: 'pending',
-                              child: AppText('معلقة'),
-                            ),
-                            const PopupMenuItem(
-                              value: 'overdue',
-                              child: AppText('متأخرة'),
-                            ),
-                            const PopupMenuItem(
-                              value: 'draft',
-                              child: AppText('مسودة'),
-                            ),
-                          ],
+                          onPressed: _showFiltersBottomSheet,
                         ),
                       ),
                     ],
                   ),
-                  if (_selectedStatus != null) ...[
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Chip(
-                          label: AppText(_getStatusLabel(_selectedStatus!)),
-                          deleteIcon: const Icon(Icons.close, size: 16),
-                          onDeleted: () => _onFilterByStatus(null),
-                          backgroundColor: AppColorScheme.primary.withValues(
-                            alpha: 0.1,
-                          ),
-                        ),
-                      ],
+                  if (_selectedStatus != null || (_selectedTagIds != null && _selectedTagIds!.isNotEmpty)) ...[
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 40,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: [
+                          if (_selectedStatus != null)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: Chip(
+                                label: AppText('الحالة: ${_getStatusLabel(_selectedStatus!)}'),
+                                deleteIcon: const Icon(Icons.close, size: 16),
+                                onDeleted: () => _onFilterByStatus(null),
+                                backgroundColor: AppColorScheme.primary.withValues(alpha: 0.1),
+                                side: BorderSide.none,
+                              ),
+                            ),
+                          if (_selectedTagIds != null && _selectedTagIds!.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: Chip(
+                                label: AppText('الوسوم (${_selectedTagIds!.length})'),
+                                deleteIcon: const Icon(Icons.close, size: 16),
+                                onDeleted: () => _onFilterByTags(null),
+                                backgroundColor: AppColorScheme.primary.withValues(alpha: 0.1),
+                                side: BorderSide.none,
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ],
                 ],

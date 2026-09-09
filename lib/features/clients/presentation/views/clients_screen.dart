@@ -23,6 +23,8 @@ import 'package:crm_wakeel/core/utils/permission_extension.dart';
 import '../../../../features/settings/presentation/bloc/lookups_bloc.dart';
 import '../../../../features/settings/presentation/bloc/lookups_state.dart';
 import '../../../../features/settings/presentation/bloc/lookups_event.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:flutter/foundation.dart'; // for kIsWeb
 
@@ -206,7 +208,9 @@ class _ClientsViewState extends State<ClientsView> {
                     );
                     // Open file logic
                     print('Opening exported file: ${state.exportedFilePath}');
-                    // TODO: Use OpenFilex if needed for mobile. For Web, DownloadService handles it automatically.
+                    if (!kIsWeb) {
+                      OpenFilex.open(state.exportedFilePath!);
+                    }
                   }
                 },
                 child: BlocBuilder<ClientsBloc, ClientsState>(

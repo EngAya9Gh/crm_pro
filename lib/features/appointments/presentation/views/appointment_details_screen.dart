@@ -187,9 +187,9 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
                         const SizedBox(width: 8),
                         AppText(
                           appointment.clientName!,
-                          style: AppTypography.bodyMedium.copyWith(
+                          style: AppTypography.titleMedium.copyWith(
                             color: AppColorScheme.primary,
-                            decoration: TextDecoration.underline,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],

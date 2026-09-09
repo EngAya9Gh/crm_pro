@@ -93,6 +93,9 @@ class EndPoints {
 
   static const String settingsPermissions = '/settings/permissions';
 
+  static const String settingsIntegrations = '/settings/integrations';
+  static String settingsIntegration(String platform) => '/settings/integrations/$platform';
+
   // Stock
   static const String stockScan = '/stock/scan';
   static const String stockValidate = '/stock/validate';

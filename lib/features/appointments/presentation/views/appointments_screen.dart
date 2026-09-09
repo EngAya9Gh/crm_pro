@@ -716,7 +716,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                                 appointment.clientName!,
                                 style: AppTypography.bodyMedium.copyWith(
                                   color: AppColorScheme.primary,
-                                  decoration: TextDecoration.underline,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),

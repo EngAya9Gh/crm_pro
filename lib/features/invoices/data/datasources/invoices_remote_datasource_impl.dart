@@ -19,6 +19,7 @@ class InvoicesRemoteDataSourceImpl implements InvoicesRemoteDataSource {
     String? search,
     DateTime? dateFrom,
     DateTime? dateTo,
+    List<int>? tagIds,
   }) async {
     final Map<String, dynamic> queryParams = {};
     if (page > 1) queryParams['page'] = page;
@@ -33,6 +34,9 @@ class InvoicesRemoteDataSourceImpl implements InvoicesRemoteDataSource {
     }
     if (dateTo != null) {
       queryParams['due_date_to'] = dateTo.toIso8601String();
+    }
+    if (tagIds != null && tagIds.isNotEmpty) {
+      queryParams['tags'] = tagIds;
     }
 
     final response = await apiClient.get(
@@ -93,6 +97,16 @@ class InvoicesRemoteDataSourceImpl implements InvoicesRemoteDataSource {
     final response = await apiClient.patch(
       EndPoints.invoiceStatus(id.toString()),
       data: {'status': status},
+      fromJson: (json) => InvoiceModel.fromJson(json as Map<String, dynamic>),
+    );
+    return response.data!;
+  }
+
+  @override
+  Future<InvoiceModel> assignInvoiceTags(int id, List<int> tagIds) async {
+    final response = await apiClient.patch(
+      '${EndPoints.invoices}/$id/tags', // Ensure this route is added to the backend!
+      data: {'tags': tagIds},
       fromJson: (json) => InvoiceModel.fromJson(json as Map<String, dynamic>),
     );
     return response.data!;

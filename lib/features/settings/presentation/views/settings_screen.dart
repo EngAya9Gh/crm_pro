@@ -7,6 +7,8 @@ import '../../../users/presentation/views/users_screen.dart';
 import 'teams_screen.dart';
 import 'roles_screen.dart';
 import 'lookups_screen.dart';
+import 'integrations_screen.dart';
+import 'package:crm_wakeel/core/utils/permission_extension.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -107,6 +109,22 @@ class SettingsScreen extends StatelessWidget {
                 );
               },
             ),
+            if (context.hasPermission('settings.manage') && context.hasFeature('integrations')) ...[
+              const SizedBox(height: 16),
+              _buildSettingsCard(
+                context,
+                title: 'إعدادات الربط (Integrations)',
+                subtitle: 'ربط المنصات الخارجية (Facebook, TikTok)',
+                icon: Icons.hub_rounded,
+                color: Colors.blue,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const IntegrationsScreen()),
+                  );
+                },
+              ),
+            ],
           ],
         ),
       ),

@@ -11,6 +11,7 @@ abstract class InvoicesRemoteDataSource {
     String? search,
     DateTime? dateFrom,
     DateTime? dateTo,
+    List<int>? tagIds,
   });
 
   Future<InvoiceModel> getInvoiceDetails(int id);
@@ -22,6 +23,8 @@ abstract class InvoicesRemoteDataSource {
   Future<void> deleteInvoice(int id);
 
   Future<InvoiceModel> changeInvoiceStatus(int id, String status);
+
+  Future<InvoiceModel> assignInvoiceTags(int id, List<int> tagIds);
 
   Future<void> sendInvoice(int id, List<String> channels);
 

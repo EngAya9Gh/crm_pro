@@ -25,7 +25,7 @@ import '../bloc/clients_bloc.dart';
 import '../bloc/clients_event.dart';
 import '../bloc/clients_state.dart'; // Added
 import 'package:open_filex/open_filex.dart';
-
+import 'package:flutter/foundation.dart';
 class ClientProfileScreen extends StatelessWidget {
   final Client client;
 
@@ -86,6 +86,7 @@ class ClientProfileScreen extends StatelessWidget {
     return BlocListener<ClientsBloc, ClientsState>(
       listenWhen: (previous, current) {
         if (current is ClientsError) return true;
+        if (current is ClientPdfDownloaded) return true;
         if (previous is ClientsLoaded &&
             current is ClientsLoaded &&
             previous.downloadedPdfPath != current.downloadedPdfPath &&
@@ -99,8 +100,13 @@ class ClientProfileScreen extends StatelessWidget {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: AppText(state.message)));
+        } else if (state is ClientPdfDownloaded) {
+          if (!kIsWeb) OpenFilex.open(state.path);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: AppText('تم تحميل الملف بنجاح')),
+          );
         } else if (state is ClientsLoaded && state.downloadedPdfPath != null) {
-          OpenFilex.open(state.downloadedPdfPath!);
+          if (!kIsWeb) OpenFilex.open(state.downloadedPdfPath!);
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: AppText('تم تحميل الملف بنجاح')),
           );

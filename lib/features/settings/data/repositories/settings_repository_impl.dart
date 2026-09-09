@@ -6,6 +6,7 @@ import '../datasources/settings_remote_datasource.dart';
 import '../../domain/entities/lookup_entities.dart';
 import '../../domain/entities/product.dart';
 import '../../../users/domain/entities/user.dart';
+import '../../domain/entities/integrations_entity.dart';
 
 class SettingsRepositoryImpl implements SettingsRepository {
   final SettingsRemoteDataSource remoteDataSource;
@@ -593,6 +594,29 @@ class SettingsRepositoryImpl implements SettingsRepository {
     try {
       final result = await remoteDataSource.getEmployees();
       return Right(result);
+    } catch (e) {
+      return Left(_handleError(e));
+    }
+  }
+  // --- Integrations ---
+  @override
+  Future<Either<Failure, IntegrationsEntity>> getIntegrations() async {
+    try {
+      final result = await remoteDataSource.getIntegrations();
+      return Right(result);
+    } catch (e) {
+      return Left(_handleError(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> updateIntegration(
+    String platform,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      await remoteDataSource.updateIntegration(platform, data);
+      return const Right(null);
     } catch (e) {
       return Left(_handleError(e));
     }

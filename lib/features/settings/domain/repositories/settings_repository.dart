@@ -3,6 +3,7 @@ import '../../../../core/error/failures.dart';
 import '../../../users/domain/entities/user.dart';
 import '../../domain/entities/lookup_entities.dart';
 import '../../domain/entities/product.dart';
+import '../entities/integrations_entity.dart';
 
 abstract class SettingsRepository {
   // Statuses
@@ -128,4 +129,11 @@ abstract class SettingsRepository {
 
   // Employees
   Future<Either<Failure, List<User>>> getEmployees();
+
+  // Integrations
+  Future<Either<Failure, IntegrationsEntity>> getIntegrations();
+  Future<Either<Failure, void>> updateIntegration(
+    String platform,
+    Map<String, dynamic> data,
+  );
 }

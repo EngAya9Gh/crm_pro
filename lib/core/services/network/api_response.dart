@@ -20,7 +20,9 @@ class ApiResponse<T> {
     return ApiResponse<T>(
       success: json['success'] ?? false,
       message: json['message'],
-      data: json['data'] != null ? fromJsonT(json['data']) : null,
+      data: json.containsKey('data') 
+          ? (json['data'] != null ? fromJsonT(json['data']) : null)
+          : fromJsonT(json),
       errors: json['errors'] != null
           ? (json['errors'] as Map<String, dynamic>).map(
               (key, value) => MapEntry(

@@ -13,6 +13,7 @@ abstract class InvoicesRepository {
     String? search,
     DateTime? dateFrom,
     DateTime? dateTo,
+    List<int>? tagIds,
   });
 
   Future<Either<Failure, Invoice>> getInvoiceDetails(int id);
@@ -27,6 +28,8 @@ abstract class InvoicesRepository {
   Future<Either<Failure, Unit>> deleteInvoice(int id);
 
   Future<Either<Failure, Invoice>> changeInvoiceStatus(int id, String status);
+
+  Future<Either<Failure, Invoice>> assignInvoiceTags(int id, List<int> tagIds);
 
   Future<Either<Failure, Unit>> sendInvoice(int id, List<String> channels);
 

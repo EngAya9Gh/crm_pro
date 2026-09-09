@@ -21,6 +21,7 @@ class InvoicesRepositoryImpl implements InvoicesRepository {
     String? search,
     DateTime? dateFrom,
     DateTime? dateTo,
+    List<int>? tagIds,
   }) async {
     try {
       final result = await remoteDataSource.getInvoices(
@@ -32,6 +33,7 @@ class InvoicesRepositoryImpl implements InvoicesRepository {
         search: search,
         dateFrom: dateFrom,
         dateTo: dateTo,
+        tagIds: tagIds,
       );
       return Right(result);
     } on ServerException catch (e) {
@@ -101,6 +103,21 @@ class InvoicesRepositoryImpl implements InvoicesRepository {
   ) async {
     try {
       final result = await remoteDataSource.changeInvoiceStatus(id, status);
+      return Right(result);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Invoice>> assignInvoiceTags(
+    int id,
+    List<int> tagIds,
+  ) async {
+    try {
+      final result = await remoteDataSource.assignInvoiceTags(id, tagIds);
       return Right(result);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));

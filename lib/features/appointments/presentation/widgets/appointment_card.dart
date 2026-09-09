@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/common/widgets/app_text.dart';
 import '../../../../core/config/theme/color_scheme.dart';
+import '../../../../core/config/theme/typography.dart';
 import '../../domain/entities/appointment.dart';
 import 'package:intl/intl.dart';
 
@@ -48,18 +49,17 @@ class AppointmentCard extends StatelessWidget {
                   children: [
                     AppText(
                       dayFormat.format(appointment.startAt),
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                      style: AppTypography.displayLarge.copyWith(
+                        fontSize: 26,
                         color: AppColorScheme.primary,
+                        height: 1.1,
                       ),
                     ),
                     AppText(
                       monthFormat.format(appointment.startAt).toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                      style: AppTypography.labelMedium.copyWith(
                         color: AppColorScheme.primary,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
@@ -88,7 +88,7 @@ class AppointmentCard extends StatelessWidget {
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
                                     ),
-                                    maxLines: 1,
+                                    maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -208,8 +208,12 @@ class AppointmentCard extends StatelessWidget {
         icon = Icons.cancel_outlined;
         break;
       case 'completed':
-        color = Colors.blueGrey;
+        color = Colors.green;
         icon = Icons.done_all;
+        break;
+      case 'scheduled':
+        color = Colors.blue;
+        icon = Icons.event;
         break;
       default:
         color = Colors.grey;

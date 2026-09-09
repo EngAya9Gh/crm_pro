@@ -77,8 +77,11 @@ import '../../../features/settings/data/repositories/settings_repository_impl.da
 import '../../../features/settings/domain/repositories/settings_repository.dart';
 import '../../../features/settings/domain/usecases/get_all_lookups_usecase.dart';
 import '../../../features/settings/domain/usecases/settings_usecases.dart';
+import '../../../features/settings/domain/usecases/get_integrations_usecase.dart';
+import '../../../features/settings/domain/usecases/update_integrations_usecase.dart';
 import '../../../features/settings/presentation/bloc/lookups_bloc.dart';
 import '../../../features/settings/presentation/bloc/settings_crud_bloc.dart';
+import '../../../features/settings/presentation/bloc/cubits/integrations_cubit.dart';
 
 import '../../../features/invoices/data/datasources/invoices_remote_datasource.dart';
 import '../../../features/invoices/data/datasources/invoices_remote_datasource_impl.dart';
@@ -90,6 +93,7 @@ import '../../../features/invoices/domain/usecases/create_invoice_usecase.dart';
 import '../../../features/invoices/domain/usecases/update_invoice_usecase.dart';
 import '../../../features/invoices/domain/usecases/delete_invoice_usecase.dart';
 import '../../../features/invoices/domain/usecases/change_invoice_status_usecase.dart';
+import '../../../features/invoices/domain/usecases/assign_invoice_tags_usecase.dart';
 import '../../../features/invoices/domain/usecases/send_invoice_usecase.dart';
 import '../../../features/invoices/domain/usecases/download_invoice_pdf_usecase.dart';
 import '../../../features/invoices/presentation/bloc/invoices_bloc.dart';
@@ -333,6 +337,7 @@ Future<void> initDi() async {
   getIt.registerLazySingleton(() => ChangeInvoiceStatusUseCase(getIt()));
   getIt.registerLazySingleton(() => SendInvoiceUseCase(getIt()));
   getIt.registerLazySingleton(() => DownloadInvoicePdfUseCase(getIt()));
+  getIt.registerLazySingleton(() => AssignInvoiceTagsUseCase(getIt()));
 
   getIt.registerLazySingleton(() => GetClientsListUseCase(getIt()));
 
@@ -347,6 +352,7 @@ Future<void> initDi() async {
       changeStatus: getIt(),
       sendInvoice: getIt(),
       downloadPdf: getIt(),
+      assignInvoiceTags: getIt(),
       getClientsList: getIt(),
       getProducts: getIt(),
     ),
@@ -509,6 +515,8 @@ Future<void> initDi() async {
 
   getIt.registerLazySingleton(() => GetPermissionsUseCase(getIt()));
   getIt.registerLazySingleton(() => GetEmployeesUseCase(getIt()));
+  getIt.registerLazySingleton(() => GetIntegrationsUseCase(getIt()));
+  getIt.registerLazySingleton(() => UpdateIntegrationUseCase(getIt()));
 
   // Blocs
   getIt.registerFactory(
@@ -557,6 +565,13 @@ Future<void> initDi() async {
       createCity: getIt(),
       updateCity: getIt(),
       deleteCity: getIt(),
+    ),
+  );
+
+  getIt.registerFactory(
+    () => IntegrationsCubit(
+      getIntegrationsUseCase: getIt(),
+      updateIntegrationUseCase: getIt(),
     ),
   );
 

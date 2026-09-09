@@ -3,6 +3,7 @@ import '../../../../core/services/network/api_client.dart';
 import '../../../../core/utils/end_points.dart';
 import '../../data/models/lookup_models.dart';
 import '../models/product_model.dart';
+import '../models/integrations_model.dart';
 
 abstract class SettingsRemoteDataSource {
   // Statuses
@@ -85,6 +86,10 @@ abstract class SettingsRemoteDataSource {
 
   // Employees
   Future<List<users.UserModel>> getEmployees();
+
+  // Integrations
+  Future<IntegrationsModel> getIntegrations();
+  Future<void> updateIntegration(String platform, Map<String, dynamic> data);
 }
 
 class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
@@ -607,5 +612,23 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
           (json as List).map((e) => users.UserModel.fromJson(e)).toList(),
     );
     return response.data!;
+  }
+  // --- Integrations ---
+  @override
+  Future<IntegrationsModel> getIntegrations() async {
+    final response = await apiClient.get(
+      EndPoints.settingsIntegrations,
+      fromJson: (json) => IntegrationsModel.fromJson(json as Map<String, dynamic>),
+    );
+    return response.data!;
+  }
+
+  @override
+  Future<void> updateIntegration(String platform, Map<String, dynamic> data) async {
+    await apiClient.put(
+      EndPoints.settingsIntegration(platform),
+      data: data,
+      fromJson: (json) => true,
+    );
   }
 }

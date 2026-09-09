@@ -226,13 +226,27 @@ class _AddEditInvoiceScreenState extends State<AddEditInvoiceScreen> {
                           label: 'العميل',
                           hint: 'اختر العميل',
                           value: _selectedClientId,
-                          legacyItems: state.clientList.map((client) {
-                            return DropdownMenuItem<int>(
-                              value: client.id,
-                              child: AppText(client.name),
-                            );
-                          }).toList(),
+                          legacyItems: () {
+                            final items = state.clientList.map((client) {
+                              return DropdownMenuItem<int>(
+                                value: client.id,
+                                child: AppText(client.name),
+                              );
+                            }).toList();
+                            
+                            // If editing and selected client is not in the fetched list, add it temporarily
+                            if (isEdit && _selectedClientId != null && !state.clientList.any((c) => c.id == _selectedClientId)) {
+                              items.add(DropdownMenuItem<int>(
+                                value: _selectedClientId,
+                                child: AppText(state.invoiceDetail?.clientName ?? 'غير معروف'),
+                              ));
+                            }
+                            return items;
+                          }(),
                           itemLabel: (id) {
+                            if (isEdit && id == _selectedClientId && !state.clientList.any((c) => c.id == id)) {
+                              return state.invoiceDetail?.clientName ?? 'غير معروف';
+                            }
                             final client = state.clientList
                                 .where((c) => c.id == id)
                                 .firstOrNull;
@@ -267,6 +281,14 @@ class _AddEditInvoiceScreenState extends State<AddEditInvoiceScreen> {
                                   child: AppText('مدفوعة'),
                                 ),
                               ],
+                              itemLabel: (value) {
+                                switch (value) {
+                                  case 'draft': return 'مسودة';
+                                  case 'sent': return 'مرسلة';
+                                  case 'paid': return 'مدفوعة';
+                                  default: return value;
+                                }
+                              },
                               onChanged: (value) {
                                 setState(() => _selectedStatus = value!);
                               },

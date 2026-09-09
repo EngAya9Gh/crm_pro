@@ -223,37 +223,63 @@ class ClientsStatsScreen extends StatelessWidget {
     if (data.isEmpty)
       return const Center(child: AppText('لا توجد بيانات للحالات'));
     return Container(
-      height: 240,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColorScheme.background,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: AppColorScheme.surface, width: 2),
       ),
-      child: PieChart(
-        PieChartData(
-          sectionsSpace: 4,
-          centerSpaceRadius: 50,
-          sections: data.map((item) {
-            // Parse hex string to Color, fallback to primary if fail
-            Color color = AppColorScheme.primary;
-            try {
-              if (item.color.startsWith('#')) {
-                color = Color(
-                  int.parse(item.color.substring(1, 7), radix: 16) + 0xFF000000,
-                );
-              }
-            } catch (_) {}
+      child: Column(
+        children: [
+          SizedBox(
+            height: 200,
+            child: PieChart(
+              PieChartData(
+                sectionsSpace: 4,
+                centerSpaceRadius: 40,
+                sections: data.map((item) {
+                  Color color = AppColorScheme.primary;
+                  try {
+                    if (item.color.startsWith('#')) {
+                      color = Color(
+                        int.parse(item.color.substring(1, 7), radix: 16) +
+                            0xFF000000,
+                      );
+                    }
+                  } catch (_) {}
 
-            return PieChartSectionData(
-              color: color,
-              value: item.count.toDouble(),
-              title: item.statusName,
-              radius: 60,
-              titleStyle: const TextStyle(fontSize: 10, color: Colors.white),
-            );
-          }).toList(),
-        ),
+                  return PieChartSectionData(
+                    color: color,
+                    value: item.count.toDouble(),
+                    title: '${item.count}',
+                    radius: 50,
+                    titleStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            alignment: WrapAlignment.center,
+            children: data.map((item) {
+              Color color = AppColorScheme.primary;
+              try {
+                if (item.color.startsWith('#')) {
+                  color = Color(
+                    int.parse(item.color.substring(1, 7), radix: 16) + 0xFF000000,
+                  );
+                }
+              } catch (_) {}
+              return _buildLegendItem(item.statusName == 'N/A' ? 'غير محدد' : item.statusName, item.count, color);
+            }).toList(),
+          ),
+        ],
       ),
     );
   }
@@ -283,56 +309,123 @@ class ClientsStatsScreen extends StatelessWidget {
     ];
 
     return Container(
-      height: 240,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColorScheme.background,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: AppColorScheme.surface, width: 2),
       ),
-      child: BarChart(
-        BarChartData(
-          alignment: BarChartAlignment.spaceAround,
-          maxY: maxY,
-          barGroups: data.asMap().entries.map((entry) {
-            return _makeGroupData(
-              entry.key,
-              entry.value.count.toDouble(),
-              colors[entry.key % colors.length],
-            );
-          }).toList(),
-          titlesData: FlTitlesData(
-            leftTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            topTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) {
-                  final index = value.toInt();
-                  if (index >= 0 && index < data.length) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: AppText(
-                        data[index].sourceName,
-                        style: const TextStyle(fontSize: 10),
-                      ),
-                    );
-                  }
-                  return const SizedBox();
-                },
+      child: Column(
+        children: [
+          SizedBox(
+            height: 200,
+            child: BarChart(
+              BarChartData(
+                alignment: BarChartAlignment.spaceAround,
+                maxY: maxY,
+                barGroups: data.asMap().entries.map((entry) {
+                  return _makeGroupData(
+                    entry.key,
+                    entry.value.count.toDouble(),
+                    colors[entry.key % colors.length],
+                  );
+                }).toList(),
+                titlesData: FlTitlesData(
+                  leftTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) {
+                        final index = value.toInt();
+                        if (index >= 0 && index < data.length) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: AppText(
+                              data[index].sourceName == 'N/A' ? 'غير محدد' : data[index].sourceName,
+                              style: const TextStyle(fontSize: 10),
+                            ),
+                          );
+                        }
+                        return const SizedBox();
+                      },
+                    ),
+                  ),
+                ),
+                gridData: const FlGridData(show: false),
+                borderData: FlBorderData(show: false),
               ),
             ),
           ),
-          gridData: const FlGridData(show: false),
-          borderData: FlBorderData(show: false),
-        ),
+          const SizedBox(height: 24),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            alignment: WrapAlignment.center,
+            children: data.asMap().entries.map((entry) {
+              return _buildLegendItem(
+                entry.value.sourceName == 'N/A' ? 'غير محدد' : entry.value.sourceName,
+                entry.value.count,
+                colors[entry.key % colors.length],
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegendItem(String title, int count, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
+          AppText(
+            title,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: AppColorScheme.white,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: AppText(
+              '$count',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
