@@ -241,6 +241,7 @@ class RolesView extends StatelessWidget {
   }
 
   void _showAddEditRoleDialog(BuildContext context, {RoleEntity? role}) {
+    final settingsCrudBloc = context.read<SettingsCrudBloc>();
     final nameController = TextEditingController(text: role?.name ?? '');
     final isEditing = role != null;
 
@@ -527,11 +528,11 @@ class RolesView extends StatelessWidget {
                               };
 
                               if (isEditing) {
-                                context.read<SettingsCrudBloc>().add(
+                                settingsCrudBloc.add(
                                   UpdateRoleEvent(role.id, data),
                                 );
                               } else {
-                                context.read<SettingsCrudBloc>().add(
+                                settingsCrudBloc.add(
                                   CreateRoleEvent(data),
                                 );
                               }
@@ -568,6 +569,7 @@ class RolesView extends StatelessWidget {
   }
 
   void _confirmDelete(BuildContext context, RoleEntity role) {
+    final settingsCrudBloc = context.read<SettingsCrudBloc>();
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -589,7 +591,7 @@ class RolesView extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              context.read<SettingsCrudBloc>().add(DeleteRoleEvent(role.id));
+              settingsCrudBloc.add(DeleteRoleEvent(role.id));
               Navigator.pop(dialogContext);
             },
             style: ElevatedButton.styleFrom(

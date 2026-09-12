@@ -7,6 +7,9 @@ import '../../../../core/config/theme/typography.dart';
 import '../../../../core/services/di/di_container.dart';
 import '../bloc/cubits/client_appointments_cubit.dart';
 import '../../../../features/appointments/presentation/widgets/appointment_card.dart';
+import '../../../../features/appointments/presentation/views/appointments_screen.dart';
+import '../../../../features/appointments/presentation/views/appointment_details_screen.dart';
+import '../../../../features/appointments/presentation/bloc/appointments_bloc.dart';
 
 class ClientAppointmentsTab extends StatelessWidget {
   final String clientId;
@@ -189,7 +192,30 @@ class _ClientAppointmentsViewState extends State<_ClientAppointmentsView> {
               return AppointmentCard(
                 appointment: appointment,
                 onTap: () {
-                  // Navigate to details if needed
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AppointmentsScreen(
+                        initialDate: appointment.startAt,
+                      ),
+                    ),
+                  );
+                },
+                onDetailsTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BlocProvider(
+                        create: (_) => getIt<AppointmentsBloc>(),
+                        child: AppointmentDetailsScreen(
+                          appointmentId: appointment.id,
+                        ),
+                      ),
+                    ),
+                  ).then((_) {
+                    // Refresh appointments list when returning
+                    context.read<ClientAppointmentsCubit>().loadAppointments(widget.clientId);
+                  });
                 },
               );
             },

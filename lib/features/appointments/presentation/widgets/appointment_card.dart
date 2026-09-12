@@ -8,8 +8,14 @@ import 'package:intl/intl.dart';
 class AppointmentCard extends StatelessWidget {
   final Appointment appointment;
   final VoidCallback? onTap;
+  final VoidCallback? onDetailsTap;
 
-  const AppointmentCard({super.key, required this.appointment, this.onTap});
+  const AppointmentCard({
+    super.key,
+    required this.appointment,
+    this.onTap,
+    this.onDetailsTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -97,6 +103,25 @@ class AppointmentCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           _buildStatusBadge(appointment.status),
+                          if (onDetailsTap != null) ...[
+                            const SizedBox(width: 4),
+                            InkWell(
+                              onTap: onDetailsTap,
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: AppColorScheme.primary.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.open_in_new_rounded,
+                                  size: 16,
+                                  color: AppColorScheme.primary,
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                       const SizedBox(height: 12),

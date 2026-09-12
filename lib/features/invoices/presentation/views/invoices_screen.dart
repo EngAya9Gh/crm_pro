@@ -132,9 +132,24 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                       runSpacing: 8,
                       children: [null, 'paid', 'pending', 'overdue', 'draft'].map((status) {
                         return ChoiceChip(
-                          label: AppText(status == null ? 'الكل' : _getStatusLabel(status)),
+                          label: AppText(
+                            status == null ? 'الكل' : _getStatusLabel(status),
+                            style: TextStyle(
+                              color: tempSelectedStatus == status
+                                  ? AppColorScheme.white
+                                  : _getStatusColor(status),
+                            ),
+                          ),
                           selected: tempSelectedStatus == status,
-                          selectedColor: AppColorScheme.primary.withValues(alpha: 0.1),
+                          selectedColor: _getStatusColor(status),
+                          checkmarkColor: AppColorScheme.white,
+                          backgroundColor: _getStatusColor(status).withValues(alpha: 0.1),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(
+                              color: _getStatusColor(status).withValues(alpha: 0.2),
+                            ),
+                          ),
                           onSelected: (selected) {
                             setState(() => tempSelectedStatus = status);
                           },
@@ -168,9 +183,22 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                             children: allTags.map((tag) {
                               final isSelected = tempSelectedTags.contains(tag.id);
                               return FilterChip(
-                                label: AppText(tag.name),
+                                label: AppText(
+                                  tag.name,
+                                  style: TextStyle(
+                                    color: isSelected ? AppColorScheme.white : _parseColor(tag.color, fallbackName: tag.name),
+                                  ),
+                                ),
                                 selected: isSelected,
-                                selectedColor: AppColorScheme.primary.withValues(alpha: 0.1),
+                                selectedColor: _parseColor(tag.color, fallbackName: tag.name),
+                                checkmarkColor: AppColorScheme.white,
+                                backgroundColor: _parseColor(tag.color, fallbackName: tag.name).withValues(alpha: 0.1),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  side: BorderSide(
+                                    color: _parseColor(tag.color, fallbackName: tag.name).withValues(alpha: 0.2),
+                                  ),
+                                ),
                                 onSelected: (selected) {
                                   setState(() {
                                     if (selected) {
@@ -343,6 +371,31 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
               ),
             ),
 
+            BlocBuilder<InvoicesBloc, InvoicesState>(
+              builder: (context, state) {
+                if (state.status == InvoicesStatus.initial || state.total == 0) {
+                  return const SizedBox.shrink();
+                }
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    children: [
+                      AppText(
+                        'الصفحة ${state.page} من ${state.lastPage}',
+                        style: const TextStyle(color: AppColorScheme.textMuted, fontSize: 12),
+                      ),
+                      const Spacer(),
+                      AppText(
+                        'إجمالي الفواتير: ${state.total}',
+                        style: const TextStyle(color: AppColorScheme.textMuted, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 8),
+
             // Invoices List
             Expanded(
               child: BlocConsumer<InvoicesBloc, InvoicesState>(
@@ -501,6 +554,40 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
         return 'مسودة';
       default:
         return status;
+    }
+  }
+
+  Color _parseColor(String hexColor, {String? fallbackName}) {
+    if (hexColor == '#000000' && fallbackName != null) {
+      final hash = fallbackName.hashCode;
+      final hue = (hash % 360).toDouble();
+      return HSLColor.fromAHSL(1.0, hue, 0.6, 0.5).toColor();
+    }
+    hexColor = hexColor.replaceAll('#', '');
+    if (hexColor.length == 6) {
+      hexColor = 'FF$hexColor';
+    }
+    try {
+      return Color(int.parse(hexColor, radix: 16));
+    } catch (e) {
+      return AppColorScheme.primary;
+    }
+  }
+
+  Color _getStatusColor(String? status) {
+    switch (status) {
+      case 'paid':
+        return AppColorScheme.success;
+      case 'overdue':
+        return AppColorScheme.error;
+      case 'sent':
+      case 'pending':
+        return AppColorScheme.info;
+      case 'cancelled':
+        return AppColorScheme.textMuted;
+      case 'draft':
+      default:
+        return AppColorScheme.primary;
     }
   }
 }

@@ -7,6 +7,7 @@ import 'package:intl/intl.dart' as intl;
 import '../../../settings/domain/entities/lookup_entities.dart';
 import '../../../settings/presentation/bloc/lookups_bloc.dart';
 import '../../../settings/presentation/bloc/lookups_state.dart';
+import '../../../settings/presentation/bloc/lookups_event.dart';
 import '../bloc/invoices_bloc.dart';
 import '../bloc/invoices_event.dart';
 import '../../../../core/common/widgets/app_elevated_button.dart';
@@ -328,7 +329,7 @@ class InvoiceCard extends StatelessWidget {
   }
 
   Widget _buildTagChip(TagEntity tag) {
-    final color = _parseColor(tag.color);
+    final color = _parseColor(tag.color, fallbackName: tag.name);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
@@ -348,10 +349,16 @@ class InvoiceCard extends StatelessWidget {
   }
 
   void _showTagDialog(BuildContext context) {
-    final lookupsState = context.read<LookupsBloc>().state;
+    final lookupsBloc = context.read<LookupsBloc>();
+    final invoicesBloc = context.read<InvoicesBloc>();
+    
+    final lookupsState = lookupsBloc.state;
     if (lookupsState is! LookupsLoaded) {
+      if (lookupsState is LookupsInitial || lookupsState is LookupsError) {
+        lookupsBloc.add(LoadAllLookups());
+      }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: AppText('جاري تحميل الوسوم، يرجى الانتظار...')),
+        const SnackBar(content: AppText('جاري تحميل الوسوم، يرجى المحاولة بعد قليل...')),
       );
       return;
     }
@@ -383,22 +390,22 @@ class InvoiceCard extends StatelessWidget {
                                 style: TextStyle(
                                   color: isSelected
                                       ? AppColorScheme.white
-                                      : _parseColor(tag.color),
+                                      : _parseColor(tag.color, fallbackName: tag.name),
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                               selected: isSelected,
-                              selectedColor: _parseColor(tag.color),
+                              selectedColor: _parseColor(tag.color, fallbackName: tag.name),
                               checkmarkColor: AppColorScheme.white,
                               backgroundColor: _parseColor(
-                                tag.color,
+                                tag.color, fallbackName: tag.name
                               ).withValues(alpha: 0.1),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                                 side: BorderSide(
                                   color: _parseColor(
-                                    tag.color,
+                                    tag.color, fallbackName: tag.name
                                   ).withValues(alpha: 0.2),
                                 ),
                               ),
@@ -428,7 +435,7 @@ class InvoiceCard extends StatelessWidget {
                 ElevatedButton(
                   onPressed: () {
                     Navigator.pop(ctx);
-                    context.read<InvoicesBloc>().add(
+                    invoicesBloc.add(
                           AssignInvoiceTagsEvent(
                             invoice.id,
                             selectedTags.map((t) => t.id).toList(),
@@ -446,6 +453,7 @@ class InvoiceCard extends StatelessWidget {
   }
 
   void _showStatusDialog(BuildContext context) {
+    final invoicesBloc = context.read<InvoicesBloc>();
     final currentStatus = invoice.status;
     final List<String> availableStatuses = ['draft', 'sent', 'paid', 'partially_paid', 'overdue', 'cancelled'];
     
@@ -467,7 +475,7 @@ class InvoiceCard extends StatelessWidget {
                     onChanged: (value) {
                       if (value != null && value != currentStatus) {
                         Navigator.pop(ctx);
-                        context.read<InvoicesBloc>().add(
+                        invoicesBloc.add(
                           ChangeInvoiceStatusEvent(invoice.id, value),
                         );
                       }
@@ -488,7 +496,22 @@ class InvoiceCard extends StatelessWidget {
     );
   }
 
-  Color _parseColor(String hexColor) {
+  Color _parseColor(String hexColor, {String? fallbackName}) {
+    if ((hexColor == '#000000' || hexColor.isEmpty) && fallbackName != null) {
+      // Generate a pleasant color based on the tag name
+      final colors = [
+        Colors.blue,
+        Colors.purple,
+        Colors.orange,
+        Colors.teal,
+        Colors.pink,
+        Colors.indigo,
+        Colors.green,
+      ];
+      final hash = fallbackName.codeUnits.fold(0, (prev, curr) => prev + curr);
+      return colors[hash % colors.length];
+    }
+    
     try {
       hexColor = hexColor.replaceAll('#', '');
       if (hexColor.length == 6) {

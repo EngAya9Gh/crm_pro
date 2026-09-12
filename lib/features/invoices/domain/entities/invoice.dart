@@ -43,4 +43,46 @@ class Invoice {
     this.userName,
     this.tags,
   });
+
+  Invoice copyWith({
+    int? id,
+    String? invoiceNumber,
+    double? total,
+    String? status,
+    DateTime? createdAt,
+    DateTime? dueDate,
+    DateTime? paidAt,
+    double? subtotal,
+    double? taxRate,
+    double? taxAmount,
+    double? discount,
+    String? notes,
+    List<InvoiceItem>? items,
+    int? itemsCount,
+    String? clientName,
+    int? clientId,
+    String? userName,
+    List<TagEntity>? tags,
+  }) {
+    return Invoice(
+      id: id ?? this.id,
+      invoiceNumber: invoiceNumber ?? this.invoiceNumber,
+      total: total ?? this.total,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      dueDate: dueDate ?? this.dueDate,
+      paidAt: paidAt ?? this.paidAt,
+      subtotal: subtotal ?? this.subtotal,
+      taxRate: taxRate ?? this.taxRate,
+      taxAmount: taxAmount ?? this.taxAmount,
+      discount: discount ?? this.discount,
+      notes: notes ?? this.notes,
+      items: items ?? this.items,
+      itemsCount: itemsCount ?? this.itemsCount,
+      clientName: clientName ?? this.clientName,
+      clientId: clientId ?? this.clientId,
+      userName: userName ?? this.userName,
+      tags: tags ?? this.tags,
+    );
+  }
 }

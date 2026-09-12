@@ -272,10 +272,21 @@ class GenericLookupView extends StatelessWidget {
       }
     }
 
-    // Special handling for Status (Color picker)
+    // Special handling for Color picker
     String selectedColor = '#9CA3AF';
-    if (isEditing && item is StatusEntity) {
-      selectedColor = item.color;
+    final hasColor = [
+      LookupType.status,
+      LookupType.clientTag,
+      LookupType.invoiceTag,
+      LookupType.behavior,
+      LookupType.commentType,
+    ].contains(type);
+
+    if (isEditing && hasColor) {
+      if (item is StatusEntity) selectedColor = item.color;
+      else if (item is TagEntity) selectedColor = item.color;
+      else if (item is BehaviorEntity) selectedColor = item.color;
+      else if (item is CommentTypeEntity) selectedColor = item.color;
     }
     final List<String> statusColors = [
       '#9CA3AF', '#3B82F6', '#8B5CF6', '#F59E0B', 
@@ -352,7 +363,7 @@ class GenericLookupView extends StatelessWidget {
                         },
                       ),
 
-                    if (type == LookupType.status)
+                    if (hasColor)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -404,7 +415,7 @@ class GenericLookupView extends StatelessWidget {
                           if (selectedRegion == null) return;
                           data['region_id'] = selectedRegion.id;
                         }
-                        if (type == LookupType.status) {
+                        if (hasColor) {
                           data['color'] = selectedColor;
                         }
 

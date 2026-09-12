@@ -112,19 +112,25 @@ class InvoicesBloc extends Bloc<InvoicesEvent, InvoicesState> {
           status: InvoicesStatus.success,
           invoices: paginatedList.items,
           page: paginatedList.currentPage,
+          total: paginatedList.total,
+          lastPage: paginatedList.lastPage,
           hasReachedMax: paginatedList.currentPage >= paginatedList.lastPage,
         ),
       ),
     );
   }
 
+  bool _isFetchingMore = false;
+
   Future<void> _onLoadMoreInvoices(
     LoadMoreInvoices event,
     Emitter<InvoicesState> emit,
   ) async {
-    if (state.hasReachedMax || state.status != InvoicesStatus.success) return;
+    if (state.hasReachedMax || state.status != InvoicesStatus.success || _isFetchingMore) return;
 
-    final result = await getInvoices(
+    _isFetchingMore = true;
+    try {
+      final result = await getInvoices(
       page: state.page + 1,
       limit: _limit,
       status: _currentStatus,
@@ -142,10 +148,15 @@ class InvoicesBloc extends Bloc<InvoicesEvent, InvoicesState> {
         state.copyWith(
           invoices: List.of(state.invoices)..addAll(paginatedList.items),
           page: paginatedList.currentPage,
+          total: paginatedList.total,
+          lastPage: paginatedList.lastPage,
           hasReachedMax: paginatedList.currentPage >= paginatedList.lastPage,
         ),
       ),
     );
+    } finally {
+      _isFetchingMore = false;
+    }
   }
 
   Future<void> _onGetInvoiceDetails(
@@ -267,8 +278,19 @@ class InvoicesBloc extends Bloc<InvoicesEvent, InvoicesState> {
     ChangeInvoiceStatusEvent event,
     Emitter<InvoicesState> emit,
   ) async {
-    // Optimistic or Loading? Loading is safer.
-    emit(state.copyWith(operationStatus: InvoiceOperationStatus.loading));
+    final optimisticList = state.invoices.map((e) {
+      if (e.id == event.id) {
+        return e.copyWith(status: event.status);
+      }
+      return e;
+    }).toList();
+    emit(
+      state.copyWith(
+        invoices: optimisticList,
+        operationStatus: InvoiceOperationStatus.loading,
+      ),
+    );
+
     final result = await changeStatus(event.id, event.status);
     result.fold(
       (failure) => emit(
@@ -307,13 +329,17 @@ class InvoicesBloc extends Bloc<InvoicesEvent, InvoicesState> {
         ),
       ),
       (invoice) {
+        final updatedList = state.invoices
+            .map((e) => e.id == invoice.id ? invoice : e)
+            .toList();
         emit(
           state.copyWith(
             operationStatus: InvoiceOperationStatus.success,
             operationMessage: 'تم تحديث الوسوم بنجاح',
+            invoices: updatedList,
+            invoiceDetail: invoice,
           ),
         );
-        add(const LoadInvoices(isRefresh: true));
       },
     );
   }

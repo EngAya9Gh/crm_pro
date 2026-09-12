@@ -23,7 +23,8 @@ import '../../../clients/domain/entities/status_entity.dart' as status_entity;
 import 'package:crm_wakeel/core/utils/permission_extension.dart';
 
 class AppointmentsScreen extends StatefulWidget {
-  const AppointmentsScreen({super.key});
+  final DateTime? initialDate;
+  const AppointmentsScreen({super.key, this.initialDate});
 
   @override
   State<AppointmentsScreen> createState() => _AppointmentsScreenState();
@@ -40,6 +41,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedDate = widget.initialDate ?? DateTime.now();
     _appointmentsBloc = getIt<AppointmentsBloc>();
     _appointmentsBloc.add(LoadMonthAppointmentsDates(_selectedDate));
     _loadAppointments();

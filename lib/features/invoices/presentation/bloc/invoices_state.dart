@@ -12,6 +12,8 @@ class InvoicesState extends Equatable {
   final List<Invoice> invoices;
   final bool hasReachedMax;
   final int page;
+  final int total;
+  final int lastPage;
   final String errorMessage;
 
   final InvoicesStatus detailStatus;
@@ -30,6 +32,8 @@ class InvoicesState extends Equatable {
     this.invoices = const [],
     this.hasReachedMax = false,
     this.page = 1,
+    this.total = 0,
+    this.lastPage = 1,
     this.errorMessage = '',
     this.detailStatus = InvoicesStatus.initial,
     this.invoiceDetail,
@@ -46,6 +50,8 @@ class InvoicesState extends Equatable {
     List<Invoice>? invoices,
     bool? hasReachedMax,
     int? page,
+    int? total,
+    int? lastPage,
     String? errorMessage,
     InvoicesStatus? detailStatus,
     Invoice? invoiceDetail,
@@ -61,6 +67,8 @@ class InvoicesState extends Equatable {
       invoices: invoices ?? this.invoices,
       hasReachedMax: hasReachedMax ?? this.hasReachedMax,
       page: page ?? this.page,
+      total: total ?? this.total,
+      lastPage: lastPage ?? this.lastPage,
       errorMessage: errorMessage ?? this.errorMessage,
       detailStatus: detailStatus ?? this.detailStatus,
       invoiceDetail: invoiceDetail ?? this.invoiceDetail,
@@ -79,6 +87,8 @@ class InvoicesState extends Equatable {
     invoices,
     hasReachedMax,
     page,
+    total,
+    lastPage,
     errorMessage,
     detailStatus,
     invoiceDetail,
