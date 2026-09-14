@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crm_wakeel/core/common/widgets/app_text.dart';
 import 'package:crm_wakeel/core/common/widgets/app_text_field.dart';
 import 'package:crm_wakeel/core/common/widgets/app_elevated_button.dart';
+import 'package:crm_wakeel/core/common/widgets/app_dropdown.dart';
+import 'package:crm_wakeel/features/auth/data/models/user_model.dart';
 import 'package:crm_wakeel/core/config/theme/color_scheme.dart';
 import 'package:crm_wakeel/core/config/theme/typography.dart';
 import 'package:crm_wakeel/core/services/di/di_container.dart';
@@ -48,6 +50,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
   settings.CityEntity? _selectedCity;
   settings.SourceEntity? _selectedSource;
   ClientRating? _selectedRating;
+  int? _selectedEmployeeId;
 
   // Selected Tags must specificy which TagEntity. Since we submit ClientModel which uses client_tag.TagEntity.
   List<client_tag.TagEntity> _selectedTags = [];
@@ -68,6 +71,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
       _priority = widget.client!.priority;
       _selectedRating = widget.client!.leadRating;
       _selectedTags = List.from(widget.client!.tags);
+      _selectedEmployeeId = widget.client!.assignedTo?.id;
     }
   }
 
@@ -95,13 +99,11 @@ class _AddClientScreenState extends State<AddClientScreen> {
           listeners: [
             BlocListener<ClientsBloc, ClientsState>(
               listener: (context, state) {
-                if (state is ClientsLoaded) {
+                if (state is ClientOperationSuccess) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: AppText(
-                        _isEditing
-                            ? 'تم تحديث بيانات العميل بنجاح'
-                            : 'تم إضافة العميل بنجاح',
+                        state.message,
                         style: const TextStyle(color: Colors.white),
                       ),
                       backgroundColor: AppColorScheme.success,
@@ -297,6 +299,34 @@ class _AddClientScreenState extends State<AddClientScreen> {
                           color: AppColorScheme.primary,
                         ),
                       ),
+                      const SizedBox(height: 32),
+                      _buildSectionTitle('الموظف المسؤول (اختياري)'),
+                      const SizedBox(height: 16),
+                      if (state is LookupsLoaded)
+                        AppDropdown<int?>(
+                          label: 'إسناد العميل إلى',
+                          hint: 'اختر الموظف',
+                          value: _selectedEmployeeId,
+                          items: [
+                            const AppDropdownItem<int?>(
+                              value: null,
+                              label: 'بدون تحديد',
+                            ),
+                            ...state.employees.map((emp) {
+                              return AppDropdownItem<int?>(
+                                value: emp.id,
+                                label: emp.name,
+                              );
+                            }),
+                          ],
+                          onChanged: (val) {
+                            setState(() {
+                              _selectedEmployeeId = val;
+                            });
+                          },
+                        )
+                      else
+                        const Center(child: CircularProgressIndicator()),
 
                       const SizedBox(height: 32),
                       _buildSectionTitle('التصنيف'),
@@ -402,6 +432,16 @@ class _AddClientScreenState extends State<AddClientScreen> {
             ? widget.client!.sourceStatus
             : SourceStatus.valid,
         createdAt: _isEditing ? widget.client!.createdAt : DateTime.now(),
+        exclusionReason: _isEditing ? widget.client!.exclusionReason : null,
+        assignedTo: _selectedEmployeeId != null 
+            ? UserModel(
+                id: _selectedEmployeeId!, 
+                name: '', 
+                email: '', 
+                role: const RoleModel(id: 0, name: ''), 
+                permissions: const {},
+              )
+            : null,
         tags: _selectedTags,
         files: [],
         comments: [],

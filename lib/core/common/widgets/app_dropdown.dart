@@ -35,9 +35,9 @@ class AppDropdown<T> extends StatelessWidget {
     this.validator,
     this.showSearchBox = true,
   }) : assert(
-          items != null || legacyItems != null,
-          'Either items or legacyItems must be provided',
-        );
+         items != null || legacyItems != null,
+         'Either items or legacyItems must be provided',
+       );
 
   List<AppDropdownItem<T>> _resolveItems() {
     if (items != null) return items!;
@@ -67,25 +67,28 @@ class AppDropdown<T> extends StatelessWidget {
 
     PopupProps<AppDropdownItem<T>> popupProps;
 
-    final itemBuilderFn = (
-      BuildContext ctx,
-      AppDropdownItem<T> item,
-      bool isDisabled,
-      bool isSelected,
-    ) {
-      return ListTile(
-        dense: true,
-        title: Text(
-          item.label,
-          style: AppTypography.bodyMedium.copyWith(
-            color: isSelected ? AppColorScheme.primary : AppColorScheme.textPrimary,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
-        selected: isSelected,
-        selectedTileColor: AppColorScheme.primary.withOpacity(0.08),
-      );
-    };
+    final itemBuilderFn =
+        (
+          BuildContext ctx,
+          AppDropdownItem<T> item,
+          bool isDisabled,
+          bool isSelected,
+        ) {
+          return ListTile(
+            dense: true,
+            title: Text(
+              item.label,
+              style: AppTypography.bodyMedium.copyWith(
+                color: isSelected
+                    ? AppColorScheme.primary
+                    : AppColorScheme.textPrimary,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+            selected: isSelected,
+            selectedTileColor: AppColorScheme.primary.withOpacity(0.08),
+          );
+        };
 
     if (showSearchBox) {
       popupProps = PopupProps.menu(
@@ -147,7 +150,9 @@ class AppDropdown<T> extends StatelessWidget {
           compareFn: (a, b) => a.value == b.value,
           itemAsString: (item) => item.label,
           onSelected: (item) => onChanged?.call(item?.value),
-          validator: validator != null ? (item) => validator!(item?.value) : null,
+          validator: validator != null
+              ? (item) => validator!(item?.value)
+              : null,
           decoratorProps: DropDownDecoratorProps(
             decoration: InputDecoration(
               hintText: null, // Used in dropdownBuilder instead
@@ -163,13 +168,19 @@ class AppDropdown<T> extends StatelessWidget {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: AppColorScheme.primary, width: 1.5),
+                borderSide: BorderSide(
+                  color: AppColorScheme.primary,
+                  width: 1.5,
+                ),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(color: AppColorScheme.error, width: 1.5),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
               suffixIcon: const Icon(Icons.arrow_drop_down_circle_outlined),
             ),
           ),

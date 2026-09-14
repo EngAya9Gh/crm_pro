@@ -117,6 +117,7 @@ import '../../../features/appointments/domain/usecases/create_appointment_usecas
 import '../../../features/appointments/domain/usecases/update_appointment_usecase.dart';
 import '../../../features/appointments/domain/usecases/delete_appointment_usecase.dart';
 import '../../../features/appointments/domain/usecases/change_appointment_status_usecase.dart';
+import '../../../features/appointments/domain/usecases/reschedule_appointment_usecase.dart';
 import '../../../features/appointments/presentation/bloc/appointments_bloc.dart';
 
 import '../../../features/dashboard/data/datasources/dashboard_remote_datasource.dart';
@@ -170,9 +171,7 @@ Future<void> initDi() async {
     () => TokenStorage(storage: getIt()),
   );
 
-  getIt.registerLazySingleton<PusherService>(
-    () => PusherService(),
-  );
+  getIt.registerLazySingleton<PusherService>(() => PusherService());
 
   getIt.registerLazySingleton<ApiClient>(
     () => ApiClient(dio: getIt(), tokenStorage: getIt()),
@@ -399,6 +398,7 @@ Future<void> initDi() async {
   getIt.registerLazySingleton(() => UpdateAppointmentUseCase(getIt()));
   getIt.registerLazySingleton(() => DeleteAppointmentUseCase(getIt()));
   getIt.registerLazySingleton(() => ChangeAppointmentStatusUseCase(getIt()));
+  getIt.registerLazySingleton(() => RescheduleAppointmentUseCase(getIt()));
 
   // Blocs
   getIt.registerFactory(
@@ -409,6 +409,7 @@ Future<void> initDi() async {
       updateAppointment: getIt(),
       deleteAppointment: getIt(),
       changeStatus: getIt(),
+      rescheduleAppointment: getIt(),
       getClientsList: getIt(),
     ),
   );
@@ -620,9 +621,7 @@ Future<void> initDi() async {
   getIt.registerLazySingleton(() => SendWhatsappMessageUseCase(getIt()));
   getIt.registerLazySingleton(() => ReplyToThreadUseCase(getIt()));
 
-  getIt.registerFactory(
-    () => WhatsappThreadsCubit(getThreadsUseCase: getIt()),
-  );
+  getIt.registerFactory(() => WhatsappThreadsCubit(getThreadsUseCase: getIt()));
 
   getIt.registerFactory(
     () => WhatsappChatCubit(

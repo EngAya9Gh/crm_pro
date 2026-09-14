@@ -70,7 +70,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => const WhatsappInboxScreen()),
+                      builder: (_) => const WhatsappInboxScreen(),
+                    ),
                   );
                 },
               )
@@ -229,9 +230,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildBentoGrid(BuildContext context, DashboardState state) {
     final summary = state.summary;
-    final bool hasClientsView = context.hasPermission('clients.view') && context.hasFeature('clients');
-    final bool hasInvoicesView = context.hasPermission('invoices.view') && context.hasFeature('invoices');
-    final bool hasAppointmentsView = context.hasPermission('appointments.view') && context.hasFeature('appointments');
+    final bool hasClientsView =
+        context.hasPermission('clients.view') && context.hasFeature('clients');
+    final bool hasInvoicesView =
+        context.hasPermission('invoices.view') &&
+        context.hasFeature('invoices');
+    final bool hasAppointmentsView =
+        context.hasPermission('appointments.view') &&
+        context.hasFeature('appointments');
     final bool hasInventoryView = context.hasFeature('inventory');
 
     return Column(

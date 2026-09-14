@@ -31,6 +31,7 @@ class InvoicesBloc extends Bloc<InvoicesEvent, InvoicesState> {
   // Filter state for load more
   String? _currentStatus;
   int? _currentClientId;
+  int? _currentUserId;
   String? _currentSearch;
   DateTime? _currentDateFrom;
   DateTime? _currentDateTo;
@@ -84,6 +85,7 @@ class InvoicesBloc extends Bloc<InvoicesEvent, InvoicesState> {
 
     _currentStatus = event.status;
     _currentClientId = event.clientId;
+    _currentUserId = event.userId;
     _currentSearch = event.search;
     _currentDateFrom = event.dateFrom;
     _currentDateTo = event.dateTo;
@@ -94,6 +96,7 @@ class InvoicesBloc extends Bloc<InvoicesEvent, InvoicesState> {
       limit: _limit,
       status: event.status,
       clientId: event.clientId,
+      userId: event.userId,
       search: event.search,
       dateFrom: event.dateFrom,
       dateTo: event.dateTo,
@@ -126,34 +129,38 @@ class InvoicesBloc extends Bloc<InvoicesEvent, InvoicesState> {
     LoadMoreInvoices event,
     Emitter<InvoicesState> emit,
   ) async {
-    if (state.hasReachedMax || state.status != InvoicesStatus.success || _isFetchingMore) return;
+    if (state.hasReachedMax ||
+        state.status != InvoicesStatus.success ||
+        _isFetchingMore)
+      return;
 
     _isFetchingMore = true;
     try {
       final result = await getInvoices(
-      page: state.page + 1,
-      limit: _limit,
-      status: _currentStatus,
-      clientId: _currentClientId,
-      search: _currentSearch,
-      dateFrom: _currentDateFrom,
-      dateTo: _currentDateTo,
-      tagIds: _currentTagIds,
-    );
+        page: state.page + 1,
+        limit: _limit,
+        status: _currentStatus,
+        clientId: _currentClientId,
+        userId: _currentUserId,
+        search: _currentSearch,
+        dateFrom: _currentDateFrom,
+        dateTo: _currentDateTo,
+        tagIds: _currentTagIds,
+      );
 
-    result.fold(
-      (failure) =>
-          null, // Ignore error on pagination for now or show snackbar via listener?
-      (paginatedList) => emit(
-        state.copyWith(
-          invoices: List.of(state.invoices)..addAll(paginatedList.items),
-          page: paginatedList.currentPage,
-          total: paginatedList.total,
-          lastPage: paginatedList.lastPage,
-          hasReachedMax: paginatedList.currentPage >= paginatedList.lastPage,
+      result.fold(
+        (failure) =>
+            null, // Ignore error on pagination for now or show snackbar via listener?
+        (paginatedList) => emit(
+          state.copyWith(
+            invoices: List.of(state.invoices)..addAll(paginatedList.items),
+            page: paginatedList.currentPage,
+            total: paginatedList.total,
+            lastPage: paginatedList.lastPage,
+            hasReachedMax: paginatedList.currentPage >= paginatedList.lastPage,
+          ),
         ),
-      ),
-    );
+      );
     } finally {
       _isFetchingMore = false;
     }

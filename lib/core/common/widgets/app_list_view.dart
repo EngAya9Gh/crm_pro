@@ -19,7 +19,9 @@ class AppListView extends StatelessWidget {
     this.controller,
     this.shrinkWrap = false,
     this.scrollDirection = Axis.vertical,
-  }) : itemCount = null, itemBuilder = null, separatorBuilder = null;
+  }) : itemCount = null,
+       itemBuilder = null,
+       separatorBuilder = null;
 
   const AppListView.builder({
     super.key,
@@ -30,7 +32,8 @@ class AppListView extends StatelessWidget {
     this.controller,
     this.shrinkWrap = false,
     this.scrollDirection = Axis.vertical,
-  }) : separatorBuilder = null, children = null;
+  }) : separatorBuilder = null,
+       children = null;
 
   const AppListView.separated({
     super.key,
@@ -42,7 +45,8 @@ class AppListView extends StatelessWidget {
     this.controller,
     this.shrinkWrap = false,
     this.scrollDirection = Axis.vertical,
-  }) : separatorBuilder = separatorBuilder, children = null;
+  }) : separatorBuilder = separatorBuilder,
+       children = null;
 
   @override
   Widget build(BuildContext context) {

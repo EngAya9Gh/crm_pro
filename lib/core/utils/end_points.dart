@@ -1,7 +1,6 @@
 class EndPoints {
   // TODO: Update with real Base URL from Backend
-  static const String baseUrl =
-      'https://app.wakeel.cc/api/v1';
+  static const String baseUrl = 'https://app.wakeel.cc/api/v1';
   //honeydew-sheep-602146.hostingersite.com
 
   // Auth
@@ -94,7 +93,8 @@ class EndPoints {
   static const String settingsPermissions = '/settings/permissions';
 
   static const String settingsIntegrations = '/settings/integrations';
-  static String settingsIntegration(String platform) => '/settings/integrations/$platform';
+  static String settingsIntegration(String platform) =>
+      '/settings/integrations/$platform';
 
   // Stock
   static const String stockScan = '/stock/scan';
@@ -111,7 +111,9 @@ class EndPoints {
   // WhatsApp & Chat
   static const String whatsappSend = '/whatsapp/send';
   static const String whatsappThreads = '/whatsapp/threads';
-  static String whatsappThreadMessages(String threadId) => '/whatsapp/threads/$threadId/messages';
-  static String whatsappMediaUpload(String threadId) => '/whatsapp/threads/$threadId/media-upload';
+  static String whatsappThreadMessages(String threadId) =>
+      '/whatsapp/threads/$threadId/messages';
+  static String whatsappMediaUpload(String threadId) =>
+      '/whatsapp/threads/$threadId/media-upload';
   static const String whatsappMedia = '/whatsapp/media';
 }

@@ -95,11 +95,41 @@ class AppointmentsRemoteDataSourceImpl implements AppointmentsRemoteDataSource {
   @override
   Future<AppointmentModel> changeAppointmentStatus(
     int id,
-    String status,
-  ) async {
+    String status, {
+    String? note,
+  }) async {
+    final Map<String, dynamic> data = {'status': status};
+    if (note != null && note.isNotEmpty) {
+      data['note'] = note;
+    }
+
     final response = await apiClient.patch(
       EndPoints.appointmentStatus(id.toString()),
-      data: {'status': status},
+      data: data,
+      fromJson: (json) =>
+          AppointmentModel.fromJson(json as Map<String, dynamic>),
+    );
+    return response.data!;
+  }
+
+  @override
+  Future<AppointmentModel> rescheduleAppointment(
+    int id,
+    DateTime startAt,
+    DateTime endAt, {
+    String? note,
+  }) async {
+    final Map<String, dynamic> data = {
+      'start_at': startAt.toIso8601String(),
+      'end_at': endAt.toIso8601String(),
+    };
+    if (note != null && note.isNotEmpty) {
+      data['note'] = note;
+    }
+
+    final response = await apiClient.patch(
+      '${EndPoints.appointments}/$id/reschedule',
+      data: data,
       fromJson: (json) =>
           AppointmentModel.fromJson(json as Map<String, dynamic>),
     );

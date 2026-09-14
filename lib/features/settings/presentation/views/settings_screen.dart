@@ -109,7 +109,8 @@ class SettingsScreen extends StatelessWidget {
                 );
               },
             ),
-            if (context.hasPermission('settings.manage') && context.hasFeature('integrations')) ...[
+            if (context.hasPermission('settings.manage') &&
+                context.hasFeature('integrations')) ...[
               const SizedBox(height: 16),
               _buildSettingsCard(
                 context,
@@ -120,7 +121,9 @@ class SettingsScreen extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const IntegrationsScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => const IntegrationsScreen(),
+                    ),
                   );
                 },
               ),

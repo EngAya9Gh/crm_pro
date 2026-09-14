@@ -509,11 +509,10 @@ class RolesView extends StatelessWidget {
                           flex: 2,
                           child: ElevatedButton(
                             onPressed: () {
-                              if (nameController.text.isEmpty) return;
-                              if (selectedTeam == null) {
+                              if (nameController.text.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('الرجاء اختيار الفريق'),
+                                    content: Text('الرجاء إدخال اسم الدور'),
                                     backgroundColor: AppColorScheme.error,
                                   ),
                                 );
@@ -532,9 +531,7 @@ class RolesView extends StatelessWidget {
                                   UpdateRoleEvent(role.id, data),
                                 );
                               } else {
-                                settingsCrudBloc.add(
-                                  CreateRoleEvent(data),
-                                );
+                                settingsCrudBloc.add(CreateRoleEvent(data));
                               }
                               Navigator.pop(dialogContext);
                             },

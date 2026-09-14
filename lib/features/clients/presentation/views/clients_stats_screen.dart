@@ -165,48 +165,48 @@ class ClientsStatsScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: color, size: 20),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: AppText(
-                  title,
-                  style: AppTypography.labelSmall.copyWith(
-                    color: AppColorScheme.textMuted,
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    shape: BoxShape.circle,
                   ),
+                  child: Icon(icon, color: color, size: 20),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: AppText(
+                    title,
+                    style: AppTypography.labelSmall.copyWith(
+                      color: AppColorScheme.textMuted,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            AppText(
+              value,
+              style: AppTypography.titleLarge.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+            ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 4),
+              AppText(
+                subtitle,
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColorScheme.textMuted,
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 12),
-          AppText(
-            value,
-            style: AppTypography.titleLarge.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-            ),
-          ),
-          if (subtitle != null) ...[
-            const SizedBox(height: 4),
-            AppText(
-              subtitle,
-              style: AppTypography.bodySmall.copyWith(
-                color: AppColorScheme.textMuted,
-              ),
-            ),
           ],
-        ],
+        ),
       ),
-    ),
-  );
+    );
   }
 
   Widget _buildSectionTitle(String title) {
@@ -254,9 +254,10 @@ class ClientsStatsScreen extends StatelessWidget {
                     title: '${item.count}',
                     radius: 50,
                     titleStyle: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   );
                 }).toList(),
               ),
@@ -272,11 +273,16 @@ class ClientsStatsScreen extends StatelessWidget {
               try {
                 if (item.color.startsWith('#')) {
                   color = Color(
-                    int.parse(item.color.substring(1, 7), radix: 16) + 0xFF000000,
+                    int.parse(item.color.substring(1, 7), radix: 16) +
+                        0xFF000000,
                   );
                 }
               } catch (_) {}
-              return _buildLegendItem(item.statusName == 'N/A' ? 'غير محدد' : item.statusName, item.count, color);
+              return _buildLegendItem(
+                item.statusName == 'N/A' ? 'غير محدد' : item.statusName,
+                item.count,
+                color,
+              );
             }).toList(),
           ),
         ],
@@ -349,7 +355,9 @@ class ClientsStatsScreen extends StatelessWidget {
                           return Padding(
                             padding: const EdgeInsets.only(top: 8),
                             child: AppText(
-                              data[index].sourceName == 'N/A' ? 'غير محدد' : data[index].sourceName,
+                              data[index].sourceName == 'N/A'
+                                  ? 'غير محدد'
+                                  : data[index].sourceName,
                               style: const TextStyle(fontSize: 10),
                             ),
                           );
@@ -371,7 +379,9 @@ class ClientsStatsScreen extends StatelessWidget {
             alignment: WrapAlignment.center,
             children: data.asMap().entries.map((entry) {
               return _buildLegendItem(
-                entry.value.sourceName == 'N/A' ? 'غير محدد' : entry.value.sourceName,
+                entry.value.sourceName == 'N/A'
+                    ? 'غير محدد'
+                    : entry.value.sourceName,
                 entry.value.count,
                 colors[entry.key % colors.length],
               );
@@ -396,18 +406,12 @@ class ClientsStatsScreen extends StatelessWidget {
           Container(
             width: 12,
             height: 12,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(width: 8),
           AppText(
             title,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
           ),
           const SizedBox(width: 8),
           Container(

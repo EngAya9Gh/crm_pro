@@ -19,7 +19,7 @@ class ResponsiveHelper {
   static double sp(double fontSize) {
     // Base width could be 375 (iPhone X)
     double scale = screenWidth / 360;
-    // Cap the scale to avoid overly large text on tablets or desktops 
+    // Cap the scale to avoid overly large text on tablets or desktops
     // unless we want it to keep growing. The user said "grow accordingly".
     return fontSize * scale;
   }

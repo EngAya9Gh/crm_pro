@@ -16,12 +16,11 @@ class ServerException extends ApiException {
 }
 
 class UnauthorizedException extends ApiException {
-  UnauthorizedException({
-    String? message,
-  }) : super(
-          message: message ?? 'تم انتهاء الجلسة، يرجى تسجيل الدخول مجدداً',
-          statusCode: 401,
-        );
+  UnauthorizedException({String? message})
+    : super(
+        message: message ?? 'تم انتهاء الجلسة، يرجى تسجيل الدخول مجدداً',
+        statusCode: 401,
+      );
 }
 
 class ValidationException extends ApiException {

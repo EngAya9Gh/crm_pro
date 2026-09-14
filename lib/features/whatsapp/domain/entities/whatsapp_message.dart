@@ -27,14 +27,14 @@ class WhatsappMessage extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        threadId,
-        type,
-        direction,
-        content,
-        mediaUrl,
-        mediaType,
-        status,
-        createdAt,
-      ];
+    id,
+    threadId,
+    type,
+    direction,
+    content,
+    mediaUrl,
+    mediaType,
+    status,
+    createdAt,
+  ];
 }

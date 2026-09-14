@@ -90,7 +90,10 @@ abstract class ClientsRepository {
   Future<Either<Failure, void>> deleteDynamicField(String type, String fieldId);
 
   Future<Either<Failure, String>> downloadClientPdf(String clientId);
-  Future<Either<Failure, String>> exportClients(ClientFilter? filter, {String format = 'csv'});
+  Future<Either<Failure, String>> exportClients(
+    ClientFilter? filter, {
+    String format = 'csv',
+  });
 
   Future<Either<Failure, PaginatedList<Invoice>>> getInvoices({
     required String clientId,

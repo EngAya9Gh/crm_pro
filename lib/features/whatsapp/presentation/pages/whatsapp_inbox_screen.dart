@@ -61,10 +61,13 @@ class _WhatsappInboxViewState extends State<_WhatsappInboxView> {
       ),
       body: BlocBuilder<WhatsappThreadsCubit, WhatsappThreadsState>(
         builder: (context, state) {
-          if (state is WhatsappThreadsLoading && state is! WhatsappThreadsLoaded) {
+          if (state is WhatsappThreadsLoading &&
+              state is! WhatsappThreadsLoaded) {
             return const Center(child: AppLoader());
           } else if (state is WhatsappThreadsError) {
-            return Center(child: AppText.bodyMedium(state.message, color: Colors.red));
+            return Center(
+              child: AppText.bodyMedium(state.message, color: Colors.red),
+            );
           } else if (state is WhatsappThreadsLoaded) {
             final threads = state.threads;
             if (threads.isEmpty) {
@@ -72,7 +75,9 @@ class _WhatsappInboxViewState extends State<_WhatsappInboxView> {
             }
             return RefreshIndicator(
               onRefresh: () async {
-                await context.read<WhatsappThreadsCubit>().loadThreads(refresh: true);
+                await context.read<WhatsappThreadsCubit>().loadThreads(
+                  refresh: true,
+                );
               },
               child: ListView.separated(
                 controller: _scrollController,
@@ -105,7 +110,9 @@ class _ThreadTile extends StatelessWidget {
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();
-    if (date.year == now.year && date.month == now.month && date.day == now.day) {
+    if (date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day) {
       return DateFormat('hh:mm a').format(date);
     }
     return DateFormat('yyyy/MM/dd').format(date);
@@ -123,7 +130,10 @@ class _ThreadTile extends StatelessWidget {
         fontWeight: FontWeight.bold,
       ),
       subtitle: AppText.bodySmall(
-        thread.lastMessage?.content ?? (thread.lastMessage?.mediaUrl != null ? '📷 صورة/مرفق' : 'لا توجد رسائل'),
+        thread.lastMessage?.content ??
+            (thread.lastMessage?.mediaUrl != null
+                ? '📷 صورة/مرفق'
+                : 'لا توجد رسائل'),
         maxLines: 1,
         color: AppColorScheme.textMuted,
       ),
@@ -133,7 +143,9 @@ class _ThreadTile extends StatelessWidget {
         children: [
           AppText.labelMedium(
             _formatDate(thread.updatedAt),
-            color: thread.unreadCount > 0 ? const Color(0xFF25D366) : AppColorScheme.textMuted,
+            color: thread.unreadCount > 0
+                ? const Color(0xFF25D366)
+                : AppColorScheme.textMuted,
           ),
           if (thread.unreadCount > 0)
             Container(
@@ -154,9 +166,7 @@ class _ThreadTile extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (_) => WhatsappChatScreen(thread: thread),
-          ),
+          MaterialPageRoute(builder: (_) => WhatsappChatScreen(thread: thread)),
         );
       },
     );

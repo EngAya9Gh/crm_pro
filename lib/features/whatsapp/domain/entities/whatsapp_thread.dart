@@ -24,13 +24,13 @@ class WhatsappThread extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        clientId,
-        clientName,
-        clientPhone,
-        status,
-        unreadCount,
-        lastMessage,
-        updatedAt,
-      ];
+    id,
+    clientId,
+    clientName,
+    clientPhone,
+    status,
+    unreadCount,
+    lastMessage,
+    updatedAt,
+  ];
 }

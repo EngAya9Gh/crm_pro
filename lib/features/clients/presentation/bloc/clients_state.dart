@@ -80,6 +80,14 @@ class ClientsError extends ClientsState {
   List<Object?> get props => [message];
 }
 
+class ClientOperationSuccess extends ClientsState {
+  final String message;
+  const ClientOperationSuccess(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
 class ClientsStatsLoading extends ClientsState {}
 
 class ClientsStatsLoaded extends ClientsState {

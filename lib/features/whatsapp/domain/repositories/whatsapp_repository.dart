@@ -5,10 +5,12 @@ import '../entities/whatsapp_message.dart';
 
 abstract class WhatsappRepository {
   Future<Either<ApiException, List<WhatsappThread>>> getThreads({int page = 1});
-  
+
   Future<Either<ApiException, List<WhatsappMessage>>> getThreadMessages(
-      String threadId, {int page = 1});
-      
+    String threadId, {
+    int page = 1,
+  });
+
   Future<Either<ApiException, WhatsappMessage>> sendMessage({
     required int? clientId,
     required String? phone,

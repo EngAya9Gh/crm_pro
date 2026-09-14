@@ -2,10 +2,7 @@ class IntegrationData {
   final bool isActive;
   final bool hasCredentials;
 
-  IntegrationData({
-    required this.isActive,
-    required this.hasCredentials,
-  });
+  IntegrationData({required this.isActive, required this.hasCredentials});
 }
 
 class IntegrationsEntity {

@@ -55,8 +55,10 @@ class InvoiceModel extends Invoice {
                 .map((i) => InvoiceItemModel.fromJson(i))
                 .toList()
           : null,
-      tags: (json['tags'] ?? json['invoice_tags'] ?? json['invoiceTags']) != null
-          ? ((json['tags'] ?? json['invoice_tags'] ?? json['invoiceTags']) as List)
+      tags:
+          (json['tags'] ?? json['invoice_tags'] ?? json['invoiceTags']) != null
+          ? ((json['tags'] ?? json['invoice_tags'] ?? json['invoiceTags'])
+                    as List)
                 .map((t) => TagModel.fromJson(t))
                 .toList()
           : [],

@@ -95,10 +95,37 @@ class AppointmentsRepositoryImpl implements AppointmentsRepository {
   @override
   Future<Either<Failure, Appointment>> changeAppointmentStatus(
     int id,
-    String status,
-  ) async {
+    String status, {
+    String? note,
+  }) async {
     try {
-      final result = await remoteDataSource.changeAppointmentStatus(id, status);
+      final result = await remoteDataSource.changeAppointmentStatus(
+        id,
+        status,
+        note: note,
+      );
+      return Right(result);
+    } on ApiException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Appointment>> rescheduleAppointment(
+    int id,
+    DateTime startAt,
+    DateTime endAt, {
+    String? note,
+  }) async {
+    try {
+      final result = await remoteDataSource.rescheduleAppointment(
+        id,
+        startAt,
+        endAt,
+        note: note,
+      );
       return Right(result);
     } on ApiException catch (e) {
       return Left(ServerFailure(e.message));

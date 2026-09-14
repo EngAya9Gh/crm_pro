@@ -36,7 +36,9 @@ class AppElevatedButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
           ),
           elevation: 4,
-          shadowColor: (backgroundColor ?? AppColorScheme.primary).withOpacity(0.3),
+          shadowColor: (backgroundColor ?? AppColorScheme.primary).withOpacity(
+            0.3,
+          ),
         ),
         child: isLoading
             ? const SizedBox(

@@ -30,6 +30,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
   final ScrollController _scrollController = ScrollController();
   String? _selectedStatus;
   List<int>? _selectedTagIds;
+  int? _selectedUserId;
 
   @override
   void initState() {
@@ -58,6 +59,8 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
       LoadInvoices(
         search: query.isEmpty ? null : query,
         status: _selectedStatus,
+        tagIds: _selectedTagIds,
+        userId: _selectedUserId,
         isRefresh: true,
       ),
     );
@@ -70,6 +73,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
         status: status,
         search: _searchController.text.isEmpty ? null : _searchController.text,
         tagIds: _selectedTagIds,
+        userId: _selectedUserId,
         isRefresh: true,
       ),
     );
@@ -82,6 +86,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
         status: _selectedStatus,
         search: _searchController.text.isEmpty ? null : _searchController.text,
         tagIds: tagIds,
+        userId: _selectedUserId,
         isRefresh: true,
       ),
     );
@@ -90,6 +95,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
   void _showFiltersBottomSheet() {
     String? tempSelectedStatus = _selectedStatus;
     List<int> tempSelectedTags = List.from(_selectedTagIds ?? []);
+    int? tempSelectedUserId = _selectedUserId;
 
     showModalBottomSheet(
       context: context,
@@ -110,158 +116,239 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                   bottom: MediaQuery.of(context).viewInsets.bottom + 24,
                 ),
                 child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const AppText('تصفية الفواتير', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.pop(ctx),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    const AppText('حالة الفاتورة', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [null, 'paid', 'pending', 'overdue', 'draft'].map((status) {
-                        return ChoiceChip(
-                          label: AppText(
-                            status == null ? 'الكل' : _getStatusLabel(status),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const AppText(
+                            'تصفية الفواتير',
                             style: TextStyle(
-                              color: tempSelectedStatus == status
-                                  ? AppColorScheme.white
-                                  : _getStatusColor(status),
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          selected: tempSelectedStatus == status,
-                          selectedColor: _getStatusColor(status),
-                          checkmarkColor: AppColorScheme.white,
-                          backgroundColor: _getStatusColor(status).withValues(alpha: 0.1),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            side: BorderSide(
-                              color: _getStatusColor(status).withValues(alpha: 0.2),
-                            ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(ctx),
                           ),
-                          onSelected: (selected) {
-                            setState(() => tempSelectedStatus = status);
-                          },
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 24),
-                    const AppText('الوسوم', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    BlocBuilder<LookupsBloc, LookupsState>(
-                      builder: (context, state) {
-                        if (state is LookupsLoading || state is LookupsInitial) {
-                          if (state is LookupsInitial) {
-                            context.read<LookupsBloc>().add(LoadAllLookups());
-                          }
-                          return const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: CircularProgressIndicator(),
-                            ),
-                          );
-                        }
-                        if (state is LookupsLoaded) {
-                          final allTags = state.lookups.invoiceTags;
-                          if (allTags.isEmpty) {
-                            return const AppText('لا توجد وسوم متاحة');
-                          }
-                          return Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: allTags.map((tag) {
-                              final isSelected = tempSelectedTags.contains(tag.id);
-                              return FilterChip(
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      const AppText(
+                        'حالة الفاتورة',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [null, 'paid', 'pending', 'overdue', 'draft']
+                            .map((status) {
+                              return ChoiceChip(
                                 label: AppText(
-                                  tag.name,
+                                  status == null
+                                      ? 'الكل'
+                                      : _getStatusLabel(status),
                                   style: TextStyle(
-                                    color: isSelected ? AppColorScheme.white : _parseColor(tag.color, fallbackName: tag.name),
+                                    color: tempSelectedStatus == status
+                                        ? AppColorScheme.white
+                                        : _getStatusColor(status),
                                   ),
                                 ),
-                                selected: isSelected,
-                                selectedColor: _parseColor(tag.color, fallbackName: tag.name),
+                                selected: tempSelectedStatus == status,
+                                selectedColor: _getStatusColor(status),
                                 checkmarkColor: AppColorScheme.white,
-                                backgroundColor: _parseColor(tag.color, fallbackName: tag.name).withValues(alpha: 0.1),
+                                backgroundColor: _getStatusColor(
+                                  status,
+                                ).withValues(alpha: 0.1),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   side: BorderSide(
-                                    color: _parseColor(tag.color, fallbackName: tag.name).withValues(alpha: 0.2),
+                                    color: _getStatusColor(
+                                      status,
+                                    ).withValues(alpha: 0.2),
                                   ),
                                 ),
                                 onSelected: (selected) {
-                                  setState(() {
-                                    if (selected) {
-                                      tempSelectedTags.add(tag.id);
-                                    } else {
-                                      tempSelectedTags.remove(tag.id);
-                                    }
-                                  });
+                                  setState(() => tempSelectedStatus = status);
                                 },
                               );
-                            }).toList(),
-                          );
-                        }
-                        return const AppText('حدث خطأ أثناء تحميل الوسوم');
-                      },
-                    ),
-                    const SizedBox(height: 32),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () {
-                              setState(() {
-                                tempSelectedStatus = null;
-                                tempSelectedTags.clear();
-                              });
-                            },
-                            child: const AppText('مسح الفلاتر'),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(ctx);
-                              this.setState(() {
-                                _selectedStatus = tempSelectedStatus;
-                                _selectedTagIds = tempSelectedTags.isEmpty ? null : tempSelectedTags;
-                              });
-                              _invoicesBloc.add(
-                                LoadInvoices(
-                                  status: _selectedStatus,
-                                  search: _searchController.text.isEmpty ? null : _searchController.text,
-                                  tagIds: _selectedTagIds,
-                                  isRefresh: true,
+                            })
+                            .toList(),
+                      ),
+                      const SizedBox(height: 24),
+                      const AppText(
+                        'الوسوم',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      BlocBuilder<LookupsBloc, LookupsState>(
+                        builder: (context, state) {
+                          if (state is LookupsLoading ||
+                              state is LookupsInitial) {
+                            if (state is LookupsInitial) {
+                              context.read<LookupsBloc>().add(LoadAllLookups());
+                            }
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          }
+                          if (state is LookupsLoaded) {
+                            final allTags = state.lookups.invoiceTags;
+                            if (allTags.isEmpty) {
+                              return const AppText('لا توجد وسوم متاحة');
+                            }
+                            return Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: allTags.map((tag) {
+                                final isSelected = tempSelectedTags.contains(
+                                  tag.id,
+                                );
+                                return FilterChip(
+                                  label: AppText(
+                                    tag.name,
+                                    style: TextStyle(
+                                      color: isSelected
+                                          ? AppColorScheme.white
+                                          : _parseColor(
+                                              tag.color,
+                                              fallbackName: tag.name,
+                                            ),
+                                    ),
+                                  ),
+                                  selected: isSelected,
+                                  selectedColor: _parseColor(
+                                    tag.color,
+                                    fallbackName: tag.name,
+                                  ),
+                                  checkmarkColor: AppColorScheme.white,
+                                  backgroundColor: _parseColor(
+                                    tag.color,
+                                    fallbackName: tag.name,
+                                  ).withValues(alpha: 0.1),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    side: BorderSide(
+                                      color: _parseColor(
+                                        tag.color,
+                                        fallbackName: tag.name,
+                                      ).withValues(alpha: 0.2),
+                                    ),
+                                  ),
+                                  onSelected: (selected) {
+                                    setState(() {
+                                      if (selected) {
+                                        tempSelectedTags.add(tag.id);
+                                      } else {
+                                        tempSelectedTags.remove(tag.id);
+                                      }
+                                    });
+                                  },
+                                );
+                              }).toList(),
+                            );
+                          }
+                          return const AppText('حدث خطأ أثناء تحميل الوسوم');
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      const AppText(
+                        'الموظف المسؤول',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      BlocBuilder<LookupsBloc, LookupsState>(
+                        builder: (context, state) {
+                          if (state is LookupsLoaded) {
+                            return DropdownButtonFormField<int>(
+                              value: tempSelectedUserId,
+                              decoration: const InputDecoration(
+                                hintText: 'اختر الموظف',
+                                border: OutlineInputBorder(),
+                              ),
+                              items: [
+                                const DropdownMenuItem<int>(
+                                  value: null,
+                                  child: AppText('الكل'),
                                 ),
-                              );
-                            },
-                            child: const AppText('تطبيق'),
+                                ...state.employees.map((emp) {
+                                  return DropdownMenuItem<int>(
+                                    value: emp.id,
+                                    child: AppText(emp.name),
+                                  );
+                                }),
+                              ],
+                              onChanged: (val) {
+                                setState(() {
+                                  tempSelectedUserId = val;
+                                });
+                              },
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                      const SizedBox(height: 32),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {
+                                setState(() {
+                                  tempSelectedStatus = null;
+                                  tempSelectedTags.clear();
+                                  tempSelectedUserId = null;
+                                });
+                              },
+                              child: const AppText('مسح الفلاتر'),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.pop(ctx);
+                                this.setState(() {
+                                  _selectedStatus = tempSelectedStatus;
+                                  _selectedTagIds = tempSelectedTags.isEmpty
+                                      ? null
+                                      : tempSelectedTags;
+                                  _selectedUserId = tempSelectedUserId;
+                                });
+                                _invoicesBloc.add(
+                                  LoadInvoices(
+                                    status: _selectedStatus,
+                                    search: _searchController.text.isEmpty
+                                        ? null
+                                        : _searchController.text,
+                                    tagIds: _selectedTagIds,
+                                    userId: _selectedUserId,
+                                    isRefresh: true,
+                                  ),
+                                );
+                              },
+                              child: const AppText('تطبيق'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
-        ),
-      );
-    },
-  );
-}
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -334,7 +421,9 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                       ),
                     ],
                   ),
-                  if (_selectedStatus != null || (_selectedTagIds != null && _selectedTagIds!.isNotEmpty)) ...[
+                  if (_selectedStatus != null ||
+                      (_selectedTagIds != null &&
+                          _selectedTagIds!.isNotEmpty)) ...[
                     const SizedBox(height: 12),
                     SizedBox(
                       height: 40,
@@ -345,21 +434,28 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                             Padding(
                               padding: const EdgeInsets.only(left: 8.0),
                               child: Chip(
-                                label: AppText('الحالة: ${_getStatusLabel(_selectedStatus!)}'),
+                                label: AppText(
+                                  'الحالة: ${_getStatusLabel(_selectedStatus!)}',
+                                ),
                                 deleteIcon: const Icon(Icons.close, size: 16),
                                 onDeleted: () => _onFilterByStatus(null),
-                                backgroundColor: AppColorScheme.primary.withValues(alpha: 0.1),
+                                backgroundColor: AppColorScheme.primary
+                                    .withValues(alpha: 0.1),
                                 side: BorderSide.none,
                               ),
                             ),
-                          if (_selectedTagIds != null && _selectedTagIds!.isNotEmpty)
+                          if (_selectedTagIds != null &&
+                              _selectedTagIds!.isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.only(left: 8.0),
                               child: Chip(
-                                label: AppText('الوسوم (${_selectedTagIds!.length})'),
+                                label: AppText(
+                                  'الوسوم (${_selectedTagIds!.length})',
+                                ),
                                 deleteIcon: const Icon(Icons.close, size: 16),
                                 onDeleted: () => _onFilterByTags(null),
-                                backgroundColor: AppColorScheme.primary.withValues(alpha: 0.1),
+                                backgroundColor: AppColorScheme.primary
+                                    .withValues(alpha: 0.1),
                                 side: BorderSide.none,
                               ),
                             ),
@@ -373,7 +469,8 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
 
             BlocBuilder<InvoicesBloc, InvoicesState>(
               builder: (context, state) {
-                if (state.status == InvoicesStatus.initial || state.total == 0) {
+                if (state.status == InvoicesStatus.initial ||
+                    state.total == 0) {
                   return const SizedBox.shrink();
                 }
                 return Padding(
@@ -382,12 +479,18 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                     children: [
                       AppText(
                         'الصفحة ${state.page} من ${state.lastPage}',
-                        style: const TextStyle(color: AppColorScheme.textMuted, fontSize: 12),
+                        style: const TextStyle(
+                          color: AppColorScheme.textMuted,
+                          fontSize: 12,
+                        ),
                       ),
                       const Spacer(),
                       AppText(
                         'إجمالي الفواتير: ${state.total}',
-                        style: const TextStyle(color: AppColorScheme.textMuted, fontSize: 12),
+                        style: const TextStyle(
+                          color: AppColorScheme.textMuted,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),

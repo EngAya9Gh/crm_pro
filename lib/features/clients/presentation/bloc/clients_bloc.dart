@@ -429,6 +429,7 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
     emit(ClientsLoading());
     final result = await addClient!(event.client);
     result.fold((failure) => emit(ClientsError(failure.message)), (client) {
+      emit(const ClientOperationSuccess('تم إضافة العميل بنجاح'));
       add(const LoadClients());
     });
   }
@@ -441,6 +442,7 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
     emit(ClientsLoading());
     final result = await updateClient!(event.client);
     result.fold((failure) => emit(ClientsError(failure.message)), (client) {
+      emit(const ClientOperationSuccess('تم تحديث بيانات العميل بنجاح'));
       add(const LoadClients());
     });
   }
@@ -520,7 +522,10 @@ class ClientsBloc extends Bloc<ClientsEvent, ClientsState> {
     final result = await deleteClient!(event.clientId);
     result.fold(
       (failure) => emit(ClientsError(failure.message)),
-      (_) => add(const LoadClients()),
+      (_) {
+        emit(const ClientOperationSuccess('تم حذف العميل بنجاح'));
+        add(const LoadClients());
+      },
     );
   }
 

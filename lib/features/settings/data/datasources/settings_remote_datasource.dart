@@ -613,18 +613,23 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
     );
     return response.data!;
   }
+
   // --- Integrations ---
   @override
   Future<IntegrationsModel> getIntegrations() async {
     final response = await apiClient.get(
       EndPoints.settingsIntegrations,
-      fromJson: (json) => IntegrationsModel.fromJson(json as Map<String, dynamic>),
+      fromJson: (json) =>
+          IntegrationsModel.fromJson(json as Map<String, dynamic>),
     );
     return response.data!;
   }
 
   @override
-  Future<void> updateIntegration(String platform, Map<String, dynamic> data) async {
+  Future<void> updateIntegration(
+    String platform,
+    Map<String, dynamic> data,
+  ) async {
     await apiClient.put(
       EndPoints.settingsIntegration(platform),
       data: data,

@@ -17,8 +17,10 @@ class WhatsappThreadModel extends WhatsappThread {
     return WhatsappThreadModel(
       id: json['id']?.toString() ?? json['_id']?.toString() ?? '',
       clientId: json['clientId'] ?? json['client_id'],
-      clientName: json['contactName'] ?? json['client_name'] ?? json['client']?['name'],
-      clientPhone: json['contactPhone'] ?? json['phone'] ?? json['client']?['phone'],
+      clientName:
+          json['contactName'] ?? json['client_name'] ?? json['client']?['name'],
+      clientPhone:
+          json['contactPhone'] ?? json['phone'] ?? json['client']?['phone'],
       status: json['status'] ?? 'active',
       unreadCount: json['unreadCount'] ?? json['unread_count'] ?? 0,
       lastMessage: json['last_message'] != null

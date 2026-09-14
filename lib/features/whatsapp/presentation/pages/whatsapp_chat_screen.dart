@@ -34,7 +34,8 @@ class WhatsappChatScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => getIt<WhatsappChatCubit>()..loadMessages(thread.id.toString()),
+      create: (context) =>
+          getIt<WhatsappChatCubit>()..loadMessages(thread.id.toString()),
       child: _WhatsappChatView(thread: thread),
     );
   }
@@ -86,7 +87,9 @@ class _WhatsappChatViewState extends State<_WhatsappChatView> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      context.read<WhatsappChatCubit>().loadMessages(widget.thread.id.toString());
+      context.read<WhatsappChatCubit>().loadMessages(
+        widget.thread.id.toString(),
+      );
     }
   }
 
@@ -94,10 +97,7 @@ class _WhatsappChatViewState extends State<_WhatsappChatView> {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
-    context.read<WhatsappChatCubit>().reply(
-      type: 'text',
-      content: text,
-    );
+    context.read<WhatsappChatCubit>().reply(type: 'text', content: text);
     _messageController.clear();
     setState(() => _showEmojiPicker = false);
   }
@@ -111,9 +111,12 @@ class _WhatsappChatViewState extends State<_WhatsappChatView> {
       final file = result.files.first;
       String mediaType = 'document';
       final ext = file.extension?.toLowerCase();
-      if (['jpg', 'jpeg', 'png'].contains(ext)) mediaType = 'image';
-      else if (['mp4', 'mov'].contains(ext)) mediaType = 'video';
-      else if (['mp3', 'wav', 'ogg', 'm4a'].contains(ext)) mediaType = 'audio';
+      if (['jpg', 'jpeg', 'png'].contains(ext))
+        mediaType = 'image';
+      else if (['mp4', 'mov'].contains(ext))
+        mediaType = 'video';
+      else if (['mp3', 'wav', 'ogg', 'm4a'].contains(ext))
+        mediaType = 'audio';
 
       if (mounted) {
         context.read<WhatsappChatCubit>().sendMedia(
@@ -137,19 +140,25 @@ class _WhatsappChatViewState extends State<_WhatsappChatView> {
       if (await _audioRecorder.hasPermission()) {
         if (kIsWeb) {
           _recordPath = '';
-          await _audioRecorder.start(const RecordConfig(encoder: AudioEncoder.aacLc), path: _recordPath!);
+          await _audioRecorder.start(
+            const RecordConfig(encoder: AudioEncoder.aacLc),
+            path: _recordPath!,
+          );
         } else {
           final dir = await getApplicationDocumentsDirectory();
           final fileName = 'audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
           _recordPath = '${dir.path}/$fileName';
-          await _audioRecorder.start(const RecordConfig(encoder: AudioEncoder.aacLc), path: _recordPath!);
+          await _audioRecorder.start(
+            const RecordConfig(encoder: AudioEncoder.aacLc),
+            path: _recordPath!,
+          );
         }
-        
+
         setState(() {
           _isRecording = true;
           _recordDuration = 0;
         });
-        
+
         _recordTimer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
           setState(() => _recordDuration++);
         });
@@ -206,7 +215,6 @@ class _WhatsappChatViewState extends State<_WhatsappChatView> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -227,7 +235,9 @@ class _WhatsappChatViewState extends State<_WhatsappChatView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AppText.titleMedium(
-                    widget.thread.clientName ?? widget.thread.clientPhone ?? 'عميل',
+                    widget.thread.clientName ??
+                        widget.thread.clientPhone ??
+                        'عميل',
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
@@ -246,10 +256,13 @@ class _WhatsappChatViewState extends State<_WhatsappChatView> {
           Expanded(
             child: BlocBuilder<WhatsappChatCubit, WhatsappChatState>(
               builder: (context, state) {
-                if (state is WhatsappChatLoading && state is! WhatsappChatLoaded) {
+                if (state is WhatsappChatLoading &&
+                    state is! WhatsappChatLoaded) {
                   return const Center(child: AppLoader());
                 } else if (state is WhatsappChatError) {
-                  return Center(child: AppText.bodyMedium(state.message, color: Colors.red));
+                  return Center(
+                    child: AppText.bodyMedium(state.message, color: Colors.red),
+                  );
                 } else if (state is WhatsappChatLoaded) {
                   final messages = state.messages;
                   return ListView.builder(
@@ -324,7 +337,9 @@ class _WhatsappChatViewState extends State<_WhatsappChatView> {
                       children: [
                         IconButton(
                           icon: Icon(
-                            _showEmojiPicker ? Icons.keyboard : Icons.emoji_emotions_outlined,
+                            _showEmojiPicker
+                                ? Icons.keyboard
+                                : Icons.emoji_emotions_outlined,
                             color: Colors.grey,
                           ),
                           onPressed: () {
@@ -351,7 +366,10 @@ class _WhatsappChatViewState extends State<_WhatsappChatView> {
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.attach_file, color: Colors.grey),
+                          icon: const Icon(
+                            Icons.attach_file,
+                            color: Colors.grey,
+                          ),
                           onPressed: _pickFile,
                         ),
                       ],
@@ -364,10 +382,10 @@ class _WhatsappChatViewState extends State<_WhatsappChatView> {
             radius: 24,
             child: IconButton(
               icon: Icon(
-                _isRecording 
-                  ? Icons.stop 
-                  : (_isTyping ? Icons.send : Icons.mic), 
-                color: Colors.white
+                _isRecording
+                    ? Icons.stop
+                    : (_isTyping ? Icons.send : Icons.mic),
+                color: Colors.white,
               ),
               onPressed: () {
                 if (_isRecording) {
@@ -425,7 +443,10 @@ class _DownloadButtonState extends State<_DownloadButton> {
             ? const SizedBox(
                 width: 16,
                 height: 16,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
               )
             : const Icon(Icons.download, color: Colors.white, size: 18),
       ),
@@ -476,7 +497,10 @@ class _AudioPlayerState extends State<_AudioPlayer> {
     if (_isPlaying) {
       await _audioPlayer.pause();
     } else {
-      setState(() { _isLoading = true; _hasError = false; });
+      setState(() {
+        _isLoading = true;
+        _hasError = false;
+      });
       try {
         await _audioPlayer.play(UrlSource(widget.proxyUrl));
       } catch (e) {
@@ -506,14 +530,18 @@ class _AudioPlayerState extends State<_AudioPlayer> {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (_isLoading)
-              const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+              const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
             else
               Icon(
                 _hasError
                     ? Icons.error_outline
                     : _isPlaying
-                        ? Icons.pause_circle_filled
-                        : Icons.play_circle_filled,
+                    ? Icons.pause_circle_filled
+                    : Icons.play_circle_filled,
                 color: _hasError ? Colors.red : const Color(0xFF128C7E),
                 size: 32,
               ),
@@ -528,7 +556,11 @@ class _AudioPlayerState extends State<_AudioPlayer> {
                 ),
                 if (!_hasError)
                   AppText.bodySmall(
-                    _isLoading ? 'جاري التحميل...' : _isPlaying ? 'يُشغَّل الآن' : 'اضغط للتشغيل',
+                    _isLoading
+                        ? 'جاري التحميل...'
+                        : _isPlaying
+                        ? 'يُشغَّل الآن'
+                        : 'اضغط للتشغيل',
                     color: Colors.grey[600]!,
                   ),
               ],
@@ -539,7 +571,6 @@ class _AudioPlayerState extends State<_AudioPlayer> {
     );
   }
 }
-
 
 class _MediaNetworkImage extends StatefulWidget {
   final String url;
@@ -582,10 +613,7 @@ class _MediaNetworkImageState extends State<_MediaNetworkImage> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const SizedBox(
-        height: 150,
-        child: Center(child: AppLoader()),
-      );
+      return const SizedBox(height: 150, child: Center(child: AppLoader()));
     }
     if (_hasError || _bytes == null) {
       return const SizedBox(
@@ -614,7 +642,11 @@ class _ChatBubble extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
             const SizedBox(width: 8),
             AppText.bodyMedium('جاري الرفع...', color: Colors.blue),
           ],
@@ -636,19 +668,22 @@ class _ChatBubble extends StatelessWidget {
 
     final providerUrl = getProviderUrl();
     // Proxy through our CRM backend (which adds the provider auth token server-side)
-    final proxyUrl = '${EndPoints.baseUrl}${EndPoints.whatsappMedia}?url=${Uri.encodeComponent(providerUrl)}';
+    final proxyUrl =
+        '${EndPoints.baseUrl}${EndPoints.whatsappMedia}?url=${Uri.encodeComponent(providerUrl)}';
 
     Widget mediaWidget;
 
     final typeLC = message.type.toLowerCase();
-    final isImage = typeLC == 'image' ||
+    final isImage =
+        typeLC == 'image' ||
         (message.mediaUrl?.toLowerCase().contains('image') ?? false) ||
         (message.mediaUrl?.endsWith('.jpg') ?? false) ||
         (message.mediaUrl?.endsWith('.jpeg') ?? false) ||
         (message.mediaUrl?.endsWith('.png') ?? false) ||
         (message.mediaUrl?.endsWith('.gif') ?? false) ||
         (message.mediaUrl?.endsWith('.webp') ?? false);
-    final isAudio = typeLC == 'audio' ||
+    final isAudio =
+        typeLC == 'audio' ||
         (message.mediaUrl?.endsWith('.ogg') ?? false) ||
         (message.mediaUrl?.endsWith('.mp3') ?? false) ||
         (message.mediaUrl?.endsWith('.m4a') ?? false);
@@ -683,7 +718,8 @@ class _ChatBubble extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: AppText.bodyMedium(
-                message.mediaUrl?.split('/').last.split('?').first ?? 'ملف مرفق (اضغط للفتح)',
+                message.mediaUrl?.split('/').last.split('?').first ??
+                    'ملف مرفق (اضغط للفتح)',
                 color: Colors.blue,
               ),
             ),
@@ -698,7 +734,7 @@ class _ChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isMe = message.isMe;
-    
+
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -720,7 +756,7 @@ class _ChatBubble extends StatelessWidget {
               color: Colors.black.withOpacity(0.05),
               blurRadius: 2,
               offset: const Offset(0, 1),
-            )
+            ),
           ],
         ),
         child: Column(
@@ -736,16 +772,14 @@ class _ChatBubble extends StatelessWidget {
                     height: 150,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
+                    errorBuilder: (_, __, ___) =>
+                        const Icon(Icons.broken_image),
                   ),
                 ),
               ),
             _buildMedia(context, message),
             if (message.content != null && message.content!.isNotEmpty)
-              AppText.bodyMedium(
-                message.content!,
-                color: Colors.black87,
-              ),
+              AppText.bodyMedium(message.content!, color: Colors.black87),
             const SizedBox(height: 4),
             Row(
               mainAxisSize: MainAxisSize.min,
@@ -758,17 +792,22 @@ class _ChatBubble extends StatelessWidget {
                 if (isMe) ...[
                   const SizedBox(width: 4),
                   Icon(
-                    (message.status == 'PENDING' || message.status == 'UPLOADING')
+                    (message.status == 'PENDING' ||
+                            message.status == 'UPLOADING')
                         ? Icons.access_time
                         : message.status == 'read' || message.status == 'READ'
-                            ? Icons.done_all
-                            : message.status == 'delivered' || message.status == 'DELIVERED'
-                                ? Icons.done_all
-                                : Icons.done,
+                        ? Icons.done_all
+                        : message.status == 'delivered' ||
+                              message.status == 'DELIVERED'
+                        ? Icons.done_all
+                        : Icons.done,
                     size: 14,
-                    color: (message.status == 'read' || message.status == 'READ') ? Colors.blue : Colors.grey[600],
+                    color:
+                        (message.status == 'read' || message.status == 'READ')
+                        ? Colors.blue
+                        : Colors.grey[600],
                   ),
-                ]
+                ],
               ],
             ),
           ],

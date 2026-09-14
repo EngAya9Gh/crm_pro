@@ -65,7 +65,8 @@ class AppointmentsState extends Equatable {
       operationMessage: operationMessage ?? this.operationMessage,
       clientList: clientList ?? this.clientList,
       isClientsLoading: isClientsLoading ?? this.isClientsLoading,
-      monthAppointmentsDates: monthAppointmentsDates ?? this.monthAppointmentsDates,
+      monthAppointmentsDates:
+          monthAppointmentsDates ?? this.monthAppointmentsDates,
     );
   }
 

@@ -1,4 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dartz/dartz.dart';
+import '../../../../core/error/failures.dart';
+import '../../../users/domain/entities/user.dart';
 import '../../domain/usecases/get_all_lookups_usecase.dart';
 import '../../domain/usecases/settings_usecases.dart';
 import 'lookups_event.dart';
@@ -24,10 +27,28 @@ class LookupsBloc extends Bloc<LookupsEvent, LookupsState> {
     Emitter<LookupsState> emit,
   ) async {
     emit(LookupsLoading());
-    final result = await getAllLookups();
-    result.fold(
+    
+    // Fetch lookups and employees concurrently
+    final results = await Future.wait([
+      getAllLookups(),
+      getEmployees(),
+    ]);
+
+    final lookupsResult = results[0] as Either<Failure, AllLookups>;
+    final employeesResult = results[1] as Either<Failure, List<User>>;
+
+    lookupsResult.fold(
       (failure) => emit(LookupsError(failure.message)),
-      (lookups) => emit(LookupsLoaded(lookups: lookups)),
+      (lookups) {
+        final employees = employeesResult.fold((l) {
+          print('=== EMPLOYEES FETCH FAILED: ${l.message} ===');
+          return <User>[];
+        }, (r) {
+          print('=== EMPLOYEES FETCH SUCCESS: ${r.length} ===');
+          return r;
+        });
+        emit(LookupsLoaded(lookups: lookups, employees: employees));
+      },
     );
   }
 

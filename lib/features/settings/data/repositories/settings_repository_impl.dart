@@ -594,10 +594,14 @@ class SettingsRepositoryImpl implements SettingsRepository {
     try {
       final result = await remoteDataSource.getEmployees();
       return Right(result);
-    } catch (e) {
+    } catch (e, stack) {
+      print('=== ERROR FETCHING EMPLOYEES ===');
+      print(e);
+      print(stack);
       return Left(_handleError(e));
     }
   }
+
   // --- Integrations ---
   @override
   Future<Either<Failure, IntegrationsEntity>> getIntegrations() async {

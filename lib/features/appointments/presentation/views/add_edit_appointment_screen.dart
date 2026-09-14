@@ -9,6 +9,8 @@ import 'package:crm_wakeel/core/config/theme/color_scheme.dart';
 import '../bloc/appointments_bloc.dart';
 import '../bloc/appointments_event.dart';
 import '../bloc/appointments_state.dart';
+import '../../../../features/settings/presentation/bloc/lookups_bloc.dart';
+import '../../../../features/settings/presentation/bloc/lookups_state.dart';
 
 class AddEditAppointmentScreen extends StatefulWidget {
   final int? appointmentId;
@@ -26,6 +28,7 @@ class _AddEditAppointmentScreenState extends State<AddEditAppointmentScreen> {
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
   int? _selectedClientId;
+  int? _selectedUserId;
 
   DateTime _startDate = DateTime.now();
   TimeOfDay _startTime = const TimeOfDay(hour: 9, minute: 0);
@@ -80,6 +83,7 @@ class _AddEditAppointmentScreenState extends State<AddEditAppointmentScreen> {
             _selectedStatus = appt.status;
             _selectedType = appt.type;
             _selectedClientId = appt.clientId;
+            _selectedUserId = appt.userId;
           }
         },
         builder: (context, state) {
@@ -156,21 +160,32 @@ class _AddEditAppointmentScreenState extends State<AddEditAppointmentScreen> {
                           child: AppText(client.name),
                         );
                       }).toList();
-                      
-                      if (isEdit && state.appointmentDetail != null && state.appointmentDetail!.clientId != null) {
+
+                      if (isEdit &&
+                          state.appointmentDetail != null &&
+                          state.appointmentDetail!.clientId != null) {
                         final appt = state.appointmentDetail!;
-                        final exists = state.clientList.any((c) => c.id == appt.clientId);
+                        final exists = state.clientList.any(
+                          (c) => c.id == appt.clientId,
+                        );
                         if (!exists) {
-                          items.insert(0, DropdownMenuItem<int>(
-                            value: appt.clientId,
-                            child: AppText(appt.clientName ?? 'العميل الحالي'),
-                          ));
+                          items.insert(
+                            0,
+                            DropdownMenuItem<int>(
+                              value: appt.clientId,
+                              child: AppText(
+                                appt.clientName ?? 'العميل الحالي',
+                              ),
+                            ),
+                          );
                         }
                       }
                       return items;
                     }(),
                     itemLabel: (id) {
-                      if (isEdit && state.appointmentDetail != null && state.appointmentDetail!.clientId == id) {
+                      if (isEdit &&
+                          state.appointmentDetail != null &&
+                          state.appointmentDetail!.clientId == id) {
                         return state.appointmentDetail!.clientName ?? '';
                       }
                       final client = state.clientList
@@ -185,6 +200,36 @@ class _AddEditAppointmentScreenState extends State<AddEditAppointmentScreen> {
                     },
                     validator: (value) => value == null ? 'مطلوب' : null,
                   ),
+                const SizedBox(height: 16),
+                BlocBuilder<LookupsBloc, LookupsState>(
+                  builder: (context, lookupsState) {
+                    if (lookupsState is! LookupsLoaded) {
+                      return const SizedBox.shrink();
+                    }
+                    return AppDropdown<int>(
+                      label: 'الموظف المسؤول (اختياري)',
+                      hint: 'سيتم تعيينك كمسؤول افتراضياً',
+                      value: _selectedUserId,
+                      legacyItems: lookupsState.employees.map((emp) {
+                        return DropdownMenuItem<int>(
+                          value: emp.id,
+                          child: AppText(emp.name),
+                        );
+                      }).toList(),
+                      itemLabel: (id) =>
+                          lookupsState.employees
+                              .where((e) => e.id == id)
+                              .firstOrNull
+                              ?.name ??
+                          '',
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedUserId = value;
+                        });
+                      },
+                    );
+                  },
+                ),
                 const SizedBox(height: 16),
                 AppTextField(
                   controller: _descriptionController,
@@ -292,6 +337,7 @@ class _AddEditAppointmentScreenState extends State<AddEditAppointmentScreen> {
       'description': _descriptionController.text,
       'location': _locationController.text,
       'client_id': _selectedClientId,
+      if (_selectedUserId != null) 'user_id': _selectedUserId,
       'start_at': startAt.toIso8601String(),
       'end_at': endAt.toIso8601String(),
       'status': _selectedStatus,

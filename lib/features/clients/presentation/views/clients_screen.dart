@@ -153,178 +153,175 @@ class _ClientsViewState extends State<ClientsView> {
             ],
       drawer: _isSelectionMode ? null : const AppDrawer(),
       body: Column(
-          children: [
-            if (!_isSelectionMode) ...[
-              _buildStatusTabs(),
-              _buildSearchRow(),
-              _buildSavedFiltersShelf(),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: BlocBuilder<ClientsBloc, ClientsState>(
-                  builder: (context, state) {
-                    if (state is ClientsLoaded) {
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          AppText(
-                            'عرض ${state.clients.length} من أصل ${state.totalClients} عميل',
-                            style: const TextStyle(
-                              color: AppColorScheme.textMuted,
-                              fontSize: 12,
-                            ),
+        children: [
+          if (!_isSelectionMode) ...[
+            _buildStatusTabs(),
+            _buildSearchRow(),
+            _buildSavedFiltersShelf(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: BlocBuilder<ClientsBloc, ClientsState>(
+                builder: (context, state) {
+                  if (state is ClientsLoaded) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        AppText(
+                          'عرض ${state.clients.length} من أصل ${state.totalClients} عميل',
+                          style: const TextStyle(
+                            color: AppColorScheme.textMuted,
+                            fontSize: 12,
                           ),
-                        ],
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
-              ),
-            ],
-
-            Expanded(
-              child: BlocListener<ClientsBloc, ClientsState>(
-                listenWhen: (previous, current) {
-                  if (current is ClientsError) return previous != current;
-                  if (previous is ClientsLoaded && current is ClientsLoaded) {
-                    return previous.exportedFilePath != current.exportedFilePath &&
-                        current.exportedFilePath != null;
-                  }
-                  return current is ClientsLoaded && current.exportedFilePath != null;
-                },
-                listener: (context, state) {
-                  if (state is ClientsError) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: AppText(state.message)));
-                  } else if (state is ClientsLoaded &&
-                      state.exportedFilePath != null) {
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: AppText('تم تصدير الملف بنجاح')),
-                    );
-                    // Open file logic
-                    print('Opening exported file: ${state.exportedFilePath}');
-                    if (!kIsWeb) {
-                      OpenFilex.open(state.exportedFilePath!);
-                    }
-                  }
-                },
-                child: BlocBuilder<ClientsBloc, ClientsState>(
-                  builder: (context, state) {
-                    if (state is ClientsLoading) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (state is ClientsError) {
-                      return Center(child: AppText(state.message));
-                    } else if (state is ClientsLoaded) {
-                      if (state.clients.isEmpty) {
-                        return _buildEmptyState();
-                      }
-                      return RefreshIndicator(
-                        onRefresh: () async {
-                          context.read<ClientsBloc>().add(RefreshClients());
-                        },
-                        child: AppListView.builder(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: state.hasReachedMax
-                              ? state.clients.length
-                              : state.clients.length + 1,
-                          itemBuilder: (context, index) {
-                            if (index >= state.clients.length) {
-                              return const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 16),
-                                child: Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              );
-                            }
-                            final client = state.clients[index];
-                            final isSelected = _selectedClientIds.contains(
-                              client.id,
-                            );
-
-                            return Stack(
-                              children: [
-                                ClientCard(
-                                  client: client,
-                                  onTap: () {
-                                    if (_isSelectionMode) {
-                                      _toggleSelection(client.id);
-                                    } else {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => BlocProvider(
-                                            create: (context) =>
-                                                getIt<ClientsBloc>(),
-                                            child: ClientProfileScreen(
-                                              client: client,
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  onLongPress: () {
-                                    if (!_isSelectionMode) {
-                                      setState(() {
-                                        _isSelectionMode = true;
-                                        _selectedClientIds.add(client.id);
-                                      });
-                                    }
-                                  },
-                                ),
-                                if (_isSelectionMode)
-                                  Positioned(
-                                    left: 10,
-                                    top: 10,
-                                    child: Checkbox(
-                                      value: isSelected,
-                                      onChanged: (_) =>
-                                          _toggleSelection(client.id),
-                                      activeColor: AppColorScheme.primary,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            );
-                          },
                         ),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
+                      ],
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
               ),
             ),
           ],
-        ),
+
+          Expanded(
+            child: BlocListener<ClientsBloc, ClientsState>(
+              listenWhen: (previous, current) {
+                if (current is ClientsError) return previous != current;
+                if (previous is ClientsLoaded && current is ClientsLoaded) {
+                  return previous.exportedFilePath !=
+                          current.exportedFilePath &&
+                      current.exportedFilePath != null;
+                }
+                return current is ClientsLoaded &&
+                    current.exportedFilePath != null;
+              },
+              listener: (context, state) {
+                if (state is ClientsError) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: AppText(state.message)));
+                } else if (state is ClientsLoaded &&
+                    state.exportedFilePath != null) {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: AppText('تم تصدير الملف بنجاح')),
+                  );
+                  // Open file logic
+                  print('Opening exported file: ${state.exportedFilePath}');
+                  if (!kIsWeb) {
+                    OpenFilex.open(state.exportedFilePath!);
+                  }
+                }
+              },
+              child: BlocBuilder<ClientsBloc, ClientsState>(
+                builder: (context, state) {
+                  if (state is ClientsLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (state is ClientsError) {
+                    return Center(child: AppText(state.message));
+                  } else if (state is ClientsLoaded) {
+                    if (state.clients.isEmpty) {
+                      return _buildEmptyState();
+                    }
+                    return RefreshIndicator(
+                      onRefresh: () async {
+                        context.read<ClientsBloc>().add(RefreshClients());
+                      },
+                      child: AppListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: state.hasReachedMax
+                            ? state.clients.length
+                            : state.clients.length + 1,
+                        itemBuilder: (context, index) {
+                          if (index >= state.clients.length) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
+                          final client = state.clients[index];
+                          final isSelected = _selectedClientIds.contains(
+                            client.id,
+                          );
+
+                          return Stack(
+                            children: [
+                              ClientCard(
+                                client: client,
+                                onTap: () {
+                                  if (_isSelectionMode) {
+                                    _toggleSelection(client.id);
+                                  } else {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => BlocProvider(
+                                          create: (context) =>
+                                              getIt<ClientsBloc>(),
+                                          child: ClientProfileScreen(
+                                            client: client,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
+                                onLongPress: () {
+                                  if (!_isSelectionMode) {
+                                    setState(() {
+                                      _isSelectionMode = true;
+                                      _selectedClientIds.add(client.id);
+                                    });
+                                  }
+                                },
+                              ),
+                              if (_isSelectionMode)
+                                Positioned(
+                                  left: 10,
+                                  top: 10,
+                                  child: Checkbox(
+                                    value: isSelected,
+                                    onChanged: (_) =>
+                                        _toggleSelection(client.id),
+                                    activeColor: AppColorScheme.primary,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        },
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
       bottomNavigationBar: _isSelectionMode ? _buildBulkActionsBar() : null,
       floatingActionButton: _isSelectionMode
           ? null
-          : (context.hasPermission('clients.create') 
-              ? FloatingActionButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => BlocProvider.value(
-                          value: context.read<ClientsBloc>(),
-                          child: const AddClientScreen(),
+          : (context.hasPermission('clients.create')
+                ? FloatingActionButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => BlocProvider.value(
+                            value: context.read<ClientsBloc>(),
+                            child: const AddClientScreen(),
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                  backgroundColor: AppColorScheme.primary,
-                  child: const Icon(Icons.add, color: AppColorScheme.white),
-                )
-              : null),
+                      );
+                    },
+                    backgroundColor: AppColorScheme.primary,
+                    child: const Icon(Icons.add, color: AppColorScheme.white),
+                  )
+                : null),
     );
   }
 
@@ -876,7 +873,9 @@ class _ClientsViewState extends State<ClientsView> {
     );
 
     if (!mounted) return;
-    context.read<ClientsBloc>().add(ExportClientsEvent(filter: filter, format: format));
+    context.read<ClientsBloc>().add(
+      ExportClientsEvent(filter: filter, format: format),
+    );
 
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(

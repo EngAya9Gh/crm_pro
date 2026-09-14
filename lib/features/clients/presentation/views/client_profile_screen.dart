@@ -26,6 +26,7 @@ import '../bloc/clients_event.dart';
 import '../bloc/clients_state.dart'; // Added
 import 'package:open_filex/open_filex.dart';
 import 'package:flutter/foundation.dart';
+
 class ClientProfileScreen extends StatelessWidget {
   final Client client;
 

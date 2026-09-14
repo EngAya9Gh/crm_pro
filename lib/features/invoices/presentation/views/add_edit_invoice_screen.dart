@@ -10,6 +10,10 @@ import '../bloc/invoices_event.dart';
 import '../bloc/invoices_state.dart';
 import '../../../settings/domain/entities/product.dart';
 import 'package:intl/intl.dart';
+import '../../../settings/presentation/bloc/lookups_bloc.dart';
+import '../../../settings/presentation/bloc/lookups_event.dart';
+import '../../../settings/presentation/bloc/lookups_state.dart';
+import '../../../../core/services/di/di_container.dart';
 
 class AddEditInvoiceScreen extends StatefulWidget {
   final int? invoiceId;
@@ -24,6 +28,7 @@ class _AddEditInvoiceScreenState extends State<AddEditInvoiceScreen> {
   final _formKey = GlobalKey<FormState>();
 
   int? _selectedClientId;
+  int? _selectedEmployeeId;
   final _notesController = TextEditingController();
   final _taxRateController = TextEditingController(text: '15');
   final _discountController = TextEditingController(text: '0');
@@ -100,6 +105,7 @@ class _AddEditInvoiceScreenState extends State<AddEditInvoiceScreen> {
       'tax_rate': double.tryParse(_taxRateController.text) ?? 0,
       'discount': double.tryParse(_discountController.text) ?? 0,
       'notes': _notesController.text,
+      'user_id': _selectedEmployeeId,
       'items': _items
           .map(
             (item) => {
@@ -147,9 +153,11 @@ class _AddEditInvoiceScreenState extends State<AddEditInvoiceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      title: isEdit ? 'تعديل الفاتورة' : 'فاتورة جديدة',
-      body: BlocConsumer<InvoicesBloc, InvoicesState>(
+    return BlocProvider.value(
+      value: getIt<LookupsBloc>()..add(LoadAllLookups()),
+      child: AppScaffold(
+        title: isEdit ? 'تعديل الفاتورة' : 'فاتورة جديدة',
+        body: BlocConsumer<InvoicesBloc, InvoicesState>(
         listener: (context, state) {
           if (state.operationStatus == InvoiceOperationStatus.success) {
             ScaffoldMessenger.of(
@@ -233,19 +241,31 @@ class _AddEditInvoiceScreenState extends State<AddEditInvoiceScreen> {
                                 child: AppText(client.name),
                               );
                             }).toList();
-                            
+
                             // If editing and selected client is not in the fetched list, add it temporarily
-                            if (isEdit && _selectedClientId != null && !state.clientList.any((c) => c.id == _selectedClientId)) {
-                              items.add(DropdownMenuItem<int>(
-                                value: _selectedClientId,
-                                child: AppText(state.invoiceDetail?.clientName ?? 'غير معروف'),
-                              ));
+                            if (isEdit &&
+                                _selectedClientId != null &&
+                                !state.clientList.any(
+                                  (c) => c.id == _selectedClientId,
+                                )) {
+                              items.add(
+                                DropdownMenuItem<int>(
+                                  value: _selectedClientId,
+                                  child: AppText(
+                                    state.invoiceDetail?.clientName ??
+                                        'غير معروف',
+                                  ),
+                                ),
+                              );
                             }
                             return items;
                           }(),
                           itemLabel: (id) {
-                            if (isEdit && id == _selectedClientId && !state.clientList.any((c) => c.id == id)) {
-                              return state.invoiceDetail?.clientName ?? 'غير معروف';
+                            if (isEdit &&
+                                id == _selectedClientId &&
+                                !state.clientList.any((c) => c.id == id)) {
+                              return state.invoiceDetail?.clientName ??
+                                  'غير معروف';
                             }
                             final client = state.clientList
                                 .where((c) => c.id == id)
@@ -259,6 +279,39 @@ class _AddEditInvoiceScreenState extends State<AddEditInvoiceScreen> {
                           },
                           validator: (value) => value == null ? 'مطلوب' : null,
                         ),
+                      const SizedBox(height: 16),
+                      BlocBuilder<LookupsBloc, LookupsState>(
+                        builder: (context, lookupsState) {
+                          if (lookupsState is LookupsLoading) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                          if (lookupsState is LookupsLoaded) {
+                            return AppDropdown<int?>(
+                              label: 'الموظف المسؤول (اختياري)',
+                              hint: 'اختر الموظف',
+                              value: _selectedEmployeeId,
+                              items: [
+                                const AppDropdownItem<int?>(
+                                  value: null,
+                                  label: 'بدون تحديد',
+                                ),
+                                ...lookupsState.employees.map((emp) {
+                                  return AppDropdownItem<int?>(
+                                    value: emp.id,
+                                    label: emp.name,
+                                  );
+                                }),
+                              ],
+                              onChanged: (val) {
+                                setState(() {
+                                  _selectedEmployeeId = val;
+                                });
+                              },
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
                       const SizedBox(height: 16),
                       Row(
                         children: [
@@ -283,10 +336,14 @@ class _AddEditInvoiceScreenState extends State<AddEditInvoiceScreen> {
                               ],
                               itemLabel: (value) {
                                 switch (value) {
-                                  case 'draft': return 'مسودة';
-                                  case 'sent': return 'مرسلة';
-                                  case 'paid': return 'مدفوعة';
-                                  default: return value;
+                                  case 'draft':
+                                    return 'مسودة';
+                                  case 'sent':
+                                    return 'مرسلة';
+                                  case 'paid':
+                                    return 'مدفوعة';
+                                  default:
+                                    return value;
                                 }
                               },
                               onChanged: (value) {
@@ -437,7 +494,7 @@ class _AddEditInvoiceScreenState extends State<AddEditInvoiceScreen> {
           );
         },
       ),
-    );
+    ));
   }
 
   Widget _buildSection({

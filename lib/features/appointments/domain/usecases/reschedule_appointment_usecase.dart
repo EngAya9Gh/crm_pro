@@ -3,16 +3,22 @@ import '../../../../core/error/failures.dart';
 import '../entities/appointment.dart';
 import '../repositories/appointments_repository.dart';
 
-class ChangeAppointmentStatusUseCase {
+class RescheduleAppointmentUseCase {
   final AppointmentsRepository repository;
 
-  ChangeAppointmentStatusUseCase(this.repository);
+  RescheduleAppointmentUseCase(this.repository);
 
   Future<Either<Failure, Appointment>> call(
     int id,
-    String status, {
+    DateTime startAt,
+    DateTime endAt, {
     String? note,
   }) async {
-    return await repository.changeAppointmentStatus(id, status, note: note);
+    return await repository.rescheduleAppointment(
+      id,
+      startAt,
+      endAt,
+      note: note,
+    );
   }
 }

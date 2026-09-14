@@ -11,6 +11,8 @@ class Appointment {
   final int? clientId;
   final String? clientStatusName;
   final String? clientStatusColor;
+  final int? userId;
+  final String? userName;
 
   Appointment({
     required this.id,
@@ -25,5 +27,7 @@ class Appointment {
     this.clientId,
     this.clientStatusName,
     this.clientStatusColor,
+    this.userId,
+    this.userName,
   });
 }

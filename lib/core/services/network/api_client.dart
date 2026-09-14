@@ -123,7 +123,10 @@ class ApiClient {
     }
   }
 
-  Future<Uint8List> getBytes(String path, {Map<String, dynamic>? queryParameters}) async {
+  Future<Uint8List> getBytes(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+  }) async {
     try {
       final response = await _dio.get(
         path,
@@ -160,7 +163,9 @@ class ApiClient {
       }
       final response = await _dio.post(
         path,
-        data: isFormData ? FormData.fromMap(data as Map<String, dynamic>) : data,
+        data: isFormData
+            ? FormData.fromMap(data as Map<String, dynamic>)
+            : data,
         queryParameters: queryParameters,
         options: isFormData
             ? Options(contentType: 'multipart/form-data')
@@ -268,12 +273,14 @@ class ApiClient {
           options: Options(responseType: ResponseType.bytes),
         );
 
-        final fileName = savePath.split('/').last.isNotEmpty 
-            ? savePath.split('/').last 
-            : path.split('/').lastWhere(
-              (element) => element.isNotEmpty,
-              orElse: () => 'download.pdf',
-            );
+        final fileName = savePath.split('/').last.isNotEmpty
+            ? savePath.split('/').last
+            : path
+                  .split('/')
+                  .lastWhere(
+                    (element) => element.isNotEmpty,
+                    orElse: () => 'download.pdf',
+                  );
 
         DownloadService.download(
           bytes: response.data is Uint8List

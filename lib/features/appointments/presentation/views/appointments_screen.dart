@@ -15,8 +15,10 @@ import 'package:table_calendar/table_calendar.dart';
 import '../../domain/entities/appointment.dart';
 import 'appointment_details_screen.dart';
 import 'add_edit_appointment_screen.dart';
-import '../../../clients/presentation/views/client_profile_screen.dart' as crm_client;
-import '../../../clients/presentation/bloc/clients_bloc.dart' as crm_client_bloc;
+import '../../../clients/presentation/views/client_profile_screen.dart'
+    as crm_client;
+import '../../../clients/presentation/bloc/clients_bloc.dart'
+    as crm_client_bloc;
 import '../../../clients/domain/entities/client.dart' as client_entity;
 import '../../../clients/domain/entities/client_enums.dart' as client_enums;
 import '../../../clients/domain/entities/status_entity.dart' as status_entity;
@@ -139,7 +141,8 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                             AppText(state.errorMessage),
                             const SizedBox(height: 16),
                             ElevatedButton(
-                              onPressed: () => _loadAppointments(isRefresh: true),
+                              onPressed: () =>
+                                  _loadAppointments(isRefresh: true),
                               child: const AppText('إعادة المحاولة'),
                             ),
                           ],
@@ -173,7 +176,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                   }
 
                   return SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 8,
+                    ),
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
@@ -183,7 +189,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                               child: Center(child: CircularProgressIndicator()),
                             );
                           }
-                          return _buildAppointmentItem(state.appointments[index]);
+                          return _buildAppointmentItem(
+                            state.appointments[index],
+                          );
                         },
                         childCount: state.hasReachedMax
                             ? state.appointments.length
@@ -196,30 +204,30 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
             ],
           ),
         ),
-        floatingActionButton: context.hasPermission('appointments.create') 
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                _appointmentsBloc.add(ResetAppointmentOperationStatusEvent());
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BlocProvider.value(
-                      value: _appointmentsBloc,
-                      child: const AddEditAppointmentScreen(),
+        floatingActionButton: context.hasPermission('appointments.create')
+            ? FloatingActionButton.extended(
+                onPressed: () {
+                  _appointmentsBloc.add(ResetAppointmentOperationStatusEvent());
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BlocProvider.value(
+                        value: _appointmentsBloc,
+                        child: const AddEditAppointmentScreen(),
+                      ),
                     ),
+                  );
+                },
+                backgroundColor: AppColorScheme.primary,
+                icon: const Icon(Icons.add, color: AppColorScheme.white),
+                label: AppText(
+                  'موعد جديد',
+                  style: AppTypography.labelMedium.copyWith(
+                    color: AppColorScheme.white,
                   ),
-                );
-              },
-              backgroundColor: AppColorScheme.primary,
-              icon: const Icon(Icons.add, color: AppColorScheme.white),
-              label: AppText(
-                'موعد جديد',
-                style: AppTypography.labelMedium.copyWith(
-                  color: AppColorScheme.white,
                 ),
-              ),
-            )
-          : null,
+              )
+            : null,
       ),
     );
   }
@@ -285,9 +293,15 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                     onPressed: () {
                       setState(() {
                         // Subtract a month (using 1st day to avoid overflow issues like Mar 31 -> Feb 28)
-                        _selectedDate = DateTime(_selectedDate.year, _selectedDate.month - 1, 1);
+                        _selectedDate = DateTime(
+                          _selectedDate.year,
+                          _selectedDate.month - 1,
+                          1,
+                        );
                       });
-                      _appointmentsBloc.add(LoadMonthAppointmentsDates(_selectedDate));
+                      _appointmentsBloc.add(
+                        LoadMonthAppointmentsDates(_selectedDate),
+                      );
                       _loadAppointments(isRefresh: true);
                     },
                   ),
@@ -296,9 +310,15 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                     onPressed: () {
                       setState(() {
                         // Add a month
-                        _selectedDate = DateTime(_selectedDate.year, _selectedDate.month + 1, 1);
+                        _selectedDate = DateTime(
+                          _selectedDate.year,
+                          _selectedDate.month + 1,
+                          1,
+                        );
                       });
-                      _appointmentsBloc.add(LoadMonthAppointmentsDates(_selectedDate));
+                      _appointmentsBloc.add(
+                        LoadMonthAppointmentsDates(_selectedDate),
+                      );
                       _loadAppointments(isRefresh: true);
                     },
                   ),
@@ -327,17 +347,24 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   }
 
   Widget _buildCalendarStrip() {
-    final int daysInMonth = DateTime(_selectedDate.year, _selectedDate.month + 1, 0).day;
-    
+    final int daysInMonth = DateTime(
+      _selectedDate.year,
+      _selectedDate.month + 1,
+      0,
+    ).day;
+
     // Auto-scroll to the selected day if possible
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_calendarScrollController.hasClients) {
         // Approximate width of a calendar item (around 64 width + 8 spacing)
         final double targetScroll = (_selectedDate.day - 1) * 72.0;
         // Don't scroll beyond max scroll extent
-        final double maxScroll = _calendarScrollController.position.maxScrollExtent;
-        final double finalScroll = targetScroll > maxScroll ? maxScroll : targetScroll;
-        
+        final double maxScroll =
+            _calendarScrollController.position.maxScrollExtent;
+        final double finalScroll = targetScroll > maxScroll
+            ? maxScroll
+            : targetScroll;
+
         _calendarScrollController.animateTo(
           finalScroll,
           duration: const Duration(milliseconds: 300),
@@ -370,13 +397,20 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               itemCount: daysInMonth,
               itemBuilder: (context, index) {
-                final date = DateTime(_selectedDate.year, _selectedDate.month, index + 1);
+                final date = DateTime(
+                  _selectedDate.year,
+                  _selectedDate.month,
+                  index + 1,
+                );
                 final isSelected =
                     date.day == _selectedDate.day &&
                     date.month == _selectedDate.month &&
                     date.year == _selectedDate.year;
-                final dateStr = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-                final hasAppointments = state.monthAppointmentsDates.contains(dateStr);
+                final dateStr =
+                    "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+                final hasAppointments = state.monthAppointmentsDates.contains(
+                  dateStr,
+                );
 
                 return GestureDetector(
                   onTap: () {
@@ -397,7 +431,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                               ? const LinearGradient(
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
-                                  colors: [AppColorScheme.primary, Color(0xFFFF8533)],
+                                  colors: [
+                                    AppColorScheme.primary,
+                                    Color(0xFFFF8533),
+                                  ],
                                 )
                               : null,
                           color: isSelected ? null : AppColorScheme.surface,
@@ -414,7 +451,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                               _getWeekDayName(date.weekday),
                               style: AppTypography.labelSmall.copyWith(
                                 color: isSelected
-                                    ? AppColorScheme.white.withValues(alpha: 0.9)
+                                    ? AppColorScheme.white.withValues(
+                                        alpha: 0.9,
+                                      )
                                     : AppColorScheme.textMuted,
                                 fontSize: 10,
                               ),
@@ -442,11 +481,15 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                             width: 8,
                             height: 8,
                             decoration: BoxDecoration(
-                              color: isSelected ? AppColorScheme.white : AppColorScheme.primary,
+                              color: isSelected
+                                  ? AppColorScheme.white
+                                  : AppColorScheme.primary,
                               shape: BoxShape.circle,
                               border: Border.all(
                                 color: isSelected
-                                    ? AppColorScheme.primary.withValues(alpha: 0.5)
+                                    ? AppColorScheme.primary.withValues(
+                                        alpha: 0.5,
+                                      )
                                     : AppColorScheme.white,
                                 width: 1.5,
                               ),
@@ -519,7 +562,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
               },
               daysOfWeekStyle: DaysOfWeekStyle(
                 weekdayStyle: AppTypography.labelSmall,
-                weekendStyle: AppTypography.labelSmall.copyWith(color: AppColorScheme.textMuted),
+                weekendStyle: AppTypography.labelSmall.copyWith(
+                  color: AppColorScheme.textMuted,
+                ),
               ),
               onDaySelected: (selectedDay, focusedDay) {
                 setState(() {
@@ -533,7 +578,8 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                 _loadAppointments(isRefresh: true);
               },
               eventLoader: (day) {
-                final dateStr = "${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}";
+                final dateStr =
+                    "${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}";
                 if (state.monthAppointmentsDates.contains(dateStr)) {
                   return ['event'];
                 }
@@ -552,7 +598,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                   color: AppColorScheme.primary.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
-                todayTextStyle: AppTypography.bodyMedium.copyWith(color: AppColorScheme.primary),
+                todayTextStyle: AppTypography.bodyMedium.copyWith(
+                  color: AppColorScheme.primary,
+                ),
               ),
             ),
           );
@@ -588,7 +636,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
           ),
           IconButton(
             icon: Icon(
-              _isCalendarView ? Icons.view_agenda_outlined : Icons.calendar_month_outlined,
+              _isCalendarView
+                  ? Icons.view_agenda_outlined
+                  : Icons.calendar_month_outlined,
               color: AppColorScheme.primary,
             ),
             onPressed: () {
@@ -681,21 +731,27 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) => BlocProvider(
-                                      create: (_) => getIt<crm_client_bloc.ClientsBloc>(),
+                                      create: (_) =>
+                                          getIt<crm_client_bloc.ClientsBloc>(),
                                       child: crm_client.ClientProfileScreen(
                                         client: client_entity.Client(
                                           id: appointment.clientId!.toString(),
-                                          name: appointment.clientName ?? 'بدون اسم',
+                                          name:
+                                              appointment.clientName ??
+                                              'بدون اسم',
                                           phone: '',
                                           region: '',
                                           city: '',
-                                          status: const status_entity.StatusEntity(
-                                            id: 0,
-                                            name: 'غير محدد',
-                                            color: '#000000',
-                                          ),
-                                          priority: client_enums.ClientPriority.low,
-                                          sourceStatus: client_enums.SourceStatus.valid,
+                                          status:
+                                              const status_entity.StatusEntity(
+                                                id: 0,
+                                                name: 'غير محدد',
+                                                color: '#000000',
+                                              ),
+                                          priority:
+                                              client_enums.ClientPriority.low,
+                                          sourceStatus:
+                                              client_enums.SourceStatus.valid,
                                           createdAt: DateTime.now(),
                                           tags: const [],
                                           files: const [],
@@ -725,19 +781,38 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                             if (appointment.clientStatusName != null) ...[
                               const SizedBox(width: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: (appointment.clientStatusColor != null 
-                                          ? Color(int.parse(appointment.clientStatusColor!.replaceFirst('#', '0xFF'))) 
-                                          : AppColorScheme.primary).withOpacity(0.1),
+                                  color:
+                                      (appointment.clientStatusColor != null
+                                              ? Color(
+                                                  int.parse(
+                                                    appointment
+                                                        .clientStatusColor!
+                                                        .replaceFirst(
+                                                          '#',
+                                                          '0xFF',
+                                                        ),
+                                                  ),
+                                                )
+                                              : AppColorScheme.primary)
+                                          .withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: AppText(
                                   appointment.clientStatusName!,
                                   style: AppTypography.labelSmall.copyWith(
-                                    color: appointment.clientStatusColor != null 
-                                          ? Color(int.parse(appointment.clientStatusColor!.replaceFirst('#', '0xFF'))) 
-                                          : AppColorScheme.primary,
+                                    color: appointment.clientStatusColor != null
+                                        ? Color(
+                                            int.parse(
+                                              appointment.clientStatusColor!
+                                                  .replaceFirst('#', '0xFF'),
+                                            ),
+                                          )
+                                        : AppColorScheme.primary,
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
                                   ),

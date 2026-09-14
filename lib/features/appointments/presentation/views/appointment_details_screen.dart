@@ -3,10 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:crm_wakeel/core/common/widgets/app_text.dart';
 import 'package:crm_wakeel/core/common/widgets/app_scaffold.dart';
+import 'package:crm_wakeel/core/common/widgets/app_text_field.dart';
 import 'package:crm_wakeel/core/config/theme/color_scheme.dart';
 import 'package:crm_wakeel/core/config/theme/typography.dart';
-import '../../../clients/presentation/views/client_profile_screen.dart' as crm_client;
-import '../../../clients/presentation/bloc/clients_bloc.dart' as crm_client_bloc;
+import '../../../clients/presentation/views/client_profile_screen.dart'
+    as crm_client;
+import '../../../clients/presentation/bloc/clients_bloc.dart'
+    as crm_client_bloc;
 import '../../../clients/domain/entities/client.dart' as client_entity;
 import '../../../clients/domain/entities/client_enums.dart' as client_enums;
 import '../../../clients/domain/entities/status_entity.dart' as status_entity;
@@ -15,6 +18,7 @@ import '../bloc/appointments_bloc.dart';
 import '../bloc/appointments_event.dart';
 import '../bloc/appointments_state.dart';
 import 'package:crm_wakeel/core/services/di/di_container.dart';
+import 'package:crm_wakeel/core/utils/permission_extension.dart';
 import 'add_edit_appointment_screen.dart';
 
 class AppointmentDetailsScreen extends StatefulWidget {
@@ -41,50 +45,74 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     return AppScaffold(
       title: 'تفاصيل الموعد',
       actions: [
-        IconButton(
-          icon: const Icon(Icons.edit_outlined),
-          onPressed: () {
-            context.read<AppointmentsBloc>().add(ResetAppointmentOperationStatusEvent());
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => BlocProvider.value(
-                  value: context.read<AppointmentsBloc>(),
-                  child: AddEditAppointmentScreen(
-                    appointmentId: widget.appointmentId,
-                  ),
+        BlocBuilder<AppointmentsBloc, AppointmentsState>(
+          builder: (context, state) {
+            final appt = state.appointmentDetail;
+            if (appt == null) return const SizedBox.shrink();
+
+            final isCompleted = appt.status.toLowerCase() == 'completed';
+            final canReschedule =
+                !isCompleted ||
+                context.hasPermission('appointments.manage_completed');
+
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  onPressed: () {
+                    context.read<AppointmentsBloc>().add(
+                      ResetAppointmentOperationStatusEvent(),
+                    );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => BlocProvider.value(
+                          value: context.read<AppointmentsBloc>(),
+                          child: AddEditAppointmentScreen(
+                            appointmentId: widget.appointmentId,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              ),
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'delete') {
+                      _showDeleteDialog(context);
+                    } else if (value == 'reschedule') {
+                      _showRescheduleDialog(context, appt);
+                    } else {
+                      _showStatusDialog(context, value);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    if (canReschedule)
+                      const PopupMenuItem(
+                        value: 'reschedule',
+                        child: AppText('إعادة جدولة'),
+                      ),
+                    const PopupMenuItem(
+                      value: 'completed',
+                      child: AppText('تعيين كمكتمل'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'cancelled',
+                      child: AppText('إلغاء الموعد'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: AppText(
+                        'حذف',
+                        style: TextStyle(color: AppColorScheme.error),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             );
           },
-        ),
-        PopupMenuButton<String>(
-          onSelected: (value) {
-            if (value == 'delete') {
-              _showDeleteDialog(context);
-            } else {
-              context.read<AppointmentsBloc>().add(
-                ChangeAppointmentStatusEvent(widget.appointmentId, value),
-              );
-            }
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'completed',
-              child: AppText('تعيين كمكتمل'),
-            ),
-            const PopupMenuItem(
-              value: 'cancelled',
-              child: AppText('إلغاء الموعد'),
-            ),
-            const PopupMenuItem(
-              value: 'delete',
-              child: AppText(
-                'حذف',
-                style: TextStyle(color: AppColorScheme.error),
-              ),
-            ),
-          ],
         ),
       ],
       body: BlocConsumer<AppointmentsBloc, AppointmentsState>(
@@ -147,11 +175,13 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
                               context,
                               MaterialPageRoute(
                                 builder: (_) => BlocProvider(
-                                  create: (_) => getIt<crm_client_bloc.ClientsBloc>(),
+                                  create: (_) =>
+                                      getIt<crm_client_bloc.ClientsBloc>(),
                                   child: crm_client.ClientProfileScreen(
                                     client: client_entity.Client(
                                       id: appointment.clientId!.toString(),
-                                      name: appointment.clientName ?? 'بدون اسم',
+                                      name:
+                                          appointment.clientName ?? 'بدون اسم',
                                       phone: '',
                                       region: '',
                                       city: '',
@@ -161,7 +191,8 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
                                         color: '#000000',
                                       ),
                                       priority: client_enums.ClientPriority.low,
-                                      sourceStatus: client_enums.SourceStatus.valid,
+                                      sourceStatus:
+                                          client_enums.SourceStatus.valid,
                                       createdAt: DateTime.now(),
                                       tags: const [],
                                       files: const [],
@@ -324,27 +355,202 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
   void _showDeleteDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const AppText('حذف الموعد'),
-        content: const AppText('هل أنت متأكد من حذف هذا الموعد؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const AppText('إلغاء'),
-          ),
-          TextButton(
-            onPressed: () {
-              context.read<AppointmentsBloc>().add(
-                DeleteAppointmentEvent(widget.appointmentId),
-              );
-              Navigator.pop(ctx);
-            },
-            child: const AppText(
-              'حذف',
-              style: TextStyle(color: AppColorScheme.error),
+      builder: (_) => BlocProvider.value(
+        value: context.read<AppointmentsBloc>(),
+        child: AlertDialog(
+          title: const AppText('تأكيد الحذف'),
+          content: const AppText('هل أنت متأكد من حذف هذا الموعد؟'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const AppText('إلغاء'),
             ),
+            TextButton(
+              onPressed: () {
+                context.read<AppointmentsBloc>().add(
+                  DeleteAppointmentEvent(widget.appointmentId),
+                );
+                Navigator.pop(context);
+              },
+              child: const AppText(
+                'حذف',
+                style: TextStyle(color: AppColorScheme.error),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showStatusDialog(BuildContext context, String newStatus) {
+    final noteController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (_) => BlocProvider.value(
+        value: context.read<AppointmentsBloc>(),
+        child: AlertDialog(
+          title: const AppText('تغيير حالة الموعد'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppText('سيتم تغيير الحالة إلى: $newStatus'),
+              const SizedBox(height: 16),
+              AppTextField(
+                controller: noteController,
+                label: 'ملاحظة (اختياري)',
+                hintText: 'أضف تعليقاً للحالة',
+                maxLines: 2,
+              ),
+            ],
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const AppText('إلغاء'),
+            ),
+            TextButton(
+              onPressed: () {
+                context.read<AppointmentsBloc>().add(
+                  ChangeAppointmentStatusEvent(
+                    widget.appointmentId,
+                    newStatus,
+                    note: noteController.text.trim(),
+                  ),
+                );
+                Navigator.pop(context);
+              },
+              child: const AppText('تأكيد'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showRescheduleDialog(BuildContext context, Appointment appointment) {
+    DateTime selectedDate = appointment.startAt;
+    TimeOfDay selectedStartTime = TimeOfDay.fromDateTime(appointment.startAt);
+    int durationMinutes = appointment.endAt
+        .difference(appointment.startAt)
+        .inMinutes;
+    final noteController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => BlocProvider.value(
+        value: context.read<AppointmentsBloc>(),
+        child: StatefulBuilder(
+          builder: (stCtx, setState) {
+            return AlertDialog(
+              title: const AppText('إعادة جدولة الموعد'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    InkWell(
+                      onTap: () async {
+                        final picked = await showDatePicker(
+                          context: stCtx,
+                          initialDate: selectedDate,
+                          firstDate: DateTime.now().subtract(
+                            const Duration(days: 365),
+                          ),
+                          lastDate: DateTime.now().add(
+                            const Duration(days: 365),
+                          ),
+                        );
+                        if (picked != null)
+                          setState(() => selectedDate = picked);
+                      },
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          labelText: 'التاريخ الجديد',
+                          border: OutlineInputBorder(),
+                        ),
+                        child: AppText(
+                          DateFormat('yyyy/MM/dd').format(selectedDate),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    InkWell(
+                      onTap: () async {
+                        final picked = await showTimePicker(
+                          context: stCtx,
+                          initialTime: selectedStartTime,
+                        );
+                        if (picked != null)
+                          setState(() => selectedStartTime = picked);
+                      },
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          labelText: 'وقت البدء',
+                          border: OutlineInputBorder(),
+                        ),
+                        child: AppText(selectedStartTime.format(stCtx)),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<int>(
+                      value: durationMinutes,
+                      decoration: const InputDecoration(
+                        labelText: 'المدة (بالدقائق)',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: [15, 30, 45, 60, 90, 120]
+                          .map(
+                            (m) => DropdownMenuItem(
+                              value: m,
+                              child: AppText('$m دقيقة'),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (v) =>
+                          setState(() => durationMinutes = v ?? 60),
+                    ),
+                    const SizedBox(height: 16),
+                    AppTextField(
+                      controller: noteController,
+                      label: 'سبب الجدولة (اختياري)',
+                      maxLines: 2,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const AppText('إلغاء'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    final startAt = DateTime(
+                      selectedDate.year,
+                      selectedDate.month,
+                      selectedDate.day,
+                      selectedStartTime.hour,
+                      selectedStartTime.minute,
+                    );
+                    final endAt = startAt.add(
+                      Duration(minutes: durationMinutes),
+                    );
+                    context.read<AppointmentsBloc>().add(
+                      RescheduleAppointmentEvent(
+                        widget.appointmentId,
+                        startAt,
+                        endAt,
+                        note: noteController.text.trim(),
+                      ),
+                    );
+                    Navigator.pop(ctx);
+                  },
+                  child: const AppText('حفظ الجدولة'),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

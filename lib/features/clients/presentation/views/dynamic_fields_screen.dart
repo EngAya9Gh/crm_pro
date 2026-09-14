@@ -26,7 +26,10 @@ class _DynamicFieldsScreenState extends State<DynamicFieldsScreen> {
     return Scaffold(
       backgroundColor: AppColorScheme.surface,
       appBar: AppBar(
-        title: const AppText('إدارة القوائم الديناميكية', style: TextStyle(color: AppColorScheme.white)),
+        title: const AppText(
+          'إدارة القوائم الديناميكية',
+          style: TextStyle(color: AppColorScheme.white),
+        ),
         backgroundColor: AppColorScheme.primary,
         iconTheme: const IconThemeData(color: AppColorScheme.white),
         elevation: 0,
@@ -50,10 +53,23 @@ class _DynamicFieldsScreenState extends State<DynamicFieldsScreen> {
                   color: AppColorScheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(section['icon'], color: AppColorScheme.primary, size: 20),
+                child: Icon(
+                  section['icon'],
+                  color: AppColorScheme.primary,
+                  size: 20,
+                ),
               ),
-              title: AppText(section['title'], style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.bold)),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColorScheme.silver),
+              title: AppText(
+                section['title'],
+                style: AppTypography.titleSmall.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              trailing: const Icon(
+                Icons.arrow_forward_ios,
+                size: 14,
+                color: AppColorScheme.silver,
+              ),
               onTap: () {
                 _showSectionManagement(section['title']);
               },
@@ -87,9 +103,17 @@ class _DynamicFieldsScreenState extends State<DynamicFieldsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                AppText(title, style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.bold)),
+                AppText(
+                  title,
+                  style: AppTypography.titleLarge.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 IconButton(
-                  icon: const Icon(Icons.add_circle_outline, color: AppColorScheme.primary),
+                  icon: const Icon(
+                    Icons.add_circle_outline,
+                    color: AppColorScheme.primary,
+                  ),
                   onPressed: () {},
                 ),
               ],
@@ -103,14 +127,26 @@ class _DynamicFieldsScreenState extends State<DynamicFieldsScreen> {
                   return ListTile(
                     leading: CircleAvatar(
                       radius: 12,
-                      backgroundColor: Color(int.parse(field.color!.replaceFirst('#', '0xFF'))),
+                      backgroundColor: Color(
+                        int.parse(field.color!.replaceFirst('#', '0xFF')),
+                      ),
                     ),
                     title: AppText(field.name),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        IconButton(icon: const Icon(Icons.edit_outlined, size: 18), onPressed: () {}),
-                        IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: AppColorScheme.error), onPressed: () {}),
+                        IconButton(
+                          icon: const Icon(Icons.edit_outlined, size: 18),
+                          onPressed: () {},
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            size: 18,
+                            color: AppColorScheme.error,
+                          ),
+                          onPressed: () {},
+                        ),
                       ],
                     ),
                   );

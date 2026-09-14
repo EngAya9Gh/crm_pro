@@ -195,9 +195,8 @@ class _ClientAppointmentsViewState extends State<_ClientAppointmentsView> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => AppointmentsScreen(
-                        initialDate: appointment.startAt,
-                      ),
+                      builder: (_) =>
+                          AppointmentsScreen(initialDate: appointment.startAt),
                     ),
                   );
                 },
@@ -214,7 +213,9 @@ class _ClientAppointmentsViewState extends State<_ClientAppointmentsView> {
                     ),
                   ).then((_) {
                     // Refresh appointments list when returning
-                    context.read<ClientAppointmentsCubit>().loadAppointments(widget.clientId);
+                    context.read<ClientAppointmentsCubit>().loadAppointments(
+                      widget.clientId,
+                    );
                   });
                 },
               );

@@ -5,19 +5,19 @@ class AppColorScheme {
   static const Color primary = Color(0xFFFF6600); // Wakeel Orange
   static const Color primaryDark = Color(0xFFD35400);
   static const Color primaryLight = Color(0xFFFF8533);
-  
+
   static const Color secondary = Color(0xFF171819); // Rich Black
   static const Color secondaryLight = Color(0xFF2C2C2E);
-  
+
   static const Color silver = Color(0xFF8E8E93); // Metallic Silver
   static const Color silverLight = Color(0xFFC7C7CC);
   static const Color silverDark = Color(0xFF48484A);
-  
+
   // Neutral Colors
   static const Color background = Color(0xFFFFFFFF);
   static const Color surface = Color(0xFFF2F2F7);
   static const Color card = Color(0xFFFFFFFF);
-  
+
   // Standard Neutrals
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF000000);
@@ -32,12 +32,12 @@ class AppColorScheme {
   static const Color grey700 = Color(0xFF374151);
   static const Color grey800 = Color(0xFF1F2937);
   static const Color grey900 = Color(0xFF111827);
-  
+
   // Text Colors
   static const Color textMain = Color(0xFF1C1C1E);
   static const Color textMuted = Color(0xFF8E8E93);
   static const Color textWhite = Color(0xFFFFFFFF);
-  
+
   // Semantic Colors
   static const Color success = Color(0xFF34C759);
   static const Color error = Color(0xFFFF3B30);

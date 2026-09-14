@@ -220,11 +220,7 @@ class GenericLookupView extends StatelessWidget {
             color: circleColor.withOpacity(0.1),
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            Icons.circle,
-            size: 12,
-            color: circleColor,
-          ),
+          child: Icon(Icons.circle, size: 12, color: circleColor),
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -283,14 +279,25 @@ class GenericLookupView extends StatelessWidget {
     ].contains(type);
 
     if (isEditing && hasColor) {
-      if (item is StatusEntity) selectedColor = item.color;
-      else if (item is TagEntity) selectedColor = item.color;
-      else if (item is BehaviorEntity) selectedColor = item.color;
-      else if (item is CommentTypeEntity) selectedColor = item.color;
+      if (item is StatusEntity)
+        selectedColor = item.color;
+      else if (item is TagEntity)
+        selectedColor = item.color;
+      else if (item is BehaviorEntity)
+        selectedColor = item.color;
+      else if (item is CommentTypeEntity)
+        selectedColor = item.color;
     }
     final List<String> statusColors = [
-      '#9CA3AF', '#3B82F6', '#8B5CF6', '#F59E0B', 
-      '#EF4444', '#10B981', '#34D399', '#F472B6', '#60A5FA'
+      '#9CA3AF',
+      '#3B82F6',
+      '#8B5CF6',
+      '#F59E0B',
+      '#EF4444',
+      '#10B981',
+      '#34D399',
+      '#F472B6',
+      '#60A5FA',
     ];
 
     if (item is Product) {
@@ -368,16 +375,25 @@ class GenericLookupView extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 16),
-                          AppText('اللون', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          AppText(
+                            'اللون',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           const SizedBox(height: 12),
                           Wrap(
                             spacing: 12,
                             runSpacing: 12,
                             children: statusColors.map((colorHex) {
-                              final color = Color(int.parse(colorHex.replaceFirst('#', '0xFF')));
+                              final color = Color(
+                                int.parse(colorHex.replaceFirst('#', '0xFF')),
+                              );
                               final isSelected = selectedColor == colorHex;
                               return GestureDetector(
-                                onTap: () => setState(() => selectedColor = colorHex),
+                                onTap: () =>
+                                    setState(() => selectedColor = colorHex),
                                 child: Container(
                                   width: 40,
                                   height: 40,
@@ -385,11 +401,18 @@ class GenericLookupView extends StatelessWidget {
                                     color: color,
                                     shape: BoxShape.circle,
                                     border: isSelected
-                                        ? Border.all(color: AppColorScheme.textMain, width: 3)
+                                        ? Border.all(
+                                            color: AppColorScheme.textMain,
+                                            width: 3,
+                                          )
                                         : null,
                                   ),
-                                  child: isSelected 
-                                      ? const Icon(Icons.check, color: Colors.white, size: 20) 
+                                  child: isSelected
+                                      ? const Icon(
+                                          Icons.check,
+                                          color: Colors.white,
+                                          size: 20,
+                                        )
                                       : null,
                                 ),
                               );

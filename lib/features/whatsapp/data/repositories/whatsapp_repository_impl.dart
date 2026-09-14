@@ -12,7 +12,9 @@ class WhatsappRepositoryImpl implements WhatsappRepository {
   WhatsappRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<Either<ApiException, List<WhatsappThread>>> getThreads({int page = 1}) async {
+  Future<Either<ApiException, List<WhatsappThread>>> getThreads({
+    int page = 1,
+  }) async {
     try {
       final result = await remoteDataSource.getThreads(page: page);
       return Right(result);
@@ -25,9 +27,14 @@ class WhatsappRepositoryImpl implements WhatsappRepository {
 
   @override
   Future<Either<ApiException, List<WhatsappMessage>>> getThreadMessages(
-      String threadId, {int page = 1}) async {
+    String threadId, {
+    int page = 1,
+  }) async {
     try {
-      final result = await remoteDataSource.getThreadMessages(threadId, page: page);
+      final result = await remoteDataSource.getThreadMessages(
+        threadId,
+        page: page,
+      );
       return Right(result);
     } on ApiException catch (e) {
       return Left(e);
@@ -59,8 +66,11 @@ class WhatsappRepositoryImpl implements WhatsappRepository {
             filename: fileName ?? 'file',
           ),
         };
-        
-        final mediaUrl = await remoteDataSource.uploadMedia(threadId, data: uploadData);
+
+        final mediaUrl = await remoteDataSource.uploadMedia(
+          threadId,
+          data: uploadData,
+        );
 
         // Step 2: Send message with media url
         final messageData = <String, dynamic>{
@@ -68,15 +78,23 @@ class WhatsappRepositoryImpl implements WhatsappRepository {
           if (mediaType != null) 'media_type': mediaType,
           'url': mediaUrl,
         };
-        
-        await remoteDataSource.replyToThread(threadId, data: messageData, isFormData: false);
+
+        await remoteDataSource.replyToThread(
+          threadId,
+          data: messageData,
+          isFormData: false,
+        );
       } else {
         // Use /whatsapp/threads/{id}/messages for text replies
         final data = <String, dynamic>{
-          'type': type,  // should be 'text'
+          'type': type, // should be 'text'
           if (content != null && content.isNotEmpty) 'content': content,
         };
-        await remoteDataSource.replyToThread(threadId, data: data, isFormData: false);
+        await remoteDataSource.replyToThread(
+          threadId,
+          data: data,
+          isFormData: false,
+        );
       }
       return const Right(null);
     } on ApiException catch (e) {

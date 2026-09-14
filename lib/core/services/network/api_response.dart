@@ -20,7 +20,7 @@ class ApiResponse<T> {
     return ApiResponse<T>(
       success: json['success'] ?? false,
       message: json['message'],
-      data: json.containsKey('data') 
+      data: json.containsKey('data')
           ? (json['data'] != null ? fromJsonT(json['data']) : null)
           : fromJsonT(json),
       errors: json['errors'] != null

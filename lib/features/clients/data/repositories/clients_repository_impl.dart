@@ -385,7 +385,10 @@ class ClientsRepositoryImpl implements ClientsRepository {
   }
 
   @override
-  Future<Either<Failure, String>> exportClients(ClientFilter? filter, {String format = 'csv'}) async {
+  Future<Either<Failure, String>> exportClients(
+    ClientFilter? filter, {
+    String format = 'csv',
+  }) async {
     try {
       String savePath;
       final formatLower = format.toLowerCase();

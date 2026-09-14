@@ -43,7 +43,7 @@ class LoadMoreAppointments extends AppointmentsEvent {}
 class LoadMonthAppointmentsDates extends AppointmentsEvent {
   final DateTime month;
   const LoadMonthAppointmentsDates(this.month);
-  
+
   @override
   List<Object?> get props => [month];
 }
@@ -80,9 +80,27 @@ class DeleteAppointmentEvent extends AppointmentsEvent {
 class ChangeAppointmentStatusEvent extends AppointmentsEvent {
   final int id;
   final String status;
-  const ChangeAppointmentStatusEvent(this.id, this.status);
+  final String? note;
+  const ChangeAppointmentStatusEvent(this.id, this.status, {this.note});
   @override
-  List<Object?> get props => [id, status];
+  List<Object?> get props => [id, status, note];
+}
+
+class RescheduleAppointmentEvent extends AppointmentsEvent {
+  final int id;
+  final DateTime startAt;
+  final DateTime endAt;
+  final String? note;
+
+  const RescheduleAppointmentEvent(
+    this.id,
+    this.startAt,
+    this.endAt, {
+    this.note,
+  });
+
+  @override
+  List<Object?> get props => [id, startAt, endAt, note];
 }
 
 class GetAppointmentClientsEvent extends AppointmentsEvent {

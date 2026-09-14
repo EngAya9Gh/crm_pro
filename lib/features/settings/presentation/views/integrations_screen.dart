@@ -35,9 +35,9 @@ class _IntegrationsViewState extends State<_IntegrationsView> {
 
   void _copyToClipboard(String text, String label) {
     Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: AppText('تم نسخ $label')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: AppText('تم نسخ $label')));
   }
 
   @override
@@ -47,9 +47,9 @@ class _IntegrationsViewState extends State<_IntegrationsView> {
       body: BlocConsumer<IntegrationsCubit, IntegrationsState>(
         listener: (context, state) {
           if (state is IntegrationUpdateSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: AppText(state.message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: AppText(state.message)));
             _metaTokenController.clear();
           } else if (state is IntegrationUpdateError) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -73,10 +73,14 @@ class _IntegrationsViewState extends State<_IntegrationsView> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  AppText(state.message, style: const TextStyle(color: AppColorScheme.error)),
+                  AppText(
+                    state.message,
+                    style: const TextStyle(color: AppColorScheme.error),
+                  ),
                   const SizedBox(height: 16),
                   AppElevatedButton(
-                    onPressed: () => context.read<IntegrationsCubit>().loadIntegrations(),
+                    onPressed: () =>
+                        context.read<IntegrationsCubit>().loadIntegrations(),
                     text: 'إعادة المحاولة',
                   ),
                 ],
@@ -142,16 +146,33 @@ class _IntegrationsViewState extends State<_IntegrationsView> {
           ),
           const SizedBox(height: 12),
           _buildInstructionStep('1', 'انسخ رابط الـ Webhook أعلاه.'),
-          _buildInstructionStep('2', 'اذهب إلى لوحة مطوري ميتا وقم بإنشاء تطبيق جديد أو اختر تطبيقك الحالي.'),
-          _buildInstructionStep('3', 'من القائمة الجانبية، اختر Webhooks ثم Page واضغط على Subscribe to this object.'),
-          _buildInstructionStep('4', 'الصق الرابط في خانة Callback URL واترك Verify Token فارغاً أو ضع أي كلمة.'),
-          _buildInstructionStep('5', 'في قائمة الأحداث (Fields)، ابحث عن حدث leadgen واشترك فيه.'),
-          _buildInstructionStep('6', 'أخيراً، قم بتوليد Page Access Token وضعه في الحقل أدناه.'),
+          _buildInstructionStep(
+            '2',
+            'اذهب إلى لوحة مطوري ميتا وقم بإنشاء تطبيق جديد أو اختر تطبيقك الحالي.',
+          ),
+          _buildInstructionStep(
+            '3',
+            'من القائمة الجانبية، اختر Webhooks ثم Page واضغط على Subscribe to this object.',
+          ),
+          _buildInstructionStep(
+            '4',
+            'الصق الرابط في خانة Callback URL واترك Verify Token فارغاً أو ضع أي كلمة.',
+          ),
+          _buildInstructionStep(
+            '5',
+            'في قائمة الأحداث (Fields)، ابحث عن حدث leadgen واشترك فيه.',
+          ),
+          _buildInstructionStep(
+            '6',
+            'أخيراً، قم بتوليد Page Access Token وضعه في الحقل أدناه.',
+          ),
           const SizedBox(height: 24),
           AppTextField(
             controller: _metaTokenController,
             label: 'Page Access Token',
-            hintText: data.metaIntegration.hasCredentials ? 'تم الحفظ مسبقاً (أدخل رمزاً جديداً للتحديث)' : 'الصق الرمز السري هنا',
+            hintText: data.metaIntegration.hasCredentials
+                ? 'تم الحفظ مسبقاً (أدخل رمزاً جديداً للتحديث)'
+                : 'الصق الرمز السري هنا',
             maxLines: 3,
           ),
           const SizedBox(height: 16),
@@ -164,21 +185,30 @@ class _IntegrationsViewState extends State<_IntegrationsView> {
                   onPressed: isLoading
                       ? null
                       : () {
-                          if (_metaTokenController.text.isEmpty && !data.metaIntegration.hasCredentials) {
+                          if (_metaTokenController.text.isEmpty &&
+                              !data.metaIntegration.hasCredentials) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: AppText('الرجاء إدخال الرمز السري')),
+                              const SnackBar(
+                                content: AppText('الرجاء إدخال الرمز السري'),
+                              ),
                             );
                             return;
                           }
                           context.read<IntegrationsCubit>().updateIntegration(
                             platform: 'meta',
-                            isActive: true, // Always active upon save for simplicity
+                            isActive:
+                                true, // Always active upon save for simplicity
                             credentials: {
-                              if (_metaTokenController.text.isNotEmpty) 'access_token': _metaTokenController.text,
+                              if (_metaTokenController.text.isNotEmpty)
+                                'access_token': _metaTokenController.text,
                             },
                           );
                         },
-                  text: data.metaIntegration.hasCredentials && _metaTokenController.text.isEmpty ? 'تم الربط (تحديث؟)' : 'حفظ وتفعيل',
+                  text:
+                      data.metaIntegration.hasCredentials &&
+                          _metaTokenController.text.isEmpty
+                      ? 'تم الربط (تحديث؟)'
+                      : 'حفظ وتفعيل',
                 );
               },
             ),
@@ -227,17 +257,28 @@ class _IntegrationsViewState extends State<_IntegrationsView> {
           ),
           const SizedBox(height: 12),
           _buildInstructionStep('1', 'انسخ رابط الـ Webhook الخاص بك أعلاه.'),
-          _buildInstructionStep('2', 'اذهب إلى إدارة إعلانات تيك توك (TikTok Ads Manager).'),
-          _buildInstructionStep('3', 'من القائمة العلوية، اذهب إلى Tools (الأدوات) > Events (الأحداث).'),
+          _buildInstructionStep(
+            '2',
+            'اذهب إلى إدارة إعلانات تيك توك (TikTok Ads Manager).',
+          ),
+          _buildInstructionStep(
+            '3',
+            'من القائمة العلوية، اذهب إلى Tools (الأدوات) > Events (الأحداث).',
+          ),
           _buildInstructionStep('4', 'تحت قسم Lead Generation، اختر Webhooks.'),
-          _buildInstructionStep('5', 'أضف Webhook جديد، الصق الرابط المنسوخ، وتأكد من تفعيله.'),
+          _buildInstructionStep(
+            '5',
+            'أضف Webhook جديد، الصق الرابط المنسوخ، وتأكد من تفعيله.',
+          ),
           const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: AppColorScheme.success.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColorScheme.success.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: AppColorScheme.success.withValues(alpha: 0.3),
+              ),
             ),
             child: const Row(
               children: [
@@ -246,7 +287,11 @@ class _IntegrationsViewState extends State<_IntegrationsView> {
                 Expanded(
                   child: AppText(
                     'هكذا ستصلك جميع الطلبات (Leads) من تيك توك مباشرة إلى نظامنا. لا حاجة لمزيد من الإعدادات هنا!',
-                    style: TextStyle(color: AppColorScheme.success, fontWeight: FontWeight.bold, fontSize: 13),
+                    style: TextStyle(
+                      color: AppColorScheme.success,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
               ],
@@ -261,7 +306,10 @@ class _IntegrationsViewState extends State<_IntegrationsView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppText(label, style: const TextStyle(color: AppColorScheme.textMuted, fontSize: 13)),
+        AppText(
+          label,
+          style: const TextStyle(color: AppColorScheme.textMuted, fontSize: 13),
+        ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -283,7 +331,11 @@ class _IntegrationsViewState extends State<_IntegrationsView> {
               const SizedBox(width: 8),
               InkWell(
                 onTap: () => _copyToClipboard(value, 'الرابط'),
-                child: const Icon(Icons.copy, color: AppColorScheme.primary, size: 20),
+                child: const Icon(
+                  Icons.copy,
+                  color: AppColorScheme.primary,
+                  size: 20,
+                ),
               ),
             ],
           ),
@@ -308,12 +360,19 @@ class _IntegrationsViewState extends State<_IntegrationsView> {
             ),
             child: AppText(
               number,
-              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: AppText(text, style: const TextStyle(fontSize: 14, height: 1.5)),
+            child: AppText(
+              text,
+              style: const TextStyle(fontSize: 14, height: 1.5),
+            ),
           ),
         ],
       ),

@@ -11,6 +11,7 @@ class LoadInvoices extends InvoicesEvent {
   final int page;
   final String? status;
   final int? clientId;
+  final int? userId;
   final String? search;
   final DateTime? dateFrom;
   final DateTime? dateTo;
@@ -21,6 +22,7 @@ class LoadInvoices extends InvoicesEvent {
     this.page = 1,
     this.status,
     this.clientId,
+    this.userId,
     this.search,
     this.dateFrom,
     this.dateTo,
@@ -33,6 +35,7 @@ class LoadInvoices extends InvoicesEvent {
     page,
     status,
     clientId,
+    userId,
     search,
     dateFrom,
     dateTo,

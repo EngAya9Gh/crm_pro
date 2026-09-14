@@ -27,8 +27,16 @@ abstract class AppointmentsRepository {
 
   Future<Either<Failure, Unit>> deleteAppointment(int id);
 
+  Future<Either<Failure, Appointment>> rescheduleAppointment(
+    int id,
+    DateTime startAt,
+    DateTime endAt, {
+    String? note,
+  });
+
   Future<Either<Failure, Appointment>> changeAppointmentStatus(
     int id,
-    String status,
-  );
+    String status, {
+    String? note,
+  });
 }

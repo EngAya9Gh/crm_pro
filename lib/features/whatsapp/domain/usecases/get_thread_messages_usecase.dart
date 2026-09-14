@@ -8,7 +8,10 @@ class GetThreadMessagesUseCase {
 
   GetThreadMessagesUseCase(this.repository);
 
-  Future<Either<ApiException, List<WhatsappMessage>>> call(String threadId, {int page = 1}) {
+  Future<Either<ApiException, List<WhatsappMessage>>> call(
+    String threadId, {
+    int page = 1,
+  }) {
     return repository.getThreadMessages(threadId, page: page);
   }
 }

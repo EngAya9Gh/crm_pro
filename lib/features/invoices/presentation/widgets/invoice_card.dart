@@ -351,14 +351,16 @@ class InvoiceCard extends StatelessWidget {
   void _showTagDialog(BuildContext context) {
     final lookupsBloc = context.read<LookupsBloc>();
     final invoicesBloc = context.read<InvoicesBloc>();
-    
+
     final lookupsState = lookupsBloc.state;
     if (lookupsState is! LookupsLoaded) {
       if (lookupsState is LookupsInitial || lookupsState is LookupsError) {
         lookupsBloc.add(LoadAllLookups());
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: AppText('جاري تحميل الوسوم، يرجى المحاولة بعد قليل...')),
+        const SnackBar(
+          content: AppText('جاري تحميل الوسوم، يرجى المحاولة بعد قليل...'),
+        ),
       );
       return;
     }
@@ -382,43 +384,56 @@ class InvoiceCard extends StatelessWidget {
                           spacing: 8,
                           runSpacing: 8,
                           children: allTags.map((tag) {
-                            final isSelected = selectedTags
-                                .any((selected) => selected.id == tag.id);
+                            final isSelected = selectedTags.any(
+                              (selected) => selected.id == tag.id,
+                            );
                             return FilterChip(
                               label: AppText(
                                 tag.name,
                                 style: TextStyle(
                                   color: isSelected
                                       ? AppColorScheme.white
-                                      : _parseColor(tag.color, fallbackName: tag.name),
+                                      : _parseColor(
+                                          tag.color,
+                                          fallbackName: tag.name,
+                                        ),
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                               selected: isSelected,
-                              selectedColor: _parseColor(tag.color, fallbackName: tag.name),
+                              selectedColor: _parseColor(
+                                tag.color,
+                                fallbackName: tag.name,
+                              ),
                               checkmarkColor: AppColorScheme.white,
                               backgroundColor: _parseColor(
-                                tag.color, fallbackName: tag.name
+                                tag.color,
+                                fallbackName: tag.name,
                               ).withValues(alpha: 0.1),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                                 side: BorderSide(
                                   color: _parseColor(
-                                    tag.color, fallbackName: tag.name
+                                    tag.color,
+                                    fallbackName: tag.name,
                                   ).withValues(alpha: 0.2),
                                 ),
                               ),
                               onSelected: (selected) {
                                 setState(() {
                                   if (selected) {
-                                    selectedTags.add(TagEntity(
-                                      id: tag.id,
-                                      name: tag.name,
-                                      color: tag.color,
-                                    ));
+                                    selectedTags.add(
+                                      TagEntity(
+                                        id: tag.id,
+                                        name: tag.name,
+                                        color: tag.color,
+                                      ),
+                                    );
                                   } else {
-                                    selectedTags.removeWhere((t) => t.id == tag.id);
+                                    selectedTags.removeWhere(
+                                      (t) => t.id == tag.id,
+                                    );
                                   }
                                 });
                               },
@@ -436,11 +451,11 @@ class InvoiceCard extends StatelessWidget {
                   onPressed: () {
                     Navigator.pop(ctx);
                     invoicesBloc.add(
-                          AssignInvoiceTagsEvent(
-                            invoice.id,
-                            selectedTags.map((t) => t.id).toList(),
-                          ),
-                        );
+                      AssignInvoiceTagsEvent(
+                        invoice.id,
+                        selectedTags.map((t) => t.id).toList(),
+                      ),
+                    );
                   },
                   child: const AppText('حفظ'),
                 ),
@@ -455,8 +470,15 @@ class InvoiceCard extends StatelessWidget {
   void _showStatusDialog(BuildContext context) {
     final invoicesBloc = context.read<InvoicesBloc>();
     final currentStatus = invoice.status;
-    final List<String> availableStatuses = ['draft', 'sent', 'paid', 'partially_paid', 'overdue', 'cancelled'];
-    
+    final List<String> availableStatuses = [
+      'draft',
+      'sent',
+      'paid',
+      'partially_paid',
+      'overdue',
+      'cancelled',
+    ];
+
     showDialog(
       context: context,
       builder: (ctx) {
@@ -511,7 +533,7 @@ class InvoiceCard extends StatelessWidget {
       final hash = fallbackName.codeUnits.fold(0, (prev, curr) => prev + curr);
       return colors[hash % colors.length];
     }
-    
+
     try {
       hexColor = hexColor.replaceAll('#', '');
       if (hexColor.length == 6) {

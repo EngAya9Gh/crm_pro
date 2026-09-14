@@ -16,10 +16,13 @@ class WhatsappMessageModel extends WhatsappMessage {
   factory WhatsappMessageModel.fromJson(Map<String, dynamic> json) {
     return WhatsappMessageModel(
       id: json['id']?.toString() ?? json['_id']?.toString() ?? '',
-      threadId: json['threadId']?.toString() ?? json['thread_id']?.toString() ?? '',
+      threadId:
+          json['threadId']?.toString() ?? json['thread_id']?.toString() ?? '',
       type: json['type'] ?? 'text',
       direction: json['direction'] ?? 'inbound',
-      content: json['content'] ?? json['message'], // backend might return 'content' or 'message'
+      content:
+          json['content'] ??
+          json['message'], // backend might return 'content' or 'message'
       mediaUrl: json['mediaUrl'] ?? json['media_url'] ?? json['file_url'],
       mediaType: json['mediaType'] ?? json['media_type'],
       status: json['status'] ?? 'sent',

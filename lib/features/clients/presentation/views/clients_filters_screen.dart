@@ -33,6 +33,7 @@ class _ClientsFiltersScreenState extends State<ClientsFiltersScreen> {
   _selectedRegionName; // Store name for dropdown display if needed, or iterate
   int? _selectedCityId;
   String? _selectedCityName;
+  String? _selectedEmployeeId;
 
   SourceStatus? _selectedSourceStatus;
   DateTimeRange? _selectedDateRange;
@@ -61,6 +62,9 @@ class _ClientsFiltersScreenState extends State<ClientsFiltersScreen> {
         _selectedPriorities.addAll(widget.currentFilter!.priorities!);
       if (widget.currentFilter!.ratings != null)
         _selectedRatings.addAll(widget.currentFilter!.ratings!);
+      if (widget.currentFilter!.assignedTo != null) {
+        _selectedEmployeeId = widget.currentFilter!.assignedTo;
+      }
       // _selectedRegion = widget.currentFilter!.region; // Removed
       // _selectedCity = widget.currentFilter!.city; // Removed
       _selectedSourceStatus = widget.currentFilter!.sourceStatus;
@@ -91,6 +95,7 @@ class _ClientsFiltersScreenState extends State<ClientsFiltersScreen> {
                 _selectedCityId = null;
                 _selectedCityName = null;
                 _selectedSourceStatus = null;
+                _selectedEmployeeId = null;
                 _selectedTags.clear();
               });
             },
@@ -126,6 +131,11 @@ class _ClientsFiltersScreenState extends State<ClientsFiltersScreen> {
                 _buildSectionTitle('التقييم (Leads)'),
                 const SizedBox(height: 12),
                 _buildRatingFilter(),
+
+                const SizedBox(height: 32),
+                _buildSectionTitle('الموظف المسؤول'),
+                const SizedBox(height: 12),
+                _buildEmployeeFilter(state.employees),
 
                 const SizedBox(height: 32),
                 _buildSectionTitle('الموقع الجغرافي'),
@@ -188,6 +198,7 @@ class _ClientsFiltersScreenState extends State<ClientsFiltersScreen> {
                             // Need to check ClientFilter definition. Assuming Strings based on previous code.
                             region: _selectedRegionName,
                             city: _selectedCityName,
+                            assignedTo: _selectedEmployeeId,
                             sourceStatus: _selectedSourceStatus,
 
                             createdDateRange: _selectedDateRange != null
@@ -593,6 +604,33 @@ class _ClientsFiltersScreenState extends State<ClientsFiltersScreen> {
           ),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildEmployeeFilter(List<dynamic> employees) {
+    return DropdownButtonFormField<String>(
+      value: _selectedEmployeeId,
+      decoration: const InputDecoration(
+        hintText: 'اختر الموظف',
+        border: OutlineInputBorder(),
+      ),
+      items: [
+        const DropdownMenuItem<String>(
+          value: null,
+          child: AppText('الكل'),
+        ),
+        ...employees.map((emp) {
+          return DropdownMenuItem<String>(
+            value: emp.id.toString(),
+            child: AppText(emp.name),
+          );
+        }),
+      ],
+      onChanged: (val) {
+        setState(() {
+          _selectedEmployeeId = val;
+        });
+      },
     );
   }
 

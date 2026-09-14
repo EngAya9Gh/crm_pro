@@ -19,7 +19,9 @@ class ApiLoggingInterceptor extends Interceptor {
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     print('================ API Response ================');
-    print('URL: ${response.requestOptions.method} ${response.requestOptions.uri}');
+    print(
+      'URL: ${response.requestOptions.method} ${response.requestOptions.uri}',
+    );
     print('Status Code: ${response.statusCode}');
     print('Response Data: ${response.data}');
     print('=============================================');

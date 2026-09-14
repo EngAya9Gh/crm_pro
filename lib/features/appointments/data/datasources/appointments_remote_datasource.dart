@@ -20,5 +20,16 @@ abstract class AppointmentsRemoteDataSource {
 
   Future<void> deleteAppointment(int id);
 
-  Future<AppointmentModel> changeAppointmentStatus(int id, String status);
+  Future<AppointmentModel> rescheduleAppointment(
+    int id,
+    DateTime startAt,
+    DateTime endAt, {
+    String? note,
+  });
+
+  Future<AppointmentModel> changeAppointmentStatus(
+    int id,
+    String status, {
+    String? note,
+  });
 }

@@ -7,6 +7,7 @@ import '../../domain/usecases/create_appointment_usecase.dart';
 import '../../domain/usecases/update_appointment_usecase.dart';
 import '../../domain/usecases/delete_appointment_usecase.dart';
 import '../../domain/usecases/change_appointment_status_usecase.dart';
+import '../../domain/usecases/reschedule_appointment_usecase.dart';
 
 import '../../../clients/domain/usecases/get_clients_list_usecase.dart';
 
@@ -17,6 +18,7 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
   final UpdateAppointmentUseCase updateAppointment;
   final DeleteAppointmentUseCase deleteAppointment;
   final ChangeAppointmentStatusUseCase changeStatus;
+  final RescheduleAppointmentUseCase rescheduleAppointment;
   final GetClientsListUseCase getClientsList;
 
   // Filter state for pagination
@@ -35,6 +37,7 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
     required this.updateAppointment,
     required this.deleteAppointment,
     required this.changeStatus,
+    required this.rescheduleAppointment,
     required this.getClientsList,
   }) : super(const AppointmentsState()) {
     on<LoadAppointments>(_onLoadAppointments);
@@ -44,6 +47,7 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
     on<UpdateAppointmentEvent>(_onUpdateAppointment);
     on<DeleteAppointmentEvent>(_onDeleteAppointment);
     on<ChangeAppointmentStatusEvent>(_onChangeStatus);
+    on<RescheduleAppointmentEvent>(_onRescheduleAppointment);
     on<GetAppointmentClientsEvent>(_onGetAppointmentClients);
     on<LoadMonthAppointmentsDates>(_onLoadMonthAppointmentsDates);
     on<ResetAppointmentOperationStatusEvent>(
@@ -65,9 +69,8 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
       (failure) => emit(
         state.copyWith(isClientsLoading: false, errorMessage: failure.message),
       ),
-      (list) => emit(
-        state.copyWith(isClientsLoading: false, clientList: list.items),
-      ),
+      (list) =>
+          emit(state.copyWith(isClientsLoading: false, clientList: list.items)),
     );
   }
 
@@ -76,21 +79,28 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
     Emitter<AppointmentsState> emit,
   ) async {
     final firstDay = DateTime(event.month.year, event.month.month, 1);
-    final lastDay = DateTime(event.month.year, event.month.month + 1, 0, 23, 59, 59);
-    
-    // Fetch with a large limit just for indicators
-    final result = await getAppointments(
-      dateFrom: firstDay,
-      dateTo: lastDay,
+    final lastDay = DateTime(
+      event.month.year,
+      event.month.month + 1,
+      0,
+      23,
+      59,
+      59,
     );
-    
+
+    // Fetch with a large limit just for indicators
+    final result = await getAppointments(dateFrom: firstDay, dateTo: lastDay);
+
     result.fold(
       (failure) {
         print("❌ Failed to load month dates: ${failure.message}");
       },
       (data) {
         final dates = data.items
-            .map((e) => "${e.startAt.year}-${e.startAt.month.toString().padLeft(2, '0')}-${e.startAt.day.toString().padLeft(2, '0')}")
+            .map(
+              (e) =>
+                  "${e.startAt.year}-${e.startAt.month.toString().padLeft(2, '0')}-${e.startAt.day.toString().padLeft(2, '0')}",
+            )
             .toList();
         print("✅ Loaded month dates (${dates.length}): $dates");
         emit(state.copyWith(monthAppointmentsDates: dates));
@@ -142,8 +152,10 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
         // Update month indicators: add current day if it has appointments
         final updatedDates = List<String>.from(state.monthAppointmentsDates);
         if (event.dateFrom != null) {
-          final dayStr = "${event.dateFrom!.year}-${event.dateFrom!.month.toString().padLeft(2, '0')}-${event.dateFrom!.day.toString().padLeft(2, '0')}";
-          if (paginatedList.items.isNotEmpty && !updatedDates.contains(dayStr)) {
+          final dayStr =
+              "${event.dateFrom!.year}-${event.dateFrom!.month.toString().padLeft(2, '0')}-${event.dateFrom!.day.toString().padLeft(2, '0')}";
+          if (paginatedList.items.isNotEmpty &&
+              !updatedDates.contains(dayStr)) {
             updatedDates.add(dayStr);
           }
         }
@@ -309,7 +321,7 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
     Emitter<AppointmentsState> emit,
   ) async {
     emit(state.copyWith(operationStatus: AppointmentOperationStatus.loading));
-    final result = await changeStatus(event.id, event.status);
+    final result = await changeStatus(event.id, event.status, note: event.note);
     result.fold(
       (failure) => emit(
         state.copyWith(
@@ -325,6 +337,40 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
           state.copyWith(
             operationStatus: AppointmentOperationStatus.success,
             operationMessage: 'تم تحديث حالة الموعد',
+            appointments: updatedList,
+            appointmentDetail: appointment,
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _onRescheduleAppointment(
+    RescheduleAppointmentEvent event,
+    Emitter<AppointmentsState> emit,
+  ) async {
+    emit(state.copyWith(operationStatus: AppointmentOperationStatus.loading));
+    final result = await rescheduleAppointment(
+      event.id,
+      event.startAt,
+      event.endAt,
+      note: event.note,
+    );
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          operationStatus: AppointmentOperationStatus.failure,
+          operationMessage: failure.message,
+        ),
+      ),
+      (appointment) {
+        final updatedList = state.appointments
+            .map((e) => e.id == appointment.id ? appointment : e)
+            .toList();
+        emit(
+          state.copyWith(
+            operationStatus: AppointmentOperationStatus.success,
+            operationMessage: 'تمت إعادة جدولة الموعد بنجاح',
             appointments: updatedList,
             appointmentDetail: appointment,
           ),

@@ -14,10 +14,7 @@ class UpdateIntegrationParams {
   });
 
   Map<String, dynamic> toJson() {
-    return {
-      'is_active': isActive,
-      'credentials': credentials,
-    };
+    return {'is_active': isActive, 'credentials': credentials};
   }
 }
 

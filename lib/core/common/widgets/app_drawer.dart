@@ -42,16 +42,19 @@ class AppDrawer extends StatelessWidget {
                   destination: const DashboardScreen(),
                   isActive: true,
                 ),
-                if (context.hasPermission('clients.view') && context.hasFeature('clients'))
+                if (context.hasPermission('clients.view') &&
+                    context.hasFeature('clients'))
                   _buildExpandableClientsMenu(context),
-                if (context.hasPermission('invoices.view') && context.hasFeature('invoices'))
+                if (context.hasPermission('invoices.view') &&
+                    context.hasFeature('invoices'))
                   _buildMenuItem(
                     context,
                     title: AppStrings.invoices,
                     icon: Icons.receipt_long_outlined,
                     destination: const InvoicesScreen(),
                   ),
-                if (context.hasPermission('appointments.view') && context.hasFeature('appointments'))
+                if (context.hasPermission('appointments.view') &&
+                    context.hasFeature('appointments'))
                   _buildMenuItem(
                     context,
                     title: AppStrings.appointments,
@@ -62,7 +65,10 @@ class AppDrawer extends StatelessWidget {
                   padding: EdgeInsets.symmetric(vertical: 20),
                   child: Divider(color: AppColorScheme.surface, thickness: 2),
                 ),
-                if ((context.hasPermission('settings.view') || context.hasPermission('users.view') || context.hasPermission('teams.view')) && context.hasFeature('settings'))
+                if ((context.hasPermission('settings.view') ||
+                        context.hasPermission('users.view') ||
+                        context.hasPermission('teams.view')) &&
+                    context.hasFeature('settings'))
                   _buildMenuItem(
                     context,
                     title: AppStrings.settings,

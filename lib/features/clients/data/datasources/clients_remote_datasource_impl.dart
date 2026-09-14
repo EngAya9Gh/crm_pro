@@ -541,7 +541,11 @@ class ClientsRemoteDataSourceImpl implements ClientsRemoteDataSource {
   }
 
   @override
-  Future<void> exportClients(ClientFilter? filter, String savePath, {String format = 'csv'}) async {
+  Future<void> exportClients(
+    ClientFilter? filter,
+    String savePath, {
+    String format = 'csv',
+  }) async {
     final Map<String, dynamic> queryParams = {};
 
     if (filter != null) {
@@ -584,7 +588,7 @@ class ClientsRemoteDataSourceImpl implements ClientsRemoteDataSource {
         queryParams['tags'] = filter.tagIds!.join(',');
       }
     }
-    
+
     queryParams['format'] = format;
 
     await apiClient.download(

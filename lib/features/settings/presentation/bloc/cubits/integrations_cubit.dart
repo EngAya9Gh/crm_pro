@@ -15,7 +15,7 @@ class IntegrationsCubit extends Cubit<IntegrationsState> {
   Future<void> loadIntegrations() async {
     emit(IntegrationsLoading());
     final result = await getIntegrationsUseCase();
-    
+
     result.fold(
       (failure) => emit(IntegrationsError(failure.message)),
       (data) => emit(IntegrationsLoaded(data)),
@@ -28,17 +28,17 @@ class IntegrationsCubit extends Cubit<IntegrationsState> {
     required Map<String, dynamic> credentials,
   }) async {
     final currentState = state;
-    
+
     emit(IntegrationUpdateLoading());
-    
+
     final params = UpdateIntegrationParams(
       platform: platform,
       isActive: isActive,
       credentials: credentials,
     );
-    
+
     final result = await updateIntegrationUseCase(params);
-    
+
     result.fold(
       (failure) {
         emit(IntegrationUpdateError(failure.message));

@@ -7,7 +7,7 @@ class WhatsappThreadsCubit extends Cubit<WhatsappThreadsState> {
   bool _isFetching = false;
 
   WhatsappThreadsCubit({required this.getThreadsUseCase})
-      : super(WhatsappThreadsInitial());
+    : super(WhatsappThreadsInitial());
 
   Future<void> loadThreads({bool refresh = false}) async {
     if (_isFetching || state is WhatsappThreadsLoading) return;
@@ -28,23 +28,26 @@ class WhatsappThreadsCubit extends Cubit<WhatsappThreadsState> {
     final result = await getThreadsUseCase(page: page);
     _isFetching = false;
 
-    result.fold(
-      (failure) => emit(WhatsappThreadsError(failure.message)),
-      (threads) {
-        if (threads.isEmpty) {
-          emit(WhatsappThreadsLoaded(
+    result.fold((failure) => emit(WhatsappThreadsError(failure.message)), (
+      threads,
+    ) {
+      if (threads.isEmpty) {
+        emit(
+          WhatsappThreadsLoaded(
             threads: List.from(currentThreads),
             hasReachedMax: true,
             currentPage: page,
-          ));
-        } else {
-          emit(WhatsappThreadsLoaded(
+          ),
+        );
+      } else {
+        emit(
+          WhatsappThreadsLoaded(
             threads: List.from(currentThreads)..addAll(threads),
             hasReachedMax: threads.length < 10,
             currentPage: page,
-          ));
-        }
-      },
-    );
+          ),
+        );
+      }
+    });
   }
 }

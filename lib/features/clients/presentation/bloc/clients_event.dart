@@ -171,9 +171,9 @@ class AddClientCommentEvent extends ClientsEvent {
 class ExportClientsEvent extends ClientsEvent {
   final ClientFilter? filter;
   final String format; // 'csv', 'excel' or 'pdf'
-  
+
   const ExportClientsEvent({this.filter, this.format = 'csv'});
-  
+
   @override
   List<Object?> get props => [filter, format];
 }

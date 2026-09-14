@@ -7,7 +7,10 @@ class AssignClientsBulk {
 
   AssignClientsBulk(this.repository);
 
-  Future<Either<Failure, void>> call(List<String> clientIds, String employeeId) async {
+  Future<Either<Failure, void>> call(
+    List<String> clientIds,
+    String employeeId,
+  ) async {
     return await repository.assignClientsBulk(clientIds, employeeId);
   }
 }

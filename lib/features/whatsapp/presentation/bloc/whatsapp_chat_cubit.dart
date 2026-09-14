@@ -50,37 +50,45 @@ class WhatsappChatCubit extends Cubit<WhatsappChatState> {
     final result = await getThreadMessagesUseCase(threadId, page: page);
     _isFetching = false;
 
-    result.fold(
-      (failure) => emit(WhatsappChatError(failure.message)),
-      (messages) {
-        if (messages.isEmpty) {
-          emit(WhatsappChatLoaded(
+    result.fold((failure) => emit(WhatsappChatError(failure.message)), (
+      messages,
+    ) {
+      if (messages.isEmpty) {
+        emit(
+          WhatsappChatLoaded(
             messages: currentMessages,
             hasReachedMax: true,
             currentPage: page,
-          ));
-        } else {
-          final newMessages = messages.where(
-            (msg) => !currentMessages.any((existing) => existing.id == msg.id)
-          ).toList();
+          ),
+        );
+      } else {
+        final newMessages = messages
+            .where(
+              (msg) =>
+                  !currentMessages.any((existing) => existing.id == msg.id),
+            )
+            .toList();
 
-          if (refresh && state is WhatsappChatLoaded) {
-            final currentState = state as WhatsappChatLoaded;
-            emit(WhatsappChatLoaded(
+        if (refresh && state is WhatsappChatLoaded) {
+          final currentState = state as WhatsappChatLoaded;
+          emit(
+            WhatsappChatLoaded(
               messages: [...newMessages, ...currentMessages],
               hasReachedMax: currentState.hasReachedMax,
               currentPage: currentState.currentPage,
-            ));
-          } else {
-            emit(WhatsappChatLoaded(
+            ),
+          );
+        } else {
+          emit(
+            WhatsappChatLoaded(
               messages: [...currentMessages, ...newMessages],
               hasReachedMax: messages.length < 10, // Adjust per_page if needed
               currentPage: page,
-            ));
-          }
+            ),
+          );
         }
-      },
-    );
+      }
+    });
   }
 
   Future<void> sendMedia({
@@ -102,10 +110,12 @@ class WhatsappChatCubit extends Cubit<WhatsappChatState> {
         status: 'UPLOADING',
         createdAt: DateTime.now(),
       );
-      
-      emit(currentState.copyWith(
-        messages: [optimisticMsg, ...currentState.messages],
-      ));
+
+      emit(
+        currentState.copyWith(
+          messages: [optimisticMsg, ...currentState.messages],
+        ),
+      );
     }
 
     final result = await replyToThreadUseCase(
@@ -133,9 +143,12 @@ class WhatsappChatCubit extends Cubit<WhatsappChatState> {
     String? fileName,
   }) async {
     if (_currentThreadId == null) return;
-    
+
     // Optimistic UI update
-    if (state is WhatsappChatLoaded && type == 'text' && content != null && content.isNotEmpty) {
+    if (state is WhatsappChatLoaded &&
+        type == 'text' &&
+        content != null &&
+        content.isNotEmpty) {
       final currentState = state as WhatsappChatLoaded;
       final optimisticMsg = WhatsappMessageModel(
         id: 'optimistic_${DateTime.now().millisecondsSinceEpoch}',
@@ -146,12 +159,14 @@ class WhatsappChatCubit extends Cubit<WhatsappChatState> {
         status: 'PENDING',
         createdAt: DateTime.now(),
       );
-      
-      emit(currentState.copyWith(
-        messages: [optimisticMsg, ...currentState.messages],
-      ));
+
+      emit(
+        currentState.copyWith(
+          messages: [optimisticMsg, ...currentState.messages],
+        ),
+      );
     }
-    
+
     final result = await replyToThreadUseCase(
       threadId: _currentThreadId!,
       type: type,
@@ -161,12 +176,9 @@ class WhatsappChatCubit extends Cubit<WhatsappChatState> {
       fileName: fileName,
     );
 
-    result.fold(
-      (failure) => emit(WhatsappChatError(failure.message)),
-      (_) {
-        loadMessages(_currentThreadId!, refresh: true);
-      },
-    );
+    result.fold((failure) => emit(WhatsappChatError(failure.message)), (_) {
+      loadMessages(_currentThreadId!, refresh: true);
+    });
   }
 
   void _subscribeToPusher(String threadId) {
@@ -174,18 +186,23 @@ class WhatsappChatCubit extends Cubit<WhatsappChatState> {
     pusherService.subscribeToChannel('private-chat.$threadId');
     _pusherSubscription = pusherService.onMessageReceived.listen((eventData) {
       // Check if event is for this thread
-      if (eventData['channel'] == 'private-chat.$threadId' && eventData['event'] == 'NewMessageReceived') {
+      if (eventData['channel'] == 'private-chat.$threadId' &&
+          eventData['event'] == 'NewMessageReceived') {
         final data = eventData['data'];
         // Parse incoming message and add to state
         try {
-          final incomingMessage = WhatsappMessageModel.fromJson(data['message'] ?? data);
+          final incomingMessage = WhatsappMessageModel.fromJson(
+            data['message'] ?? data,
+          );
           if (state is WhatsappChatLoaded) {
             final currentState = state as WhatsappChatLoaded;
             // Prevent duplicates
             if (!currentState.messages.any((m) => m.id == incomingMessage.id)) {
-              emit(currentState.copyWith(
-                messages: [incomingMessage, ...currentState.messages],
-              ));
+              emit(
+                currentState.copyWith(
+                  messages: [incomingMessage, ...currentState.messages],
+                ),
+              );
             }
           }
         } catch (e) {

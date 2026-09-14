@@ -36,10 +36,10 @@ class AppColors {
   static const Color info = Color(0xFF3B82F6);
 
   // Client Status Colors
-  static const Color statusNew = Color(0xFF3B82F6);      // Blue
+  static const Color statusNew = Color(0xFF3B82F6); // Blue
   static const Color statusNegotiation = Color(0xFFF59E0B); // Yellow
-  static const Color statusQuotation = Color(0xFF8B5CF6);   // Purple
-  static const Color statusExcluded = Color(0xFFEF4444);    // Red
+  static const Color statusQuotation = Color(0xFF8B5CF6); // Purple
+  static const Color statusExcluded = Color(0xFFEF4444); // Red
   static const Color statusSubscribed = Color(0xFF22C55E); // Green
 
   // Priority Colors
@@ -86,10 +86,6 @@ class AppColors {
   ];
 
   static List<BoxShadow> get shadowPrimary => [
-    BoxShadow(
-      color: primaryGlow,
-      offset: const Offset(0, 10),
-      blurRadius: 20,
-    ),
+    BoxShadow(color: primaryGlow, offset: const Offset(0, 10), blurRadius: 20),
   ];
 }
