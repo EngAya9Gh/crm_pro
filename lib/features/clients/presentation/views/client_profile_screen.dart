@@ -15,6 +15,7 @@ import '../widgets/client_files_tab.dart';
 import '../widgets/client_timeline_tab.dart';
 
 import '../widgets/client_procedures_tab.dart';
+import '../../../client_ai/presentation/views/client_ai_tab.dart'; // Add AI Tab
 import 'add_client_screen.dart';
 
 import 'package:url_launcher/url_launcher.dart';
@@ -84,7 +85,7 @@ class ClientProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ClientsBloc, ClientsState>(
+    return BlocConsumer<ClientsBloc, ClientsState>(
       listenWhen: (previous, current) {
         if (current is ClientsError) return true;
         if (current is ClientPdfDownloaded) return true;
@@ -113,33 +114,43 @@ class ClientProfileScreen extends StatelessWidget {
           );
         }
       },
-      child: DefaultTabController(
-        length: 7,
-        child: AppScaffold(
-          backgroundColor: AppColorScheme.surface,
-          title: client.name,
-          actions: [
-            IconButton(
-              icon: const Icon(
-                Icons.phone_in_talk_outlined,
-                color: AppColorScheme.textMain,
+      builder: (context, state) {
+        Client currentClient = client;
+        if (state is ClientsLoaded) {
+          try {
+            currentClient = state.clients.firstWhere((c) => c.id == client.id);
+          } catch (e) {
+            // Keep initial client if not found
+          }
+        }
+
+        return DefaultTabController(
+          length: 8,
+          child: AppScaffold(
+            backgroundColor: AppColorScheme.surface,
+            title: currentClient.name,
+            actions: [
+              IconButton(
+                icon: const Icon(
+                  Icons.phone_in_talk_outlined,
+                  color: AppColorScheme.textMain,
+                ),
+                onPressed: () => _makePhoneCall(currentClient.phone),
               ),
-              onPressed: () => _makePhoneCall(client.phone),
-            ),
-            IconButton(
-              icon: const Icon(
-                Icons.chat_outlined,
-                color: AppColorScheme.textMain,
+              IconButton(
+                icon: const Icon(
+                  Icons.chat_outlined,
+                  color: AppColorScheme.textMain,
+                ),
+                onPressed: () => _openWhatsApp(currentClient.phone),
               ),
-              onPressed: () => _openWhatsApp(client.phone),
-            ),
-            IconButton(
-              icon: const Icon(
-                Icons.picture_as_pdf_outlined,
-                color: AppColorScheme.textMain,
+              IconButton(
+                icon: const Icon(
+                  Icons.picture_as_pdf_outlined,
+                  color: AppColorScheme.textMain,
+                ),
+                onPressed: () => _downloadPdf(context),
               ),
-              onPressed: () => _downloadPdf(context),
-            ),
             if (context.hasPermission('appointments.create'))
               IconButton(
                 icon: const Icon(
@@ -168,7 +179,7 @@ class ClientProfileScreen extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (_) => BlocProvider.value(
                         value: clientsBloc,
-                        child: AddClientScreen(client: client),
+                        child: AddClientScreen(client: currentClient),
                       ),
                     ),
                   );
@@ -209,6 +220,16 @@ class ClientProfileScreen extends StatelessWidget {
             unselectedLabelStyle: AppTypography.labelMedium,
             tabs: const [
               Tab(text: AppStrings.clientInfo),
+              Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.auto_awesome, size: 16),
+                    SizedBox(width: 4),
+                    Text(AppStrings.clientAiAgent),
+                  ],
+                ),
+              ),
               Tab(text: AppStrings.clientComments),
               Tab(text: AppStrings.clientInvoices),
               Tab(text: AppStrings.clientAppointments),
@@ -228,24 +249,26 @@ class ClientProfileScreen extends StatelessWidget {
             margin: const EdgeInsets.only(top: 8),
             child: TabBarView(
               children: [
-                ClientInfoTab(client: client),
-                ClientCommentsTab(clientId: client.id),
+                ClientInfoTab(client: currentClient),
+                ClientAiTab(clientId: currentClient.id),
+                ClientCommentsTab(clientId: currentClient.id),
                 ClientInvoicesTab(
-                  clientId: client.id,
-                  initialInvoices: client.invoices,
+                  clientId: currentClient.id,
+                  initialInvoices: currentClient.invoices,
                 ),
                 ClientAppointmentsTab(
-                  clientId: client.id,
-                  initialAppointments: client.appointments,
+                  clientId: currentClient.id,
+                  initialAppointments: currentClient.appointments,
                 ),
-                ClientFilesTab(clientId: client.id, initialFiles: client.files),
-                ClientProceduresTab(clientId: client.id),
-                ClientTimelineTab(clientId: client.id),
+                ClientFilesTab(clientId: currentClient.id, initialFiles: currentClient.files),
+                ClientProceduresTab(clientId: currentClient.id),
+                ClientTimelineTab(clientId: currentClient.id),
               ],
             ),
           ),
         ),
-      ),
+      );
+      },
     );
   }
 }

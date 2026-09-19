@@ -41,6 +41,13 @@ class AppStrings {
   static const String clientComments = 'التعليقات';
   static const String clientFiles = 'الملفات';
   static const String clientTimeline = 'Timeline';
+  static const String clientAiAgent = 'الذكاء الاصطناعي';
+  static const String aiInsightsTitle = 'تحليل الذكاء الاصطناعي';
+  static const String aiLeadScore = 'نسبة الاهتمام (Lead Score)';
+  static const String aiSummary = 'الملخص';
+  static const String aiReason = 'السبب';
+  static const String aiChatHint = 'اسأل المساعد الذكي أي شيء...';
+  static const String aiQuickActions = 'إجراءات سريعة';
 
   // Stats & KPIs
   static const String clientStats = 'إحصائيات العملاء';

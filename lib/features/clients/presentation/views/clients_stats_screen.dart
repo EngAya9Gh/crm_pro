@@ -58,6 +58,16 @@ class ClientsStatsScreen extends StatelessWidget {
                     _buildStatusChart(stats.byStatus),
 
                     const SizedBox(height: 32),
+                    _buildSectionTitle('تقييم العملاء (Lead Rating)'),
+                    const SizedBox(height: 16),
+                    _buildLeadRatingChart(stats.byLeadRating),
+
+                    const SizedBox(height: 32),
+                    _buildSectionTitle('توزيع الفواتير/عروض الأسعار'),
+                    const SizedBox(height: 16),
+                    _buildStatusChart(stats.quotesByStatus), // Reusing status chart logic since it's the same structure
+
+                    const SizedBox(height: 32),
                     _buildSectionTitle('أداء المصادر'),
                     const SizedBox(height: 16),
                     _buildSourcesChart(stats.bySource),
@@ -614,6 +624,81 @@ class ClientsStatsScreen extends StatelessWidget {
           gridData: const FlGridData(show: false),
           borderData: FlBorderData(show: false),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLeadRatingChart(List<LeadRatingStat> data) {
+    if (data.isEmpty)
+      return const Center(child: AppText('لا توجد بيانات لتقييم العملاء'));
+      
+    // Determine colors for specific ratings
+    Color _getColorForRating(String rating) {
+      final r = rating.toLowerCase();
+      if (r.contains('hot') || r.contains('ساخن')) return AppColorScheme.error;
+      if (r.contains('warm') || r.contains('دافئ')) return AppColorScheme.warning;
+      if (r.contains('cold') || r.contains('بارد')) return AppColorScheme.info;
+      return AppColorScheme.silver;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColorScheme.background,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColorScheme.surface, width: 2),
+      ),
+      child: Column(
+        children: [
+          SizedBox(
+            height: 200,
+            child: PieChart(
+              PieChartData(
+                sectionsSpace: 4,
+                centerSpaceRadius: 40,
+                sections: data.map((item) {
+                  return PieChartSectionData(
+                    color: _getColorForRating(item.rating),
+                    value: item.count.toDouble(),
+                    title: '${item.count}',
+                    radius: 50,
+                    titleStyle: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColorScheme.white,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Wrap(
+            spacing: 16,
+            runSpacing: 12,
+            alignment: WrapAlignment.center,
+            children: data.map((item) {
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: _getColorForRating(item.rating),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  AppText(
+                    item.rating == 'N/A' ? 'غير محدد' : item.rating,
+                    style: AppTypography.labelMedium,
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+        ],
       ),
     );
   }

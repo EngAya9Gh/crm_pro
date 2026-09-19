@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/common/widgets/app_text.dart';
 import '../../../../core/config/theme/color_scheme.dart';
 import '../../../../core/config/theme/typography.dart';
@@ -7,6 +8,8 @@ import '../../../../core/utils/enum_helpers.dart';
 import '../../domain/entities/client.dart';
 import '../../domain/entities/client_enums.dart';
 import '../../domain/entities/tag_entity.dart';
+import '../../../settings/presentation/bloc/lookups_bloc.dart';
+import '../../../settings/presentation/bloc/lookups_state.dart';
 
 class ClientInfoTab extends StatelessWidget {
   final Client client;
@@ -83,18 +86,35 @@ class ClientInfoTab extends StatelessWidget {
             Icons.campaign_outlined,
           ),
           const SizedBox(height: 16),
-          _buildInfoRow(
-            client.sourceStatus == SourceStatus.valid
-                ? Icons.check_circle_outline
-                : Icons.cancel_outlined,
-            'صحة المصدر',
-            client.sourceStatus == SourceStatus.valid ? 'صحيح' : 'خاطئ',
-            iconColor: client.sourceStatus == SourceStatus.valid
-                ? AppColorScheme.success
-                : AppColorScheme.error,
-          ),
+          if (client.sourceStatus == SourceStatus.valid)
+            _buildInfoRow(
+              Icons.check_circle_outline,
+              'صحة المصدر',
+              'صحيح',
+              iconColor: AppColorScheme.success,
+            )
+          else
+            _buildInfoRow(
+              Icons.cancel_outlined,
+              'صحة المصدر',
+              'خاطئ',
+              iconColor: AppColorScheme.error,
+            ),
           if (client.sourceName != null)
-            _buildInfoRow(Icons.link_outlined, 'المصدر', client.sourceName!),
+            _buildInfoRow(Icons.link_outlined, 'المصدر', client.sourceName!)
+          else if (client.sourceId != null)
+            BlocBuilder<LookupsBloc, LookupsState>(
+              builder: (context, state) {
+                if (state is LookupsLoaded) {
+                  try {
+                    final sourceIdInt = int.parse(client.sourceId!);
+                    final sourceEntity = state.lookups.sources.firstWhere((s) => s.id == sourceIdInt);
+                    return _buildInfoRow(Icons.link_outlined, 'المصدر', sourceEntity.name);
+                  } catch (_) {}
+                }
+                return const SizedBox.shrink();
+              },
+            ),
           if (client.behaviorName != null)
             _buildInfoRow(
               Icons.psychology_outlined,

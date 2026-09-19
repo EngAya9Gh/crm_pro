@@ -72,9 +72,11 @@ class ClientModel extends Client {
           : null,
       behaviorId: json['behavior'] != null
           ? json['behavior']['id'].toString()
-          : null,
+          : json['behavior_id']?.toString(),
       behaviorName: json['behavior'] != null ? json['behavior']['name'] : null,
-      sourceId: json['source'] != null ? json['source']['id'].toString() : null,
+      sourceId: json['source'] != null 
+          ? json['source']['id'].toString() 
+          : json['source_id']?.toString(),
       sourceName: json['source'] != null ? json['source']['name'] : null,
       sourceStatus: json['source_status'] != null
           ? SourceStatus.values.byName(json['source_status'])

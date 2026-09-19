@@ -2,17 +2,25 @@ import 'package:equatable/equatable.dart';
 
 class ClientStats extends Equatable {
   final int totalClients;
+  final int totalQuotes;
+  final int totalClientsWithQuotes;
   final List<StatusStat> byStatus;
+  final List<StatusStat> quotesByStatus;
   final List<PriorityStat> byPriority;
   final List<SourceStat> bySource;
+  final List<LeadRatingStat> byLeadRating;
   final List<InvalidRegistrationStat> invalidRegistrations;
   final List<EmployeePerformanceStat> employeesPerformance;
 
   const ClientStats({
     this.totalClients = 0,
+    this.totalQuotes = 0,
+    this.totalClientsWithQuotes = 0,
     this.byStatus = const [],
+    this.quotesByStatus = const [],
     this.byPriority = const [],
     this.bySource = const [],
+    this.byLeadRating = const [],
     this.invalidRegistrations = const [],
     this.employeesPerformance = const [],
   });
@@ -20,12 +28,33 @@ class ClientStats extends Equatable {
   @override
   List<Object?> get props => [
     totalClients,
+    totalQuotes,
+    totalClientsWithQuotes,
     byStatus,
+    quotesByStatus,
     byPriority,
     bySource,
+    byLeadRating,
     invalidRegistrations,
     employeesPerformance,
   ];
+}
+
+class LeadRatingStat extends Equatable {
+  final String rating;
+  final int count;
+
+  const LeadRatingStat({required this.rating, required this.count});
+
+  factory LeadRatingStat.fromJson(Map<String, dynamic> json) {
+    return LeadRatingStat(
+      rating: json['rating'] ?? json['lead_rating'] ?? 'N/A',
+      count: json['count'] ?? 0,
+    );
+  }
+
+  @override
+  List<Object?> get props => [rating, count];
 }
 
 class StatusStat extends Equatable {

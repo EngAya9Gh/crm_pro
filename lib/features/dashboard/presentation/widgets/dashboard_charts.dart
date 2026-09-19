@@ -173,6 +173,93 @@ class DashboardCharts extends StatelessWidget {
             ),
           ),
         ),
+        if (chartData!.sourceDistribution.isNotEmpty) ...[
+          const SizedBox(height: 32),
+          AppText(
+            "مصادر العملاء",
+            style: AppTypography.titleMedium.copyWith(letterSpacing: -0.5),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            height: 220,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColorScheme.card,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColorScheme.surface, width: 2),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: PieChart(
+                    PieChartData(
+                      sectionsSpace: 2,
+                      centerSpaceRadius: 40,
+                      sections: chartData!.sourceDistribution.asMap().entries.map((e) {
+                        final colors = [
+                          AppColorScheme.primary,
+                          AppColorScheme.secondary,
+                          AppColorScheme.success,
+                          AppColorScheme.info,
+                          AppColorScheme.warning,
+                          AppColorScheme.error,
+                        ];
+                        final color = colors[e.key % colors.length];
+                        return PieChartSectionData(
+                          color: color,
+                          value: e.value.value,
+                          title: e.value.value.toInt().toString(),
+                          radius: 50,
+                          titleStyle: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: chartData!.sourceDistribution.asMap().entries.map((e) {
+                      final colors = [
+                        AppColorScheme.primary,
+                        AppColorScheme.secondary,
+                        AppColorScheme.success,
+                        AppColorScheme.info,
+                        AppColorScheme.warning,
+                        AppColorScheme.error,
+                      ];
+                      final color = colors[e.key % colors.length];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            Container(width: 12, height: 12, color: color),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: AppText(
+                                e.value.label,
+                                style: AppTypography.labelSmall.copyWith(fontSize: 11),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }

@@ -297,7 +297,50 @@ class AppDrawer extends StatelessWidget {
       padding: const EdgeInsets.all(24.0),
       child: InkWell(
         onTap: () async {
+          // عرض شاشة تحميل بسيطة وأنيقة
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: AppColorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    AppText(
+                      'جاري تسجيل الخروج...',
+                      style: AppTypography.titleMedium.copyWith(
+                        color: AppColorScheme.textMain,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+
           await context.read<AuthCubit>().logout();
+
           if (context.mounted) {
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (context) => const LoginScreen()),

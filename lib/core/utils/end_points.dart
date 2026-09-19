@@ -34,7 +34,13 @@ class EndPoints {
   static const String clientsKpis = '/clients/kpis';
   static String clientPdf(String id) => '/clients/$id/pdf';
   static const String clientsFilters = '/clients/filters';
-  static const String clientsExport = '/clients/export'; // Added also
+  static const String clientsExport = '/clients/export';
+
+  // Client AI Agent
+  static String clientAiInsights(String id) => '/clients/$id/ai/insights';
+  static String clientAiAsk(String id) => '/clients/$id/ai/ask';
+  static String clientAiHistory(String id) => '/clients/$id/ai/history';
+  static String clientAiSession(String clientId, int sessionId) => '/clients/$clientId/ai/sessions/$sessionId';
 
   // Invoices
   static const String invoices = '/invoices';

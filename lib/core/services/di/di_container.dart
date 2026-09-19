@@ -72,6 +72,14 @@ import '../../../features/clients/domain/usecases/get_client_procedures_usecase.
 import '../../../features/clients/domain/usecases/add_procedure_usecase.dart';
 import '../../../features/clients/domain/usecases/update_procedure_usecase.dart';
 import '../../../features/clients/domain/usecases/delete_procedure_usecase.dart';
+
+// Client AI Agent Feature
+import '../../../features/client_ai/data/datasources/client_ai_remote_datasource.dart';
+import '../../../features/client_ai/data/datasources/client_ai_remote_datasource_impl.dart';
+import '../../../features/client_ai/data/repositories/client_ai_repository_impl.dart';
+import '../../../features/client_ai/domain/repositories/client_ai_repository.dart';
+import '../../../features/client_ai/domain/usecases/client_ai_usecases.dart';
+import '../../../features/client_ai/presentation/cubit/client_ai_cubit.dart';
 import '../../../features/settings/data/datasources/settings_remote_datasource.dart';
 import '../../../features/settings/data/repositories/settings_repository_impl.dart';
 import '../../../features/settings/domain/repositories/settings_repository.dart';
@@ -313,6 +321,29 @@ Future<void> initDi() async {
       addProcedure: getIt(),
       updateProcedure: getIt(),
       deleteProcedure: getIt(),
+    ),
+  );
+
+  // --- Client AI Agent Feature ---
+  getIt.registerLazySingleton<ClientAiRemoteDataSource>(
+    () => ClientAiRemoteDataSourceImpl(apiClient: getIt()),
+  );
+
+  getIt.registerLazySingleton<ClientAiRepository>(
+    () => ClientAiRepositoryImpl(remoteDataSource: getIt()),
+  );
+
+  getIt.registerLazySingleton(() => GetClientAiInsightsUseCase(getIt()));
+  getIt.registerLazySingleton(() => AskClientAiUseCase(getIt()));
+  getIt.registerLazySingleton(() => GetClientAiHistoryUseCase(getIt()));
+  getIt.registerLazySingleton(() => GetClientAiSessionUseCase(getIt()));
+
+  getIt.registerFactory(
+    () => ClientAiCubit(
+      getInsightsUseCase: getIt(),
+      askQuestionUseCase: getIt(),
+      getHistoryUseCase: getIt(),
+      getSessionUseCase: getIt(),
     ),
   );
 

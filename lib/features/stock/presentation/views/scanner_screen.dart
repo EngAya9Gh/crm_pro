@@ -15,6 +15,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
     returnImage: false,
   );
 
+  bool _torchOn = false;
+  bool _isFrontCamera = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,37 +30,27 @@ class _ScannerScreenState extends State<ScannerScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          // Torch toggle
           IconButton(
-            icon: ValueListenableBuilder(
-              valueListenable: controller,
-              builder: (context, state, child) {
-                switch (state.torchState) {
-                  case TorchState.off:
-                    return const Icon(Icons.flash_off, color: Colors.grey);
-                  case TorchState.on:
-                    return const Icon(Icons.flash_on, color: Colors.yellow);
-                  case TorchState.auto: // Handle auto case if present
-                    return const Icon(Icons.flash_auto, color: Colors.white);
-                  case TorchState.unavailable: // Handle unavailable
-                    return const Icon(Icons.flash_off, color: Colors.grey);
-                }
-              },
+            icon: Icon(
+              _torchOn ? Icons.flash_on : Icons.flash_off,
+              color: _torchOn ? Colors.yellow : Colors.grey,
             ),
-            onPressed: () => controller.toggleTorch(),
+            onPressed: () {
+              controller.toggleTorch();
+              setState(() => _torchOn = !_torchOn);
+            },
           ),
+          // Camera switch
           IconButton(
-            icon: ValueListenableBuilder(
-              valueListenable: controller,
-              builder: (context, state, child) {
-                switch (state.cameraDirection) {
-                  case CameraFacing.front:
-                    return const Icon(Icons.camera_front, color: Colors.white);
-                  case CameraFacing.back:
-                    return const Icon(Icons.camera_rear, color: Colors.white);
-                }
-              },
+            icon: Icon(
+              _isFrontCamera ? Icons.camera_front : Icons.camera_rear,
+              color: Colors.white,
             ),
-            onPressed: () => controller.switchCamera(),
+            onPressed: () {
+              controller.switchCamera();
+              setState(() => _isFrontCamera = !_isFrontCamera);
+            },
           ),
         ],
       ),

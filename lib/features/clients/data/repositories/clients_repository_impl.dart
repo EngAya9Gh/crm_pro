@@ -212,6 +212,8 @@ class ClientsRepositoryImpl implements ClientsRepository {
       return Right(
         ClientStats(
           totalClients: chartsMap['total_clients'] ?? 0,
+          totalQuotes: chartsMap['total_quotes'] ?? 0,
+          totalClientsWithQuotes: chartsMap['total_clients_with_quotes'] ?? 0,
           byStatus:
               (chartsMap['by_status'] as List?)
                   ?.map((e) => StatusStat.fromJson(e))
@@ -225,6 +227,16 @@ class ClientsRepositoryImpl implements ClientsRepository {
           bySource:
               (chartsMap['by_source'] as List?)
                   ?.map((e) => SourceStat.fromJson(e))
+                  .toList() ??
+              [],
+          byLeadRating:
+              (chartsMap['by_lead_rating'] as List?)
+                  ?.map((e) => LeadRatingStat.fromJson(e))
+                  .toList() ??
+              [],
+          quotesByStatus:
+              (chartsMap['quotes_by_status'] as List? ?? chartsMap['by_status'] as List?) // Fallback if backend used by_status for quotes
+                  ?.map((e) => StatusStat.fromJson(e))
                   .toList() ??
               [],
           invalidRegistrations:

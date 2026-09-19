@@ -20,6 +20,7 @@ import '../../../../features/settings/presentation/bloc/lookups_event.dart';
 
 import '../views/add_client_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class ClientCard extends StatelessWidget {
   final Client client;
@@ -112,7 +113,7 @@ class ClientCard extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 8),
                                 _buildActionButton(
-                                  icon: Icons.chat,
+                                  icon: FontAwesomeIcons.whatsapp,
                                   color: Colors.green,
                                   onTap: () => _openWhatsApp(client.phone),
                                 ),
