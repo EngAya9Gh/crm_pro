@@ -337,6 +337,7 @@ Future<void> initDi() async {
   getIt.registerLazySingleton(() => AskClientAiUseCase(getIt()));
   getIt.registerLazySingleton(() => GetClientAiHistoryUseCase(getIt()));
   getIt.registerLazySingleton(() => GetClientAiSessionUseCase(getIt()));
+  getIt.registerLazySingleton(() => GetClientAiSuggestionsUseCase(getIt()));
 
   getIt.registerFactory(
     () => ClientAiCubit(
@@ -344,6 +345,7 @@ Future<void> initDi() async {
       askQuestionUseCase: getIt(),
       getHistoryUseCase: getIt(),
       getSessionUseCase: getIt(),
+      getSuggestionsUseCase: getIt(),
     ),
   );
 

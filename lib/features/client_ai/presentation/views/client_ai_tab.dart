@@ -132,80 +132,81 @@ class ClientAiTab extends StatelessWidget {
 
           return Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (cubit.insights != null)
-                  AiInsightsCard(insights: cubit.insights!)
-                else if (state is ClientAiError)
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: AppColorScheme.error.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColorScheme.error.withOpacity(0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.error_outline, color: AppColorScheme.error),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: AppText(
-                            'عذراً، لم نتمكن من جلب التحليلات.\n${state.message}',
-                            style: const TextStyle(color: AppColorScheme.error, fontSize: 13),
+            child: AiChatBox(
+              clientId: clientId,
+              header: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (cubit.insights != null)
+                    AiInsightsCard(insights: cubit.insights!)
+                  else if (state is ClientAiError)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: AppColorScheme.error.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColorScheme.error.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline, color: AppColorScheme.error),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: AppText(
+                              'عذراً، لم نتمكن من جلب التحليلات.\n${state.message}',
+                              style: const TextStyle(color: AppColorScheme.error, fontSize: 13),
+                            ),
                           ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.refresh, color: AppColorScheme.error),
-                          onPressed: () => cubit.loadInsightsAndHistory(clientId),
-                          tooltip: 'إعادة المحاولة',
-                        ),
-                      ],
-                    ),
-                  ),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton.icon(
-                      onPressed: () => _showHistoryBottomSheet(context, cubit),
-                      icon: const Icon(Icons.history),
-                      label: const AppText('سجل المحادثات', style: TextStyle(fontWeight: FontWeight.bold)),
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppColorScheme.primary,
-                        backgroundColor: AppColorScheme.primary.withOpacity(0.1),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          IconButton(
+                            icon: const Icon(Icons.refresh, color: AppColorScheme.error),
+                            onPressed: () => cubit.loadInsightsAndHistory(clientId),
+                            tooltip: 'إعادة المحاولة',
+                          ),
+                        ],
                       ),
                     ),
-                    if (cubit.currentSessionId != null)
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
                       TextButton.icon(
-                        onPressed: cubit.startNewSession,
-                        icon: const Icon(Icons.add_comment),
-                        label: const AppText('محادثة جديدة', style: TextStyle(fontWeight: FontWeight.bold)),
+                        onPressed: () => _showHistoryBottomSheet(context, cubit),
+                        icon: const Icon(Icons.history),
+                        label: const AppText('سجل المحادثات', style: TextStyle(fontWeight: FontWeight.bold)),
                         style: TextButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: AppColorScheme.primary,
+                          foregroundColor: AppColorScheme.primary,
+                          backgroundColor: AppColorScheme.primary.withOpacity(0.1),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
+                      if (cubit.currentSessionId != null)
+                        TextButton.icon(
+                          onPressed: cubit.startNewSession,
+                          icon: const Icon(Icons.add_comment),
+                          label: const AppText('محادثة جديدة', style: TextStyle(fontWeight: FontWeight.bold)),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: AppColorScheme.primary,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 12),
+
+                  if (cubit.suggestions != null && cubit.suggestions!.clientSpecific.isNotEmpty) ...[
+                    AiQuickActions(
+                      suggestions: cubit.suggestions!.clientSpecific,
+                      onActionSelected: (question, type) {
+                        cubit.askQuestion(clientId, question, type: type);
+                      },
+                    ),
+                    const SizedBox(height: 16),
                   ],
-                ),
-                
-                const SizedBox(height: 12),
-
-                AiQuickActions(
-                  onActionSelected: (question, type) {
-                    cubit.askQuestion(clientId, question, type: type);
-                  },
-                ),
-
-                const SizedBox(height: 16),
-
-                Expanded(
-                  child: AiChatBox(clientId: clientId),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },

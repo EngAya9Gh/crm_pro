@@ -2,6 +2,7 @@ import '../../domain/repositories/client_ai_repository.dart';
 import '../datasources/client_ai_remote_datasource.dart';
 import '../../domain/entities/ai_insights.dart';
 import '../../domain/entities/ai_session.dart';
+import '../../domain/entities/ai_suggestions.dart';
 
 class ClientAiRepositoryImpl implements ClientAiRepository {
   final ClientAiRemoteDataSource remoteDataSource;
@@ -26,5 +27,10 @@ class ClientAiRepositoryImpl implements ClientAiRepository {
   @override
   Future<AiSession> getSession(String clientId, int sessionId) async {
     return await remoteDataSource.getSession(clientId, sessionId);
+  }
+
+  @override
+  Future<AiSuggestions> getSuggestions() async {
+    return await remoteDataSource.getSuggestions();
   }
 }

@@ -4,6 +4,7 @@ import '../../domain/usecases/client_ai_usecases.dart';
 import '../../domain/entities/ai_insights.dart';
 import '../../domain/entities/ai_session.dart';
 import '../../domain/entities/ai_message.dart';
+import '../../domain/entities/ai_suggestions.dart';
 import '../../../../core/error/api_exception.dart';
 
 class ClientAiCubit extends Cubit<ClientAiState> {
@@ -11,9 +12,11 @@ class ClientAiCubit extends Cubit<ClientAiState> {
   final AskClientAiUseCase askQuestionUseCase;
   final GetClientAiHistoryUseCase getHistoryUseCase;
   final GetClientAiSessionUseCase getSessionUseCase;
+  final GetClientAiSuggestionsUseCase getSuggestionsUseCase;
 
   AiInsights? insights;
   List<AiSession> history = [];
+  AiSuggestions? suggestions;
   
   // Current Chat Session State
   int? currentSessionId;
@@ -25,6 +28,7 @@ class ClientAiCubit extends Cubit<ClientAiState> {
     required this.askQuestionUseCase,
     required this.getHistoryUseCase,
     required this.getSessionUseCase,
+    required this.getSuggestionsUseCase,
   }) : super(ClientAiInitial());
 
   Future<void> loadInsightsAndHistory(String clientId) async {
@@ -33,9 +37,11 @@ class ClientAiCubit extends Cubit<ClientAiState> {
       final results = await Future.wait([
         getInsightsUseCase(clientId),
         getHistoryUseCase(clientId),
+        getSuggestionsUseCase(),
       ]);
       insights = results[0] as AiInsights;
       history = results[1] as List<AiSession>;
+      suggestions = results[2] as AiSuggestions;
       emit(ClientAiLoaded());
     } catch (e) {
       String errorMessage = e.toString();

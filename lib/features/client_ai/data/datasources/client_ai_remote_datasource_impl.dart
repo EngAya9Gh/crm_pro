@@ -1,6 +1,7 @@
 import 'client_ai_remote_datasource.dart';
 import '../models/ai_insights_model.dart';
 import '../models/ai_session_model.dart';
+import '../models/ai_suggestions_model.dart';
 import '../../../../core/services/network/api_client.dart';
 import '../../../../core/utils/end_points.dart';
 
@@ -49,6 +50,15 @@ class ClientAiRemoteDataSourceImpl implements ClientAiRemoteDataSource {
     final response = await apiClient.get<AiSessionModel>(
       EndPoints.clientAiSession(clientId, sessionId),
       fromJson: (json) => AiSessionModel.fromJson((json as Map<String, dynamic>)['session']),
+    );
+    return response.data!;
+  }
+
+  @override
+  Future<AiSuggestionsModel> getSuggestions() async {
+    final response = await apiClient.get<AiSuggestionsModel>(
+      EndPoints.clientAiSuggestions,
+      fromJson: (json) => AiSuggestionsModel.fromJson(json as Map<String, dynamic>),
     );
     return response.data!;
   }

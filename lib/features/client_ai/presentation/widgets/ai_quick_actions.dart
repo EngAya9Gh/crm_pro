@@ -3,44 +3,14 @@ import '../../../../core/config/theme/color_scheme.dart';
 import '../../../../core/common/widgets/app_text.dart';
 
 class AiQuickActions extends StatelessWidget {
+  final List<String> suggestions;
   final Function(String question, String type) onActionSelected;
 
-  AiQuickActions({super.key, required this.onActionSelected});
-
-  final List<Map<String, String>> actions = [
-    {
-      'title': 'لخص تاريخ العميل',
-      'icon': '📝',
-      'type': 'quick_action',
-    },
-    {
-      'title': 'اقتراح رسالة متابعة ودية',
-      'icon': '💬',
-      'type': 'quick_action',
-    },
-    {
-      'title': 'عرض سعر مبدئي',
-      'icon': '💰',
-      'type': 'quick_action',
-    },
-    {
-      'title': 'أبرز الاعتراضات',
-      'icon': '🔍',
-      'type': 'quick_action',
-    },
-    {
-      'title': 'تاريخ آخر تواصل',
-      'icon': '⏰',
-      'type': 'quick_action',
-    },
-    {
-      'title': 'أفضل عرض/خصم للعميل',
-      'icon': '🎯',
-      'type': 'quick_action',
-    },
-  ];
-
-  @override
+  const AiQuickActions({
+    super.key, 
+    required this.suggestions,
+    required this.onActionSelected,
+  });
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,10 +30,10 @@ class AiQuickActions extends StatelessWidget {
           height: 45,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            itemCount: actions.length,
+            itemCount: suggestions.length,
             separatorBuilder: (context, index) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
-              final action = actions[index];
+              final suggestion = suggestions[index];
               return ActionChip(
                 backgroundColor: AppColorScheme.primary.withOpacity(0.1),
                 side: BorderSide(color: AppColorScheme.primary.withOpacity(0.3)),
@@ -73,11 +43,11 @@ class AiQuickActions extends StatelessWidget {
                 label: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(action['icon']!),
+                    const Text('✨'),
                     const SizedBox(width: 6),
                     Flexible(
                       child: AppText(
-                        action['title']!,
+                        suggestion,
                         style: const TextStyle(
                           color: AppColorScheme.primary,
                           fontSize: 13,
@@ -90,7 +60,7 @@ class AiQuickActions extends StatelessWidget {
                   ],
                 ),
                 onPressed: () {
-                  onActionSelected(action['title']!, action['type']!);
+                  onActionSelected(suggestion, 'quick_action');
                 },
               );
             },

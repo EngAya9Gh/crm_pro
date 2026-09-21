@@ -1,6 +1,7 @@
 import '../repositories/client_ai_repository.dart';
 import '../entities/ai_insights.dart';
 import '../entities/ai_session.dart';
+import '../entities/ai_suggestions.dart';
 
 class GetClientAiInsightsUseCase {
   final ClientAiRepository repository;
@@ -39,5 +40,15 @@ class GetClientAiSessionUseCase {
 
   Future<AiSession> call(String clientId, int sessionId) {
     return repository.getSession(clientId, sessionId);
+  }
+}
+
+class GetClientAiSuggestionsUseCase {
+  final ClientAiRepository repository;
+
+  GetClientAiSuggestionsUseCase(this.repository);
+
+  Future<AiSuggestions> call() {
+    return repository.getSuggestions();
   }
 }

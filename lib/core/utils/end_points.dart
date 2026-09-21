@@ -41,6 +41,7 @@ class EndPoints {
   static String clientAiAsk(String id) => '/clients/$id/ai/ask';
   static String clientAiHistory(String id) => '/clients/$id/ai/history';
   static String clientAiSession(String clientId, int sessionId) => '/clients/$clientId/ai/sessions/$sessionId';
+  static const String clientAiSuggestions = '/clients/ai/suggestions';
 
   // Invoices
   static const String invoices = '/invoices';

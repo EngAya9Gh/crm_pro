@@ -9,7 +9,8 @@ import 'ai_chat_bubble.dart';
 
 class AiChatBox extends StatefulWidget {
   final String clientId;
-  const AiChatBox({super.key, required this.clientId});
+  final Widget? header;
+  const AiChatBox({super.key, required this.clientId, this.header});
 
   @override
   State<AiChatBox> createState() => _AiChatBoxState();
@@ -71,37 +72,55 @@ class _AiChatBoxState extends State<AiChatBox> {
             children: [
               // Chat Messages
               Expanded(
-                child: messages.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.chat_bubble_outline, size: 40, color: AppColorScheme.textMuted.withOpacity(0.5)),
-                            const SizedBox(height: 8),
-                            AppText(
-                              'لا توجد رسائل بعد.\nابدأ المحادثة الآن!',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: AppColorScheme.textMuted),
-                            ),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.all(8),
-                        itemCount: messages.length + (cubit.isAsking ? 1 : 0),
-                        itemBuilder: (context, index) {
-                          if (index == messages.length && cubit.isAsking) {
-                            return const Padding(
-                              padding: EdgeInsets.all(16.0),
-                              child: Center(
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                child: ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(8),
+                  itemCount: (widget.header != null ? 1 : 0) + 
+                             (messages.isEmpty && widget.header == null ? 1 : messages.length) + 
+                             (cubit.isAsking ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    int messageIndex = index;
+                    
+                    if (widget.header != null) {
+                      if (index == 0) return widget.header!;
+                      messageIndex = index - 1;
+                    }
+
+                    if (messages.isEmpty && messageIndex == 0) {
+                       return Padding(
+                         padding: const EdgeInsets.only(top: 40),
+                         child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.chat_bubble_outline, size: 40, color: AppColorScheme.textMuted.withOpacity(0.5)),
+                              const SizedBox(height: 8),
+                              AppText(
+                                'لا توجد رسائل بعد.\nابدأ المحادثة الآن!',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: AppColorScheme.textMuted),
                               ),
-                            );
-                          }
-                          return AiChatBubble(message: messages[index]);
-                        },
-                      ),
+                            ],
+                          ),
+                                               ),
+                       );
+                    }
+
+                    if (messageIndex == (messages.isEmpty ? 1 : messages.length) && cubit.isAsking) {
+                      return const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      );
+                    }
+
+                    if (messages.isNotEmpty) {
+                       return AiChatBubble(message: messages[messageIndex]);
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
               ),
               
               // Input Box
