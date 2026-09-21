@@ -1,4 +1,4 @@
-import '../../domain/entities/ai_message.dart';
+import 'package:crm_wakeel/core/common/entities/ai_message.dart';
 
 class AiMessageModel extends AiMessage {
   AiMessageModel({

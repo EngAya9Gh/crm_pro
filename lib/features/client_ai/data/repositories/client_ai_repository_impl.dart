@@ -1,8 +1,8 @@
 import '../../domain/repositories/client_ai_repository.dart';
 import '../datasources/client_ai_remote_datasource.dart';
 import '../../domain/entities/ai_insights.dart';
-import '../../domain/entities/ai_session.dart';
-import '../../domain/entities/ai_suggestions.dart';
+import 'package:crm_wakeel/core/common/entities/ai_session.dart';
+import 'package:crm_wakeel/core/common/entities/ai_suggestions.dart';
 
 class ClientAiRepositoryImpl implements ClientAiRepository {
   final ClientAiRemoteDataSource remoteDataSource;

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import '../../../../core/config/theme/color_scheme.dart';
 import '../../../../core/common/widgets/app_text.dart';
 
+import 'package:crm_wakeel/core/common/entities/ai_suggestion_item.dart';
+
 class AiQuickActions extends StatelessWidget {
-  final List<String> suggestions;
+  final List<AiSuggestionItem> suggestions;
   final Function(String question, String type) onActionSelected;
 
   const AiQuickActions({
@@ -47,7 +49,7 @@ class AiQuickActions extends StatelessWidget {
                     const SizedBox(width: 6),
                     Flexible(
                       child: AppText(
-                        suggestion,
+                        suggestion.question,
                         style: const TextStyle(
                           color: AppColorScheme.primary,
                           fontSize: 13,
@@ -60,7 +62,7 @@ class AiQuickActions extends StatelessWidget {
                   ],
                 ),
                 onPressed: () {
-                  onActionSelected(suggestion, 'quick_action');
+                  onActionSelected(suggestion.prompt, 'quick_action');
                 },
               );
             },

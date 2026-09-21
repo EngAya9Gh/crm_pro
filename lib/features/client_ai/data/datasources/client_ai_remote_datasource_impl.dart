@@ -1,7 +1,7 @@
 import 'client_ai_remote_datasource.dart';
 import '../models/ai_insights_model.dart';
-import '../models/ai_session_model.dart';
-import '../models/ai_suggestions_model.dart';
+import 'package:crm_wakeel/core/common/models/ai_session_model.dart';
+import 'package:crm_wakeel/core/common/models/ai_suggestions_model.dart';
 import '../../../../core/services/network/api_client.dart';
 import '../../../../core/utils/end_points.dart';
 

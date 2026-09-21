@@ -80,6 +80,14 @@ import '../../../features/client_ai/data/repositories/client_ai_repository_impl.
 import '../../../features/client_ai/domain/repositories/client_ai_repository.dart';
 import '../../../features/client_ai/domain/usecases/client_ai_usecases.dart';
 import '../../../features/client_ai/presentation/cubit/client_ai_cubit.dart';
+
+import '../../../features/system_ai/data/datasources/system_ai_remote_datasource.dart';
+import '../../../features/system_ai/data/datasources/system_ai_remote_datasource_impl.dart';
+import '../../../features/system_ai/data/repositories/system_ai_repository_impl.dart';
+import '../../../features/system_ai/domain/repositories/system_ai_repository.dart';
+import '../../../features/system_ai/domain/usecases/system_ai_usecases.dart';
+import '../../../features/system_ai/presentation/cubit/system_ai_cubit.dart';
+
 import '../../../features/settings/data/datasources/settings_remote_datasource.dart';
 import '../../../features/settings/data/repositories/settings_repository_impl.dart';
 import '../../../features/settings/domain/repositories/settings_repository.dart';
@@ -342,6 +350,28 @@ Future<void> initDi() async {
   getIt.registerFactory(
     () => ClientAiCubit(
       getInsightsUseCase: getIt(),
+      askQuestionUseCase: getIt(),
+      getHistoryUseCase: getIt(),
+      getSessionUseCase: getIt(),
+      getSuggestionsUseCase: getIt(),
+    ),
+  );
+
+  // --- System AI Agent Feature ---
+  getIt.registerLazySingleton<SystemAiRemoteDataSource>(
+    () => SystemAiRemoteDataSourceImpl(apiClient: getIt()),
+  );
+
+  getIt.registerLazySingleton<SystemAiRepository>(
+    () => SystemAiRepositoryImpl(remoteDataSource: getIt()),
+  );
+
+  getIt.registerLazySingleton(() => AskSystemAiUseCase(getIt()));
+  getIt.registerLazySingleton(() => GetSystemAiHistoryUseCase(getIt()));
+  getIt.registerLazySingleton(() => GetSystemAiSessionUseCase(getIt()));
+
+  getIt.registerFactory(
+    () => SystemAiCubit(
       askQuestionUseCase: getIt(),
       getHistoryUseCase: getIt(),
       getSessionUseCase: getIt(),

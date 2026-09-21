@@ -15,6 +15,7 @@ import 'package:crm_wakeel/features/invoices/presentation/views/invoices_screen.
 import 'package:crm_wakeel/features/appointments/presentation/views/appointments_screen.dart';
 import 'package:crm_wakeel/features/stock/presentation/views/stock_check_screen.dart';
 import 'package:crm_wakeel/features/whatsapp/presentation/pages/whatsapp_inbox_screen.dart';
+import 'package:crm_wakeel/features/system_ai/presentation/views/system_ai_screen.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
@@ -62,8 +63,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
         drawer: const AppDrawer(),
-        floatingActionButton: context.hasFeature('whatsapp')
-            ? FloatingActionButton(
+        floatingActionButton: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            if (context.hasFeature('whatsapp'))
+              FloatingActionButton(
+                heroTag: 'whatsapp_fab',
                 backgroundColor: const Color(0xFF25D366),
                 child: const Icon(Icons.chat, color: Colors.white, size: 30),
                 onPressed: () {
@@ -74,8 +79,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   );
                 },
-              )
-            : null,
+              ),
+            if (context.hasFeature('whatsapp'))
+              const SizedBox(height: 16),
+            if (context.hasFeature('ai_agent'))
+              FloatingActionButton(
+                heroTag: 'ai_agent_fab',
+                backgroundColor: AppColorScheme.primary,
+                child: const Icon(Icons.auto_awesome, color: Colors.white, size: 28),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SystemAiScreen(),
+                    ),
+                  );
+                },
+              ),
+          ],
+        ),
         body: BlocBuilder<DashboardBloc, DashboardState>(
           builder: (context, state) {
             if (state.status == DashboardStatus.loading &&

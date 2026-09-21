@@ -1,4 +1,4 @@
-import '../../domain/entities/ai_session.dart';
+import 'package:crm_wakeel/core/common/entities/ai_session.dart';
 import 'ai_message_model.dart';
 
 class AiSessionModel extends AiSession {

@@ -1,7 +1,7 @@
 import '../repositories/client_ai_repository.dart';
 import '../entities/ai_insights.dart';
-import '../entities/ai_session.dart';
-import '../entities/ai_suggestions.dart';
+import 'package:crm_wakeel/core/common/entities/ai_session.dart';
+import 'package:crm_wakeel/core/common/entities/ai_suggestions.dart';
 
 class GetClientAiInsightsUseCase {
   final ClientAiRepository repository;

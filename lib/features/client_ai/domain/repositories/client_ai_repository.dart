@@ -1,6 +1,6 @@
 import '../../domain/entities/ai_insights.dart';
-import '../../domain/entities/ai_session.dart';
-import '../../domain/entities/ai_suggestions.dart';
+import 'package:crm_wakeel/core/common/entities/ai_session.dart';
+import 'package:crm_wakeel/core/common/entities/ai_suggestions.dart';
 
 abstract class ClientAiRepository {
   Future<AiInsights> getInsights(String clientId);

@@ -2,9 +2,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'client_ai_state.dart';
 import '../../domain/usecases/client_ai_usecases.dart';
 import '../../domain/entities/ai_insights.dart';
-import '../../domain/entities/ai_session.dart';
-import '../../domain/entities/ai_message.dart';
-import '../../domain/entities/ai_suggestions.dart';
+import 'package:crm_wakeel/core/common/entities/ai_session.dart';
+import 'package:crm_wakeel/core/common/entities/ai_message.dart';
+import 'package:crm_wakeel/core/common/entities/ai_suggestions.dart';
 import '../../../../core/error/api_exception.dart';
 
 class ClientAiCubit extends Cubit<ClientAiState> {
@@ -35,9 +35,17 @@ class ClientAiCubit extends Cubit<ClientAiState> {
     emit(ClientAiLoading());
     try {
       final results = await Future.wait([
-        getInsightsUseCase(clientId),
-        getHistoryUseCase(clientId),
-        getSuggestionsUseCase(),
+        getInsightsUseCase(clientId).catchError((e) {
+          // You can log error here if needed
+          return AiInsights(
+            leadScore: 0,
+            reason: 'فشل في تحميل التحليلات. يمكنك المحاولة لاحقاً.',
+            summary: '',
+            warning: '',
+          );
+        }),
+        getHistoryUseCase(clientId).catchError((e) => <AiSession>[]),
+        getSuggestionsUseCase().catchError((e) => AiSuggestions(clientSpecific: [], general: [])),
       ]);
       insights = results[0] as AiInsights;
       history = results[1] as List<AiSession>;

@@ -4,7 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../../core/config/theme/color_scheme.dart';
 import '../../../../core/common/widgets/app_text.dart';
-import '../../domain/entities/ai_message.dart';
+import 'package:crm_wakeel/core/common/entities/ai_message.dart';
 
 class AiChatBubble extends StatelessWidget {
   final AiMessage message;
