@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crm_wakeel/core/common/entities/ai_session.dart';
 import 'package:crm_wakeel/core/common/entities/ai_message.dart';
+import 'package:crm_wakeel/core/common/models/ai_message_model.dart';
 import 'package:crm_wakeel/core/common/entities/ai_suggestions.dart';
 import 'package:crm_wakeel/features/client_ai/domain/usecases/client_ai_usecases.dart';
 import 'package:crm_wakeel/features/system_ai/domain/usecases/system_ai_usecases.dart';
@@ -29,17 +30,26 @@ class SystemAiCubit extends Cubit<SystemAiState> {
 
   Future<void> init() async {
     emit(SystemAiLoading());
+    final historyFuture = getHistoryUseCase();
+    final suggestionsFuture = getSuggestionsUseCase();
+
     try {
-      final results = await Future.wait([
-        getHistoryUseCase().catchError((e) => <AiSession>[]),
-        getSuggestionsUseCase().catchError((e) => AiSuggestions(clientSpecific: [], general: [])),
-      ]);
-      history = results[0] as List<AiSession>;
-      suggestions = results[1] as AiSuggestions;
-      emit(SystemAiLoaded(timestamp: DateTime.now().millisecondsSinceEpoch));
+      history = await historyFuture;
+      if (history.isNotEmpty) {
+        final lastSession = await getSessionUseCase(history.first.id);
+        currentSession = lastSession;
+      }
     } catch (e) {
-      emit(SystemAiError(e.toString()));
+      history = [];
     }
+
+    try {
+      suggestions = await suggestionsFuture;
+    } catch (e) {
+      suggestions = AiSuggestions(clientSpecific: [], general: []);
+    }
+
+    emit(SystemAiLoaded(timestamp: DateTime.now().millisecondsSinceEpoch));
   }
 
   Future<void> askQuestion(String question, {String? type}) async {
@@ -55,7 +65,7 @@ class SystemAiCubit extends Cubit<SystemAiState> {
     }
     
     currentSession!.messages!.add(
-      AiMessage(
+      AiMessageModel(
         role: 'user',
         content: question,
       ),

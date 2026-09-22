@@ -58,7 +58,7 @@ class ClientAiRemoteDataSourceImpl implements ClientAiRemoteDataSource {
   Future<AiSuggestionsModel> getSuggestions() async {
     final response = await apiClient.get<AiSuggestionsModel>(
       EndPoints.clientAiSuggestions,
-      fromJson: (json) => AiSuggestionsModel.fromJson(json as Map<String, dynamic>),
+      fromJson: (json) => AiSuggestionsModel.fromJson((json as Map<String, dynamic>)['suggestions']),
     );
     return response.data!;
   }
