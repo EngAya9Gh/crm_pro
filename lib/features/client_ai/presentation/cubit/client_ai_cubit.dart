@@ -14,6 +14,7 @@ class ClientAiCubit extends Cubit<ClientAiState> {
   final GetClientAiHistoryUseCase getHistoryUseCase;
   final GetClientAiSessionUseCase getSessionUseCase;
   final GetClientAiSuggestionsUseCase getSuggestionsUseCase;
+  final SummarizeWhatsappChatUseCase summarizeWhatsappChatUseCase;
 
   AiInsights? insights;
   List<AiSession> history = [];
@@ -30,13 +31,14 @@ class ClientAiCubit extends Cubit<ClientAiState> {
     required this.getHistoryUseCase,
     required this.getSessionUseCase,
     required this.getSuggestionsUseCase,
+    required this.summarizeWhatsappChatUseCase,
   }) : super(ClientAiInitial());
 
   Future<void> loadInsightsAndHistory(String clientId) async {
     emit(ClientAiLoading());
       final insightsFuture = getInsightsUseCase(clientId);
       final historyFuture = getHistoryUseCase(clientId);
-      final suggestionsFuture = getSuggestionsUseCase();
+      final suggestionsFuture = getSuggestionsUseCase(clientId);
 
       try {
         insights = await insightsFuture;
@@ -63,6 +65,13 @@ class ClientAiCubit extends Cubit<ClientAiState> {
 
       try {
         suggestions = await suggestionsFuture;
+        if (suggestions != null) {
+          suggestions!.clientSpecific.sort((a, b) {
+            if (a.action == 'summarize_whatsapp' || a.icon == 'whatsapp') return -1;
+            if (b.action == 'summarize_whatsapp' || b.icon == 'whatsapp') return 1;
+            return 0;
+          });
+        }
       } catch (e) {
         suggestions = AiSuggestions(clientSpecific: [], general: []);
       }
@@ -111,6 +120,43 @@ class ClientAiCubit extends Cubit<ClientAiState> {
       emit(ClientAiError(errorMessage));
       
       // Keep it in chat as well or let user retry.
+      currentMessages.add(AiMessageModel(role: 'assistant', content: 'عذراً، $errorMessage'));
+    } finally {
+      isAsking = false;
+      emit(ClientAiLoaded());
+    }
+  }
+
+  Future<void> summarizeWhatsappChat(String clientId, String threadId) async {
+    isAsking = true;
+    emit(ClientAiLoaded());
+
+    try {
+      final session = await summarizeWhatsappChatUseCase(
+        clientId, 
+        threadId, 
+        sessionId: currentSessionId,
+      );
+      
+      currentSessionId = session.id;
+      if (session.messages != null && session.messages!.isNotEmpty) {
+        currentMessages = List.from(session.messages!);
+      } else if (session.answer != null) {
+        currentMessages.add(AiMessageModel(role: 'assistant', content: session.answer!));
+      }
+      
+      // Refresh history silently
+      getHistoryUseCase(clientId).then((value) {
+        history = value;
+        emit(ClientAiLoaded());
+      });
+
+    } catch (e) {
+      String errorMessage = e.toString();
+      if (e is ServerException || (e is ApiException && e.statusCode == 500)) {
+        errorMessage = 'فشل في الاتصال بخدمة الذكاء الاصطناعي';
+      }
+      emit(ClientAiError(errorMessage));
       currentMessages.add(AiMessageModel(role: 'assistant', content: 'عذراً، $errorMessage'));
     } finally {
       isAsking = false;

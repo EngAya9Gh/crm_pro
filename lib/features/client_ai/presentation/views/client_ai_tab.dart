@@ -197,12 +197,16 @@ class ClientAiTab extends StatelessWidget {
                   const SizedBox(height: 12),
 
                   if (cubit.suggestions != null && cubit.suggestions!.clientSpecific.isNotEmpty) ...[
-                    AiQuickActions(
-                      suggestions: cubit.suggestions!.clientSpecific,
-                      onActionSelected: (question, type) {
-                        cubit.askQuestion(clientId, question, type: type);
-                      },
-                    ),
+                      AiQuickActions(
+                        suggestions: cubit.suggestions!.clientSpecific,
+                        onActionSelected: (suggestion) {
+                          if (suggestion.action == 'summarize_whatsapp' && suggestion.threadId != null) {
+                            cubit.summarizeWhatsappChat(clientId, suggestion.threadId!);
+                          } else {
+                            cubit.askQuestion(clientId, suggestion.prompt, type: 'quick_action');
+                          }
+                        },
+                      ),
                     const SizedBox(height: 16),
                   ],
                 ],

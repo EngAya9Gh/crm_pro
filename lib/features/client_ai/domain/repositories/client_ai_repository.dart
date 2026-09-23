@@ -7,5 +7,6 @@ abstract class ClientAiRepository {
   Future<AiSession> askQuestion(String clientId, String question, {String? type, int? sessionId});
   Future<List<AiSession>> getHistory(String clientId);
   Future<AiSession> getSession(String clientId, int sessionId);
-  Future<AiSuggestions> getSuggestions();
+  Future<AiSuggestions> getSuggestions([String? clientId]);
+  Future<AiSession> summarizeWhatsappChat(String clientId, String threadId, {int? sessionId});
 }

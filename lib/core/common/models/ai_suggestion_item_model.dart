@@ -6,6 +6,8 @@ class AiSuggestionItemModel extends AiSuggestionItem {
     required super.question,
     required super.prompt,
     required super.icon,
+    super.action,
+    super.threadId,
   });
 
   factory AiSuggestionItemModel.fromJson(Map<String, dynamic> json) {
@@ -14,6 +16,8 @@ class AiSuggestionItemModel extends AiSuggestionItem {
       question: json['question'] ?? '',
       prompt: json['prompt'] ?? '',
       icon: json['icon'] ?? '',
+      action: json['action'],
+      threadId: json['thread_id'],
     );
   }
 }

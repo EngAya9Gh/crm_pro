@@ -48,7 +48,17 @@ class GetClientAiSuggestionsUseCase {
 
   GetClientAiSuggestionsUseCase(this.repository);
 
-  Future<AiSuggestions> call() {
-    return repository.getSuggestions();
+  Future<AiSuggestions> call([String? clientId]) {
+    return repository.getSuggestions(clientId);
+  }
+}
+
+class SummarizeWhatsappChatUseCase {
+  final ClientAiRepository repository;
+
+  SummarizeWhatsappChatUseCase(this.repository);
+
+  Future<AiSession> call(String clientId, String threadId, {int? sessionId}) {
+    return repository.summarizeWhatsappChat(clientId, threadId, sessionId: sessionId);
   }
 }

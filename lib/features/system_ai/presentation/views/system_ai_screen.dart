@@ -206,8 +206,8 @@ class SystemAiScreen extends StatelessWidget {
                     if (cubit.suggestions != null && cubit.suggestions!.general.isNotEmpty) ...[
                       AiQuickActions(
                         suggestions: cubit.suggestions!.general,
-                        onActionSelected: (question, type) {
-                          cubit.askQuestion(question, type: type);
+                        onActionSelected: (suggestion) {
+                          cubit.askQuestion(suggestion.prompt, type: 'quick_action');
                         },
                       ),
                       const SizedBox(height: 16),

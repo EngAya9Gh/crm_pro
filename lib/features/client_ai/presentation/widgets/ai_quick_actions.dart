@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import '../../../../core/config/theme/color_scheme.dart';
 import '../../../../core/common/widgets/app_text.dart';
-
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:crm_wakeel/core/common/entities/ai_suggestion_item.dart';
 
 class AiQuickActions extends StatelessWidget {
   final List<AiSuggestionItem> suggestions;
-  final Function(String question, String type) onActionSelected;
+  final Function(AiSuggestionItem suggestion) onActionSelected;
 
   const AiQuickActions({
     super.key, 
     required this.suggestions,
     required this.onActionSelected,
   });
+  @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -45,7 +46,10 @@ class AiQuickActions extends StatelessWidget {
                 label: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('✨'),
+                    if (suggestion.icon == 'whatsapp' || suggestion.action == 'summarize_whatsapp')
+                      const FaIcon(FontAwesomeIcons.whatsapp, size: 16, color: Color(0xFF25D366))
+                    else
+                      const Text('✨'),
                     const SizedBox(width: 6),
                     Flexible(
                       child: AppText(
@@ -62,7 +66,7 @@ class AiQuickActions extends StatelessWidget {
                   ],
                 ),
                 onPressed: () {
-                  onActionSelected(suggestion.prompt, 'quick_action');
+                  onActionSelected(suggestion);
                 },
               );
             },

@@ -7,5 +7,6 @@ abstract class ClientAiRemoteDataSource {
   Future<AiSessionModel> askQuestion(String clientId, String question, {String? type, int? sessionId});
   Future<List<AiSessionModel>> getHistory(String clientId);
   Future<AiSessionModel> getSession(String clientId, int sessionId);
-  Future<AiSuggestionsModel> getSuggestions();
+  Future<AiSuggestionsModel> getSuggestions([String? clientId]);
+  Future<AiSessionModel> summarizeWhatsappChat(String clientId, String threadId, {int? sessionId});
 }

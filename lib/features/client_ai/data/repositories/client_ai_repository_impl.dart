@@ -30,7 +30,12 @@ class ClientAiRepositoryImpl implements ClientAiRepository {
   }
 
   @override
-  Future<AiSuggestions> getSuggestions() async {
-    return await remoteDataSource.getSuggestions();
+  Future<AiSuggestions> getSuggestions([String? clientId]) async {
+    return await remoteDataSource.getSuggestions(clientId);
+  }
+
+  @override
+  Future<AiSession> summarizeWhatsappChat(String clientId, String threadId, {int? sessionId}) async {
+    return await remoteDataSource.summarizeWhatsappChat(clientId, threadId, sessionId: sessionId);
   }
 }

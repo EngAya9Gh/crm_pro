@@ -55,10 +55,26 @@ class ClientAiRemoteDataSourceImpl implements ClientAiRemoteDataSource {
   }
 
   @override
-  Future<AiSuggestionsModel> getSuggestions() async {
+  Future<AiSuggestionsModel> getSuggestions([String? clientId]) async {
+    final url = clientId != null 
+        ? '${EndPoints.clientAiSuggestions}?client_id=$clientId'
+        : EndPoints.clientAiSuggestions;
     final response = await apiClient.get<AiSuggestionsModel>(
-      EndPoints.clientAiSuggestions,
+      url,
       fromJson: (json) => AiSuggestionsModel.fromJson((json as Map<String, dynamic>)['suggestions']),
+    );
+    return response.data!;
+  }
+
+  @override
+  Future<AiSessionModel> summarizeWhatsappChat(String clientId, String threadId, {int? sessionId}) async {
+    final response = await apiClient.post<AiSessionModel>(
+      EndPoints.clientAiSummarizeWhatsapp(clientId),
+      data: {
+        'thread_id': threadId,
+        if (sessionId != null) 'session_id': sessionId,
+      },
+      fromJson: (json) => AiSessionModel.fromJson(json as Map<String, dynamic>),
     );
     return response.data!;
   }
