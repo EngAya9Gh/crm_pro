@@ -15,6 +15,8 @@ import '../widgets/client_files_tab.dart';
 import '../widgets/client_timeline_tab.dart';
 
 import '../widgets/client_procedures_tab.dart';
+import '../widgets/client_tickets_tab.dart';
+import '../widgets/client_evaluations_tab.dart';
 import '../../../client_ai/presentation/views/client_ai_tab.dart'; // Add AI Tab
 import 'add_client_screen.dart';
 
@@ -125,7 +127,7 @@ class ClientProfileScreen extends StatelessWidget {
         }
 
         return DefaultTabController(
-          length: 8,
+          length: 10,
           child: AppScaffold(
             backgroundColor: AppColorScheme.surface,
             title: currentClient.name,
@@ -235,6 +237,8 @@ class ClientProfileScreen extends StatelessWidget {
               Tab(text: AppStrings.clientAppointments),
               Tab(text: 'الملفات'),
               Tab(text: 'الإجراءات'),
+              Tab(text: AppStrings.tickets),
+              Tab(text: AppStrings.evaluations),
               Tab(text: 'Timeline'),
             ],
           ),
@@ -262,6 +266,8 @@ class ClientProfileScreen extends StatelessWidget {
                 ),
                 ClientFilesTab(clientId: currentClient.id, initialFiles: currentClient.files),
                 ClientProceduresTab(clientId: currentClient.id),
+                ClientTicketsTab(clientId: currentClient.id),
+                ClientEvaluationsTab(clientId: currentClient.id),
                 ClientTimelineTab(clientId: currentClient.id),
               ],
             ),

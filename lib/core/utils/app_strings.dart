@@ -79,4 +79,23 @@ class AppStrings {
   static const String filter = 'فلتر';
   static const String export = 'تصدير';
   static const String share = 'مشاركة';
+
+  // Tickets
+  static const String tickets = 'التذاكر';
+  static const String ticketDetails = 'تفاصيل التذكرة';
+  static const String addTicket = 'إضافة تذكرة';
+  static const String ticketStatus = 'حالة التذكرة';
+  static const String ticketPriority = 'أولوية التذكرة';
+  static const String ticketCategory = 'تصنيف التذكرة';
+  static const String ticketSubject = 'عنوان التذكرة';
+  static const String ticketDescription = 'وصف التذكرة';
+  static const String ticketNumber = 'رقم التذكرة';
+
+  // Evaluations
+  static const String evaluations = 'التقييمات';
+  static const String evaluationTypes = 'أنواع التقييمات';
+  static const String evaluationStats = 'إحصائيات التقييمات';
+  static const String addEvaluation = 'إضافة تقييم';
+  static const String evaluationRating = 'التقييم';
+  static const String evaluationNote = 'ملاحظة العميل';
 }

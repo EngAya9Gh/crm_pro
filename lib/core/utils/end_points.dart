@@ -129,4 +129,19 @@ class EndPoints {
   static String whatsappMediaUpload(String threadId) =>
       '/whatsapp/threads/$threadId/media-upload';
   static const String whatsappMedia = '/whatsapp/media';
+
+  // Tickets
+  static const String tickets = '/tickets';
+  static String ticket(String id) => '/tickets/$id';
+  static String ticketMessages(String id) => '/tickets/$id/messages';
+  static const String ticketCategories = '/tickets/categories';
+  static String ticketCategory(String id) => '/tickets/categories/$id';
+
+  // Evaluations
+  static const String evaluations = '/evaluations';
+  static String evaluation(String id) => '/evaluations/$id';
+  static const String evaluationStats = '/evaluations/stats';
+  static const String evaluationTypes = '/evaluations/types';
+  static String evaluationType(String id) => '/evaluations/types/$id';
+  static const String evaluationLinks = '/evaluations/links';
 }

@@ -155,6 +155,22 @@ import '../../../features/stock/domain/usecases/sync_products_usecase.dart';
 import '../../../features/stock/domain/usecases/validate_stock_usecase.dart';
 import '../../../features/stock/presentation/cubit/stock_cubit.dart';
 
+import '../../../features/tickets/data/datasources/tickets_remote_datasource.dart';
+import '../../../features/tickets/data/datasources/tickets_remote_datasource_impl.dart';
+import '../../../features/tickets/data/repositories/tickets_repository_impl.dart';
+import '../../../features/tickets/domain/repositories/tickets_repository.dart';
+import '../../../features/tickets/domain/usecases/tickets_usecases.dart';
+import '../../../features/tickets/presentation/bloc/tickets_cubit.dart';
+import '../../../features/tickets/presentation/bloc/ticket_categories_cubit.dart';
+
+import '../../../features/evaluations/data/datasources/evaluations_remote_datasource.dart';
+import '../../../features/evaluations/data/datasources/evaluations_remote_datasource_impl.dart';
+import '../../../features/evaluations/data/repositories/evaluations_repository_impl.dart';
+import '../../../features/evaluations/domain/repositories/evaluations_repository.dart';
+import '../../../features/evaluations/domain/usecases/evaluations_usecases.dart';
+import '../../../features/evaluations/presentation/bloc/evaluations_cubit.dart';
+import '../../../features/evaluations/presentation/bloc/evaluation_types_cubit.dart';
+
 final getIt = GetIt.instance;
 
 Future<void> initDi() async {
@@ -693,6 +709,79 @@ Future<void> initDi() async {
       getThreadMessagesUseCase: getIt(),
       replyToThreadUseCase: getIt(),
       pusherService: getIt(),
+    ),
+  );
+  // --- Tickets Feature ---
+  getIt.registerLazySingleton<TicketsRemoteDataSource>(
+    () => TicketsRemoteDataSourceImpl(apiClient: getIt()),
+  );
+
+  getIt.registerLazySingleton<TicketsRepository>(
+    () => TicketsRepositoryImpl(remoteDataSource: getIt()),
+  );
+
+  getIt.registerLazySingleton(() => GetTicketsUseCase(getIt()));
+  getIt.registerLazySingleton(() => CreateTicketUseCase(getIt()));
+  getIt.registerLazySingleton(() => UpdateTicketUseCase(getIt()));
+  getIt.registerLazySingleton(() => GetTicketMessagesUseCase(getIt()));
+  getIt.registerLazySingleton(() => AddTicketMessageUseCase(getIt()));
+  getIt.registerLazySingleton(() => GetTicketCategoriesUseCase(getIt()));
+  getIt.registerLazySingleton(() => CreateTicketCategoryUseCase(getIt()));
+  getIt.registerLazySingleton(() => UpdateTicketCategoryUseCase(getIt()));
+  getIt.registerLazySingleton(() => DeleteTicketCategoryUseCase(getIt()));
+
+  getIt.registerFactory(
+    () => TicketsCubit(
+      getTicketsUseCase: getIt(),
+      createTicketUseCase: getIt(),
+      updateTicketUseCase: getIt(),
+      getTicketMessagesUseCase: getIt(),
+      addTicketMessageUseCase: getIt(),
+    ),
+  );
+
+  getIt.registerFactory(
+    () => TicketCategoriesCubit(
+      getCategoriesUseCase: getIt(),
+      createCategoryUseCase: getIt(),
+      updateCategoryUseCase: getIt(),
+      deleteCategoryUseCase: getIt(),
+    ),
+  );
+
+  // --- Evaluations Feature ---
+  getIt.registerLazySingleton<EvaluationsRemoteDataSource>(
+    () => EvaluationsRemoteDataSourceImpl(apiClient: getIt()),
+  );
+
+  getIt.registerLazySingleton<EvaluationsRepository>(
+    () => EvaluationsRepositoryImpl(remoteDataSource: getIt()),
+  );
+
+  getIt.registerLazySingleton(() => GetEvaluationsUseCase(getIt()));
+  getIt.registerLazySingleton(() => GetEvaluationStatsUseCase(getIt()));
+  getIt.registerLazySingleton(() => CreateEvaluationUseCase(getIt()));
+  getIt.registerLazySingleton(() => CreateEvaluationLinkUseCase(getIt()));
+  getIt.registerLazySingleton(() => GetEvaluationTypesUseCase(getIt()));
+  getIt.registerLazySingleton(() => CreateEvaluationTypeUseCase(getIt()));
+  getIt.registerLazySingleton(() => UpdateEvaluationTypeUseCase(getIt()));
+  getIt.registerLazySingleton(() => DeleteEvaluationTypeUseCase(getIt()));
+
+  getIt.registerFactory(
+    () => EvaluationsCubit(
+      getEvaluationsUseCase: getIt(),
+      getEvaluationStatsUseCase: getIt(),
+      createEvaluationUseCase: getIt(),
+      createEvaluationLinkUseCase: getIt(),
+    ),
+  );
+
+  getIt.registerFactory(
+    () => EvaluationTypesCubit(
+      getTypesUseCase: getIt(),
+      createTypeUseCase: getIt(),
+      updateTypeUseCase: getIt(),
+      deleteTypeUseCase: getIt(),
     ),
   );
 }
