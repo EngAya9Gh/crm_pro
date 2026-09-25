@@ -1,9 +1,10 @@
 import '../models/ticket_model.dart';
 import '../models/ticket_message_model.dart';
 import '../models/ticket_category_model.dart';
+import '../../../../core/services/network/api_response.dart';
 
 abstract class TicketsRemoteDataSource {
-  Future<List<TicketModel>> getTickets({
+  Future<ApiResponse<List<TicketModel>>> getTickets({
     String? status,
     int? clientId,
     int? assignedTo,

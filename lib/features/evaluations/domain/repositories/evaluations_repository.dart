@@ -1,13 +1,15 @@
 import '../../domain/entities/evaluation.dart';
 import '../../domain/entities/evaluation_stats.dart';
 import '../../domain/entities/evaluation_type.dart';
+import '../../../../core/services/network/api_response.dart';
 
 abstract class EvaluationsRepository {
-  Future<List<Evaluation>> getEvaluations({
+  Future<ApiResponse<List<Evaluation>>> getEvaluations({
     int? clientId,
     int? assignedUserId,
     int? typeId,
     int? rating,
+    int page = 1,
   });
 
   Future<EvaluationStats> getEvaluationStats({int? assignedUserId});

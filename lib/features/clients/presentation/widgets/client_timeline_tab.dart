@@ -134,7 +134,6 @@ class _ClientTimelineTabState extends State<ClientTimelineTab> {
                                 style: AppTypography.labelSmall.copyWith(
                                   color: AppColorScheme.textMuted,
                                   fontSize: 10,
-                                  fontStyle: FontStyle.italic,
                                 ),
                               ),
                             ),

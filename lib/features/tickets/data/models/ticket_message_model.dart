@@ -16,7 +16,7 @@ class TicketMessageModel extends TicketMessage {
       content: json['content'] ?? '',
       isInternal: json['is_internal'] ?? false,
       user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
-      createdAt: DateTime.parse(json['created_at']),
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : DateTime.now(),
     );
   }
 

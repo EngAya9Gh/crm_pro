@@ -2,11 +2,12 @@ import '../entities/ticket.dart';
 import '../entities/ticket_message.dart';
 import '../entities/ticket_category.dart';
 import '../repositories/tickets_repository.dart';
+import '../../../../core/services/network/api_response.dart';
 
 class GetTicketsUseCase {
   final TicketsRepository repository;
   GetTicketsUseCase(this.repository);
-  Future<List<Ticket>> call({String? status, int? clientId, int? assignedTo, int? categoryId, int page = 1}) {
+  Future<ApiResponse<List<Ticket>>> call({String? status, int? clientId, int? assignedTo, int? categoryId, int page = 1}) {
     return repository.getTickets(status: status, clientId: clientId, assignedTo: assignedTo, categoryId: categoryId, page: page);
   }
 }

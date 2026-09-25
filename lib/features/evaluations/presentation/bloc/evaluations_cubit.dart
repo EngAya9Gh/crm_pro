@@ -9,6 +9,10 @@ class EvaluationsCubit extends Cubit<EvaluationsState> {
   final CreateEvaluationUseCase createEvaluationUseCase;
   final CreateEvaluationLinkUseCase createEvaluationLinkUseCase;
 
+  int _currentPage = 1;
+  bool _hasMorePages = false;
+  List<Evaluation> _allEvaluations = [];
+
   EvaluationsCubit({
     required this.getEvaluationsUseCase,
     required this.getEvaluationStatsUseCase,
@@ -16,20 +20,54 @@ class EvaluationsCubit extends Cubit<EvaluationsState> {
     required this.createEvaluationLinkUseCase,
   }) : super(EvaluationsInitial());
 
-  Future<void> getEvaluations({int? clientId, int? assignedUserId, int? typeId, int? rating}) async {
-    emit(EvaluationsLoading());
+  Future<void> getEvaluations({
+    int? clientId,
+    int? assignedUserId,
+    int? typeId,
+    int? rating,
+    bool refresh = true,
+  }) async {
+    if (refresh) {
+      _currentPage = 1;
+      _allEvaluations = [];
+      emit(EvaluationsLoading());
+    }
+
     try {
-      final evaluations = await getEvaluationsUseCase(
+      final response = await getEvaluationsUseCase(
         clientId: clientId,
         assignedUserId: assignedUserId,
         typeId: typeId,
         rating: rating,
+        page: _currentPage,
       );
       final stats = await getEvaluationStatsUseCase(assignedUserId: assignedUserId);
-      emit(EvaluationsLoaded(evaluations, stats));
+
+      if (response.data != null) {
+        if (refresh) {
+          _allEvaluations = response.data!;
+        } else {
+          _allEvaluations = [..._allEvaluations, ...response.data!];
+        }
+        _hasMorePages = response.meta != null && _currentPage < response.meta!.lastPage;
+      }
+
+      emit(EvaluationsLoaded(_allEvaluations, stats, meta: response.meta, currentPage: _currentPage));
     } catch (e) {
       emit(EvaluationsError(e.toString()));
     }
+  }
+
+  Future<void> loadNextPage({int? clientId, int? assignedUserId, int? typeId, int? rating}) async {
+    if (!_hasMorePages) return;
+    _currentPage++;
+    await getEvaluations(
+      clientId: clientId,
+      assignedUserId: assignedUserId,
+      typeId: typeId,
+      rating: rating,
+      refresh: false,
+    );
   }
 
   Future<void> createEvaluation(Evaluation evaluation) async {
@@ -53,7 +91,7 @@ class EvaluationsCubit extends Cubit<EvaluationsState> {
         channel: channel,
         noteForClient: noteForClient,
       );
-      emit(EvaluationOperationSuccess('تم إنشاء رابط التقييم: $link'));
+      emit(EvaluationOperationSuccess(link));
     } catch (e) {
       emit(EvaluationsError(e.toString()));
     }

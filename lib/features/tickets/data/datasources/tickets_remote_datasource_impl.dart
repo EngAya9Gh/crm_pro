@@ -1,4 +1,5 @@
 import '../../../../core/services/network/api_client.dart';
+import '../../../../core/services/network/api_response.dart';
 import '../../../../core/utils/end_points.dart';
 import '../models/ticket_model.dart';
 import '../models/ticket_message_model.dart';
@@ -11,7 +12,7 @@ class TicketsRemoteDataSourceImpl implements TicketsRemoteDataSource {
   TicketsRemoteDataSourceImpl({required this.apiClient});
 
   @override
-  Future<List<TicketModel>> getTickets({
+  Future<ApiResponse<List<TicketModel>>> getTickets({
     String? status,
     int? clientId,
     int? assignedTo,
@@ -26,84 +27,92 @@ class TicketsRemoteDataSourceImpl implements TicketsRemoteDataSource {
       if (categoryId != null) 'category_id': categoryId,
     };
 
-    final response = await apiClient.get(
+    return await apiClient.get<List<TicketModel>>(
       EndPoints.tickets,
       queryParameters: queryParams,
+      fromJson: (json) => (json as List)
+          .map((e) => TicketModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
-
-    return (response.data['data'] as List)
-        .map((json) => TicketModel.fromJson(json))
-        .toList();
   }
 
   @override
   Future<TicketModel> createTicket(TicketModel ticket) async {
-    final response = await apiClient.post(
+    final response = await apiClient.post<TicketModel>(
       EndPoints.tickets,
       data: ticket.toJson(),
+      fromJson: (json) => TicketModel.fromJson(json as Map<String, dynamic>),
     );
-    return TicketModel.fromJson(response.data['data']);
+    return response.data!;
   }
 
   @override
   Future<TicketModel> updateTicket(int id, TicketModel ticket) async {
-    final response = await apiClient.put(
+    final response = await apiClient.put<TicketModel>(
       EndPoints.ticket(id.toString()),
       data: ticket.toJson(),
+      fromJson: (json) => TicketModel.fromJson(json as Map<String, dynamic>),
     );
-    return TicketModel.fromJson(response.data['data']);
+    return response.data!;
   }
 
   @override
   Future<List<TicketMessageModel>> getTicketMessages(int ticketId) async {
-    final response = await apiClient.get(
+    final response = await apiClient.get<List<TicketMessageModel>>(
       EndPoints.ticketMessages(ticketId.toString()),
+      fromJson: (json) => (json as List)
+          .map((e) => TicketMessageModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
-    return (response.data['data'] as List)
-        .map((json) => TicketMessageModel.fromJson(json))
-        .toList();
+    return response.data ?? [];
   }
 
   @override
   Future<TicketMessageModel> addTicketMessage(int ticketId, String content, bool isInternal) async {
-    final response = await apiClient.post(
+    final response = await apiClient.post<TicketMessageModel>(
       EndPoints.ticketMessages(ticketId.toString()),
-      data: {
-        'content': content,
-        'is_internal': isInternal,
-      },
+      data: {'content': content, 'is_internal': isInternal},
+      fromJson: (json) => TicketMessageModel.fromJson(json as Map<String, dynamic>),
     );
-    return TicketMessageModel.fromJson(response.data['data']);
+    return response.data!;
   }
 
   @override
   Future<List<TicketCategoryModel>> getCategories() async {
-    final response = await apiClient.get(EndPoints.ticketCategories);
-    return (response.data['data'] as List)
-        .map((json) => TicketCategoryModel.fromJson(json))
-        .toList();
+    final response = await apiClient.get<List<TicketCategoryModel>>(
+      EndPoints.ticketCategories,
+      fromJson: (json) => (json as List)
+          .map((e) => TicketCategoryModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+    return response.data ?? [];
   }
 
   @override
   Future<TicketCategoryModel> createCategory(TicketCategoryModel category) async {
-    final response = await apiClient.post(
+    final response = await apiClient.post<TicketCategoryModel>(
       EndPoints.ticketCategories,
       data: category.toJson(),
+      fromJson: (json) => TicketCategoryModel.fromJson(json as Map<String, dynamic>),
     );
-    return TicketCategoryModel.fromJson(response.data['data']);
+    return response.data!;
   }
 
   @override
   Future<TicketCategoryModel> updateCategory(int id, TicketCategoryModel category) async {
-    final response = await apiClient.put(
+    final response = await apiClient.put<TicketCategoryModel>(
       EndPoints.ticketCategory(id.toString()),
       data: category.toJson(),
+      fromJson: (json) => TicketCategoryModel.fromJson(json as Map<String, dynamic>),
     );
-    return TicketCategoryModel.fromJson(response.data['data']);
+    return response.data!;
   }
 
   @override
   Future<void> deleteCategory(int id) async {
-    await apiClient.delete(EndPoints.ticketCategory(id.toString()));
+    await apiClient.delete<void>(
+      EndPoints.ticketCategory(id.toString()),
+      fromJson: (_) {},
+    );
   }
 }

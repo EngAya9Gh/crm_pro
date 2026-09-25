@@ -1,6 +1,7 @@
 import '../../domain/entities/ticket.dart';
 import '../../domain/entities/ticket_message.dart';
 import '../../domain/entities/ticket_category.dart';
+import '../../../../core/services/network/api_response.dart';
 
 abstract class TicketsState {}
 
@@ -10,7 +11,9 @@ class TicketsLoading extends TicketsState {}
 
 class TicketsLoaded extends TicketsState {
   final List<Ticket> tickets;
-  TicketsLoaded(this.tickets);
+  final PaginationMeta? meta;
+  final int currentPage;
+  TicketsLoaded(this.tickets, {this.meta, this.currentPage = 1});
 }
 
 class TicketDetailsLoaded extends TicketsState {

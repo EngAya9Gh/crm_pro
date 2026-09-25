@@ -30,9 +30,6 @@ class WakeelCRM extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Initialize Responsive Helper
-    ResponsiveHelper.init(context);
-
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => getIt<AuthCubit>()..checkAuthStatus()),
@@ -43,6 +40,10 @@ class WakeelCRM extends StatelessWidget {
       child: MaterialApp(
         title: AppStrings.appName,
         debugShowCheckedModeBanner: false,
+        builder: (context, child) {
+          ResponsiveHelper.init(context);
+          return child!;
+        },
         // Localization
         locale: const Locale('ar'),
         supportedLocales: const [Locale('ar'), Locale('en')],

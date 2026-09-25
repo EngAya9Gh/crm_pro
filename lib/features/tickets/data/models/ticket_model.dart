@@ -5,6 +5,12 @@ import 'ticket_category_model.dart';
 import 'ticket_message_model.dart';
 
 class TicketModel extends Ticket {
+  final String? clientIdStr;
+  final int? assignedToId;
+  final int? categoryId;
+  final int? subCategoryId;
+  final Map<String, dynamic>? evaluation;
+
   TicketModel({
     required super.id,
     required super.ticketNumber,
@@ -21,6 +27,11 @@ class TicketModel extends Ticket {
     super.messages,
     required super.createdAt,
     super.closedAt,
+    this.clientIdStr,
+    this.assignedToId,
+    this.categoryId,
+    this.subCategoryId,
+    this.evaluation,
   });
 
   factory TicketModel.fromJson(Map<String, dynamic> json) {
@@ -40,22 +51,26 @@ class TicketModel extends Ticket {
       messages: json['messages'] != null
           ? (json['messages'] as List).map((e) => TicketMessageModel.fromJson(e)).toList()
           : null,
-      createdAt: DateTime.parse(json['created_at']),
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : DateTime.now(),
       closedAt: json['closed_at'] != null ? DateTime.parse(json['closed_at']) : null,
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
+    final map = {
       'title': title,
       'description': description,
-      'client_id': client?.id,
-      'assigned_to': assignedTo?.id,
-      'category_id': category?.id,
-      'sub_category_id': subCategory?.id,
+      'client_id': clientIdStr ?? client?.id,
+      'assigned_to': assignedToId ?? assignedTo?.id,
+      'category_id': categoryId ?? category?.id,
+      'sub_category_id': subCategoryId ?? subCategory?.id,
       'priority': priority,
       'source': source,
       'status': status,
     };
+    if (evaluation != null) {
+      map['evaluation'] = evaluation;
+    }
+    return map;
   }
 }

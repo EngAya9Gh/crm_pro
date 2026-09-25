@@ -15,7 +15,7 @@ class TicketCategoryModel extends TicketCategory {
   factory TicketCategoryModel.fromJson(Map<String, dynamic> json) {
     return TicketCategoryModel(
       id: json['id'],
-      name: json['name'],
+      name: json['name'] ?? 'Unknown',
       parentId: json['parent_id'],
       color: json['color'],
       icon: json['icon'],

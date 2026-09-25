@@ -8,6 +8,7 @@ class TicketCategoriesCubit extends Cubit<TicketsState> {
   final CreateTicketCategoryUseCase createCategoryUseCase;
   final UpdateTicketCategoryUseCase updateCategoryUseCase;
   final DeleteTicketCategoryUseCase deleteCategoryUseCase;
+  List<TicketCategory> categories = [];
 
   TicketCategoriesCubit({
     required this.getCategoriesUseCase,
@@ -19,7 +20,7 @@ class TicketCategoriesCubit extends Cubit<TicketsState> {
   Future<void> getCategories() async {
     emit(TicketsLoading());
     try {
-      final categories = await getCategoriesUseCase();
+      categories = await getCategoriesUseCase();
       emit(TicketCategoriesLoaded(categories));
     } catch (e) {
       emit(TicketsError(e.toString()));

@@ -68,8 +68,8 @@ class DashboardStatCard extends StatelessWidget {
                 AppText(
                   value,
                   style: isLarge
-                      ? AppTypography.displayLarge.copyWith(height: 1)
-                      : AppTypography.titleLarge.copyWith(height: 1),
+                      ? AppTypography.displayLarge.copyWith(height: 1, fontStyle: FontStyle.normal)
+                      : AppTypography.titleLarge.copyWith(height: 1, fontStyle: FontStyle.normal),
                 ),
                 const SizedBox(height: 8),
                 AppText(
@@ -77,6 +77,7 @@ class DashboardStatCard extends StatelessWidget {
                   style: AppTypography.labelMedium.copyWith(
                     color: AppColorScheme.textMuted,
                     fontWeight: FontWeight.w500,
+                    fontStyle: FontStyle.normal,
                   ),
                 ),
               ],

@@ -1,13 +1,15 @@
 import '../models/evaluation_model.dart';
 import '../models/evaluation_stats_model.dart';
 import '../models/evaluation_type_model.dart';
+import '../../../../core/services/network/api_response.dart';
 
 abstract class EvaluationsRemoteDataSource {
-  Future<List<EvaluationModel>> getEvaluations({
+  Future<ApiResponse<List<EvaluationModel>>> getEvaluations({
     int? clientId,
     int? assignedUserId,
     int? typeId,
     int? rating,
+    int page = 1,
   });
 
   Future<EvaluationStatsModel> getEvaluationStats({int? assignedUserId});

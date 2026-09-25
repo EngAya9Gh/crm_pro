@@ -10,7 +10,7 @@ class EvaluationTypeModel extends EvaluationType {
   factory EvaluationTypeModel.fromJson(Map<String, dynamic> json) {
     return EvaluationTypeModel(
       id: json['id'],
-      name: json['name'],
+      name: json['name'] ?? 'Unknown',
       isActive: json['is_active'] ?? true,
     );
   }

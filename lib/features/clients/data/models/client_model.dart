@@ -65,7 +65,7 @@ class ClientModel extends Client {
       cityId: json['city'] is Map ? json['city']['id'] : null,
 
       address: json['address'],
-      status: StatusModel.fromJson(json['status']),
+      status: json['status'] != null ? StatusModel.fromJson(json['status']) : const StatusModel(id: 0, name: 'Unknown', color: '#000000'),
       priority: ClientPriority.values.byName(json['priority'] ?? 'medium'),
       leadRating: json['lead_rating'] != null
           ? ClientRating.values.byName(json['lead_rating'])
@@ -90,7 +90,7 @@ class ClientModel extends Client {
       assignedTo: json['assigned_to'] != null
           ? UserModel.fromJson(json['assigned_to'])
           : null,
-      createdAt: DateTime.parse(json['created_at']),
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : DateTime.now(),
       firstContactAt: json['first_contact_at'] != null
           ? DateTime.tryParse(json['first_contact_at'])
           : null,
@@ -152,7 +152,7 @@ class StatusModel extends StatusEntity {
   factory StatusModel.fromJson(Map<String, dynamic> json) {
     return StatusModel(
       id: json['id'],
-      name: json['name'],
+      name: json['name'] ?? 'Unknown',
       color: json['color'] ?? '#000000',
     );
   }
@@ -170,7 +170,7 @@ class TagModel extends TagEntity {
   factory TagModel.fromJson(Map<String, dynamic> json) {
     return TagModel(
       id: json['id'],
-      name: json['name'],
+      name: json['name'] ?? 'Unknown',
       color: json['color'] ?? '#000000',
     );
   }

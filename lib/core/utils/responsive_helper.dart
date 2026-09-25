@@ -11,16 +11,16 @@ class ResponsiveHelper {
     _mediaQueryData = MediaQuery.of(context);
     screenWidth = _mediaQueryData.size.width;
     screenHeight = _mediaQueryData.size.height;
+    if (screenWidth == 0) screenWidth = 375; // fallback for tests or splash
+    if (screenHeight == 0) screenHeight = 812;
     _blockSizeHorizontal = screenWidth / 100;
     _blockSizeVertical = screenHeight / 100;
   }
 
   // Get responsive font size
   static double sp(double fontSize) {
-    // Base width could be 375 (iPhone X)
+    if (screenWidth == 0) return fontSize; // fallback
     double scale = screenWidth / 360;
-    // Cap the scale to avoid overly large text on tablets or desktops
-    // unless we want it to keep growing. The user said "grow accordingly".
     return fontSize * scale;
   }
 

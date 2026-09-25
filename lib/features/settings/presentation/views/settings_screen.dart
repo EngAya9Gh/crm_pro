@@ -8,6 +8,8 @@ import 'teams_screen.dart';
 import 'roles_screen.dart';
 import 'lookups_screen.dart';
 import 'integrations_screen.dart';
+import '../../../tickets/presentation/views/ticket_categories_screen.dart';
+import '../../../evaluations/presentation/views/evaluation_types_screen.dart';
 import 'package:crm_wakeel/core/utils/permission_extension.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -109,6 +111,37 @@ class SettingsScreen extends StatelessWidget {
                 );
               },
             ),
+            const SizedBox(height: 16),
+            if (context.hasPermission('settings.manage')) ...[
+              _buildSettingsCard(
+                context,
+                title: 'تصنيفات التذاكر',
+                subtitle: 'إدارة وتعديل تصنيفات التذاكر وأوقات الاستجابة SLA',
+                icon: Icons.confirmation_number_outlined,
+                color: Colors.indigo,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const TicketCategoriesScreen()),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildSettingsCard(
+                context,
+                title: 'أنواع التقييمات',
+                subtitle: 'إدارة وتعديل أنواع نماذج التقييم للعملاء',
+                icon: Icons.star_border_rounded,
+                color: Colors.amber.shade700,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const EvaluationTypesScreen()),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
             if (context.hasPermission('settings.manage') &&
                 context.hasFeature('integrations')) ...[
               const SizedBox(height: 16),

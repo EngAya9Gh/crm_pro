@@ -8,7 +8,7 @@ import '../../../evaluations/presentation/bloc/evaluations_state.dart';
 import '../../../evaluations/domain/entities/evaluation.dart';
 
 class ClientEvaluationsTab extends StatefulWidget {
-  final int clientId;
+  final String clientId;
   
   const ClientEvaluationsTab({super.key, required this.clientId});
 
@@ -23,7 +23,7 @@ class _ClientEvaluationsTabState extends State<ClientEvaluationsTab> {
   void initState() {
     super.initState();
     _evaluationsCubit = getIt<EvaluationsCubit>();
-    _evaluationsCubit.getEvaluations(clientId: widget.clientId);
+    _evaluationsCubit.getEvaluations(clientId: int.tryParse(widget.clientId));
   }
 
   @override
@@ -62,7 +62,7 @@ class _ClientEvaluationsTabState extends State<ClientEvaluationsTab> {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: AppColorScheme.border),
+        side: BorderSide(color: AppColorScheme.grey200),
       ),
       child: ListTile(
         title: AppText('تقييم: ${evaluation.rating} نجوم', style: const TextStyle(fontWeight: FontWeight.bold)),

@@ -1,4 +1,5 @@
 import '../../../../core/services/network/api_client.dart';
+import '../../../../core/services/network/api_response.dart';
 import '../../../../core/utils/end_points.dart';
 import '../models/evaluation_model.dart';
 import '../models/evaluation_stats_model.dart';
@@ -11,27 +12,28 @@ class EvaluationsRemoteDataSourceImpl implements EvaluationsRemoteDataSource {
   EvaluationsRemoteDataSourceImpl({required this.apiClient});
 
   @override
-  Future<List<EvaluationModel>> getEvaluations({
+  Future<ApiResponse<List<EvaluationModel>>> getEvaluations({
     int? clientId,
     int? assignedUserId,
     int? typeId,
     int? rating,
+    int page = 1,
   }) async {
     final queryParams = <String, dynamic>{
+      'page': page,
       if (clientId != null) 'client_id': clientId,
       if (assignedUserId != null) 'assigned_user_id': assignedUserId,
       if (typeId != null) 'type_id': typeId,
       if (rating != null) 'rating': rating,
     };
 
-    final response = await apiClient.get(
+    return await apiClient.get<List<EvaluationModel>>(
       EndPoints.evaluations,
       queryParameters: queryParams,
+      fromJson: (json) => (json as List)
+          .map((e) => EvaluationModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
-
-    return (response.data['data'] as List)
-        .map((json) => EvaluationModel.fromJson(json))
-        .toList();
   }
 
   @override
@@ -40,21 +42,22 @@ class EvaluationsRemoteDataSourceImpl implements EvaluationsRemoteDataSource {
       if (assignedUserId != null) 'assigned_user_id': assignedUserId,
     };
 
-    final response = await apiClient.get(
+    final response = await apiClient.get<EvaluationStatsModel>(
       EndPoints.evaluationStats,
       queryParameters: queryParams,
+      fromJson: (json) => EvaluationStatsModel.fromJson(json as Map<String, dynamic>),
     );
-
-    return EvaluationStatsModel.fromJson(response.data['data']);
+    return response.data!;
   }
 
   @override
   Future<EvaluationModel> createEvaluation(EvaluationModel evaluation) async {
-    final response = await apiClient.post(
+    final response = await apiClient.post<EvaluationModel>(
       EndPoints.evaluations,
       data: evaluation.toJson(),
+      fromJson: (json) => EvaluationModel.fromJson(json as Map<String, dynamic>),
     );
-    return EvaluationModel.fromJson(response.data['data']);
+    return response.data!;
   }
 
   @override
@@ -65,48 +68,57 @@ class EvaluationsRemoteDataSourceImpl implements EvaluationsRemoteDataSource {
     String channel = 'whatsapp',
     String? noteForClient,
   }) async {
-    final response = await apiClient.post(
+    final response = await apiClient.post<Map<String, dynamic>>(
       EndPoints.evaluationLinks,
       data: {
         'type_id': typeId,
-        'client_id': clientId,
-        'assigned_user_id': assignedUserId,
-        'ticket_id': ticketId,
+        if (clientId != null) 'client_id': clientId,
+        if (assignedUserId != null) 'assigned_user_id': assignedUserId,
+        if (ticketId != null) 'ticket_id': ticketId,
         'channel': channel,
-        'note_for_client': noteForClient,
+        if (noteForClient != null) 'note_for_client': noteForClient,
       },
+      fromJson: (json) => json as Map<String, dynamic>,
     );
-    return response.data['data']['link'];
+    return response.data!['public_url'] as String;
   }
 
   @override
   Future<List<EvaluationTypeModel>> getTypes() async {
-    final response = await apiClient.get(EndPoints.evaluationTypes);
-    return (response.data['data'] as List)
-        .map((json) => EvaluationTypeModel.fromJson(json))
-        .toList();
+    final response = await apiClient.get<List<EvaluationTypeModel>>(
+      EndPoints.evaluationTypes,
+      fromJson: (json) => (json as List)
+          .map((e) => EvaluationTypeModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+    return response.data ?? [];
   }
 
   @override
   Future<EvaluationTypeModel> createType(EvaluationTypeModel type) async {
-    final response = await apiClient.post(
+    final response = await apiClient.post<EvaluationTypeModel>(
       EndPoints.evaluationTypes,
       data: type.toJson(),
+      fromJson: (json) => EvaluationTypeModel.fromJson(json as Map<String, dynamic>),
     );
-    return EvaluationTypeModel.fromJson(response.data['data']);
+    return response.data!;
   }
 
   @override
   Future<EvaluationTypeModel> updateType(int id, EvaluationTypeModel type) async {
-    final response = await apiClient.put(
+    final response = await apiClient.put<EvaluationTypeModel>(
       EndPoints.evaluationType(id.toString()),
       data: type.toJson(),
+      fromJson: (json) => EvaluationTypeModel.fromJson(json as Map<String, dynamic>),
     );
-    return EvaluationTypeModel.fromJson(response.data['data']);
+    return response.data!;
   }
 
   @override
   Future<void> deleteType(int id) async {
-    await apiClient.delete(EndPoints.evaluationType(id.toString()));
+    await apiClient.delete<void>(
+      EndPoints.evaluationType(id.toString()),
+      fromJson: (_) {},
+    );
   }
 }

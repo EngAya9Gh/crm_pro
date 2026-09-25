@@ -5,6 +5,7 @@ import '../../domain/repositories/evaluations_repository.dart';
 import '../datasources/evaluations_remote_datasource.dart';
 import '../models/evaluation_model.dart';
 import '../models/evaluation_type_model.dart';
+import '../../../../core/services/network/api_response.dart';
 
 class EvaluationsRepositoryImpl implements EvaluationsRepository {
   final EvaluationsRemoteDataSource remoteDataSource;
@@ -12,17 +13,25 @@ class EvaluationsRepositoryImpl implements EvaluationsRepository {
   EvaluationsRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<List<Evaluation>> getEvaluations({
+  Future<ApiResponse<List<Evaluation>>> getEvaluations({
     int? clientId,
     int? assignedUserId,
     int? typeId,
     int? rating,
+    int page = 1,
   }) async {
-    return await remoteDataSource.getEvaluations(
+    final response = await remoteDataSource.getEvaluations(
       clientId: clientId,
       assignedUserId: assignedUserId,
       typeId: typeId,
       rating: rating,
+      page: page,
+    );
+    return ApiResponse<List<Evaluation>>(
+      success: response.success,
+      message: response.message,
+      data: response.data?.cast<Evaluation>(),
+      meta: response.meta,
     );
   }
 
@@ -61,12 +70,18 @@ class EvaluationsRepositoryImpl implements EvaluationsRepository {
 
   @override
   Future<EvaluationType> createType(EvaluationType type) async {
-    return await remoteDataSource.createType(type as EvaluationTypeModel);
+    if (type is EvaluationTypeModel) {
+      return await remoteDataSource.createType(type);
+    }
+    return await remoteDataSource.createType(EvaluationTypeModel(id: type.id, name: type.name, isActive: type.isActive));
   }
 
   @override
   Future<EvaluationType> updateType(int id, EvaluationType type) async {
-    return await remoteDataSource.updateType(id, type as EvaluationTypeModel);
+    if (type is EvaluationTypeModel) {
+      return await remoteDataSource.updateType(id, type);
+    }
+    return await remoteDataSource.updateType(id, EvaluationTypeModel(id: type.id, name: type.name, isActive: type.isActive));
   }
 
   @override

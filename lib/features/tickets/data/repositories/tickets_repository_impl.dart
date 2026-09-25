@@ -5,6 +5,7 @@ import '../../domain/repositories/tickets_repository.dart';
 import '../datasources/tickets_remote_datasource.dart';
 import '../models/ticket_model.dart';
 import '../models/ticket_category_model.dart';
+import '../../../../core/services/network/api_response.dart';
 
 class TicketsRepositoryImpl implements TicketsRepository {
   final TicketsRemoteDataSource remoteDataSource;
@@ -12,19 +13,26 @@ class TicketsRepositoryImpl implements TicketsRepository {
   TicketsRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<List<Ticket>> getTickets({
+  Future<ApiResponse<List<Ticket>>> getTickets({
     String? status,
     int? clientId,
     int? assignedTo,
     int? categoryId,
     int page = 1,
   }) async {
-    return await remoteDataSource.getTickets(
+    final response = await remoteDataSource.getTickets(
       status: status,
       clientId: clientId,
       assignedTo: assignedTo,
       categoryId: categoryId,
       page: page,
+    );
+    // Cast from List<TicketModel> to List<Ticket>
+    return ApiResponse<List<Ticket>>(
+      success: response.success,
+      message: response.message,
+      data: response.data?.cast<Ticket>(),
+      meta: response.meta,
     );
   }
 
@@ -55,12 +63,18 @@ class TicketsRepositoryImpl implements TicketsRepository {
 
   @override
   Future<TicketCategory> createCategory(TicketCategory category) async {
-    return await remoteDataSource.createCategory(category as TicketCategoryModel);
+    if (category is TicketCategoryModel) {
+      return await remoteDataSource.createCategory(category);
+    }
+    return await remoteDataSource.createCategory(TicketCategoryModel(id: category.id, name: category.name, slaHours: category.slaHours));
   }
 
   @override
   Future<TicketCategory> updateCategory(int id, TicketCategory category) async {
-    return await remoteDataSource.updateCategory(id, category as TicketCategoryModel);
+    if (category is TicketCategoryModel) {
+      return await remoteDataSource.updateCategory(id, category);
+    }
+    return await remoteDataSource.updateCategory(id, TicketCategoryModel(id: category.id, name: category.name, slaHours: category.slaHours));
   }
 
   @override

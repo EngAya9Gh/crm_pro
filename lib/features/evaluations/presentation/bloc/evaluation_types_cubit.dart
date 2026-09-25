@@ -8,6 +8,7 @@ class EvaluationTypesCubit extends Cubit<EvaluationsState> {
   final CreateEvaluationTypeUseCase createTypeUseCase;
   final UpdateEvaluationTypeUseCase updateTypeUseCase;
   final DeleteEvaluationTypeUseCase deleteTypeUseCase;
+  List<EvaluationType> types = [];
 
   EvaluationTypesCubit({
     required this.getTypesUseCase,
@@ -19,7 +20,7 @@ class EvaluationTypesCubit extends Cubit<EvaluationsState> {
   Future<void> getTypes() async {
     emit(EvaluationsLoading());
     try {
-      final types = await getTypesUseCase();
+      types = await getTypesUseCase();
       emit(EvaluationTypesLoaded(types));
     } catch (e) {
       emit(EvaluationsError(e.toString()));

@@ -11,6 +11,12 @@ import 'package:crm_wakeel/features/clients/presentation/views/clients_stats_scr
 import 'package:crm_wakeel/features/clients/presentation/views/clients_kpi_screen.dart';
 import 'package:crm_wakeel/features/invoices/presentation/views/invoices_screen.dart';
 import 'package:crm_wakeel/features/appointments/presentation/views/appointments_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:crm_wakeel/core/services/di/di_container.dart';
+import 'package:crm_wakeel/features/tickets/presentation/bloc/tickets_cubit.dart';
+import 'package:crm_wakeel/features/evaluations/presentation/bloc/evaluations_cubit.dart';
+import 'package:crm_wakeel/features/tickets/presentation/views/tickets_screen.dart';
+import 'package:crm_wakeel/features/evaluations/presentation/views/evaluations_screen.dart';
 import 'package:crm_wakeel/features/settings/presentation/views/settings_screen.dart';
 import 'package:crm_wakeel/features/settings/presentation/views/roles_screen.dart';
 import 'package:crm_wakeel/core/utils/permission_extension.dart';
@@ -60,6 +66,26 @@ class AppDrawer extends StatelessWidget {
                     title: AppStrings.appointments,
                     icon: Icons.event_note_rounded,
                     destination: const AppointmentsScreen(),
+                  ),
+                if (context.hasFeature('tickets'))
+                  _buildMenuItem(
+                    context,
+                    title: AppStrings.tickets,
+                    icon: Icons.support_agent_rounded,
+                    destination: BlocProvider(
+                      create: (_) => getIt<TicketsCubit>(),
+                      child: const TicketsScreen(),
+                    ),
+                  ),
+                if (context.hasFeature('evaluations'))
+                  _buildMenuItem(
+                    context,
+                    title: AppStrings.evaluations,
+                    icon: Icons.star_border_rounded,
+                    destination: BlocProvider(
+                      create: (_) => getIt<EvaluationsCubit>(),
+                      child: const EvaluationsScreen(),
+                    ),
                   ),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),

@@ -2,12 +2,13 @@ import '../entities/evaluation.dart';
 import '../entities/evaluation_stats.dart';
 import '../entities/evaluation_type.dart';
 import '../repositories/evaluations_repository.dart';
+import '../../../../core/services/network/api_response.dart';
 
 class GetEvaluationsUseCase {
   final EvaluationsRepository repository;
   GetEvaluationsUseCase(this.repository);
-  Future<List<Evaluation>> call({int? clientId, int? assignedUserId, int? typeId, int? rating}) {
-    return repository.getEvaluations(clientId: clientId, assignedUserId: assignedUserId, typeId: typeId, rating: rating);
+  Future<ApiResponse<List<Evaluation>>> call({int? clientId, int? assignedUserId, int? typeId, int? rating, int page = 1}) {
+    return repository.getEvaluations(clientId: clientId, assignedUserId: assignedUserId, typeId: typeId, rating: rating, page: page);
   }
 }
 

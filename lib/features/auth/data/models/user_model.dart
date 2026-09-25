@@ -14,8 +14,8 @@ class UserModel extends UserEntity {
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'],
-      name: json['name'],
-      email: json['email'],
+      name: json['name'] ?? 'Unknown',
+      email: json['email'] ?? '',
       role: json['role'] != null
           ? RoleModel.fromJson(json['role'])
           : (json['role_id'] != null
@@ -56,7 +56,7 @@ class RoleModel extends RoleEntity {
   const RoleModel({required super.id, required super.name});
 
   factory RoleModel.fromJson(Map<String, dynamic> json) {
-    return RoleModel(id: json['id'], name: json['name']);
+    return RoleModel(id: json['id'], name: json['name'] ?? 'Unknown');
   }
 
   Map<String, dynamic> toJson() => {'id': id, 'name': name};
@@ -66,7 +66,7 @@ class TeamModel extends TeamEntity {
   const TeamModel({required super.id, required super.name});
 
   factory TeamModel.fromJson(Map<String, dynamic> json) {
-    return TeamModel(id: json['id'], name: json['name']);
+    return TeamModel(id: json['id'], name: json['name'] ?? 'Unknown');
   }
 
   Map<String, dynamic> toJson() => {'id': id, 'name': name};
@@ -82,7 +82,7 @@ class TenantModel extends TenantEntity {
   factory TenantModel.fromJson(Map<String, dynamic> json) {
     return TenantModel(
       id: json['id'],
-      name: json['name'],
+      name: json['name'] ?? 'Unknown',
       enabledFeatures: (json['enabled_features'] != null)
           ? Set<String>.from(
               (json['enabled_features'] as List).map((e) => e.toString()),

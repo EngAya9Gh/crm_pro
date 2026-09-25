@@ -23,8 +23,12 @@ class EvaluationModel extends Evaluation {
       channel: json['channel'] ?? 'manual',
       client: json['client'] != null ? ClientModel.fromJson(json['client']) : null,
       assignedUser: json['assigned_user'] != null ? UserModel.fromJson(json['assigned_user']) : null,
-      type: json['type'] != null ? EvaluationTypeModel.fromJson(json['type']) : null,
-      createdAt: DateTime.parse(json['created_at']),
+      type: json['type'] != null 
+          ? (json['type'] is String 
+              ? EvaluationTypeModel(id: 0, name: json['type']) 
+              : EvaluationTypeModel.fromJson(json['type'])) 
+          : null,
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : DateTime.now(),
     );
   }
 

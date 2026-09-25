@@ -17,11 +17,24 @@ class ApiResponse<T> {
     Map<String, dynamic> json,
     T Function(Object? json) fromJsonT,
   ) {
+    dynamic rawData = json['data'];
+    dynamic parsedData;
+    PaginationMeta? parsedMeta;
+
+    if (rawData is Map<String, dynamic> && rawData.containsKey('current_page') && rawData.containsKey('data')) {
+      // Laravel Pagination wrapper detected
+      parsedData = rawData['data'];
+      parsedMeta = PaginationMeta.fromJson(rawData);
+    } else {
+      parsedData = rawData;
+      parsedMeta = json['meta'] != null ? PaginationMeta.fromJson(json['meta']) : null;
+    }
+
     return ApiResponse<T>(
       success: json['success'] ?? false,
       message: json['message'],
       data: json.containsKey('data')
-          ? (json['data'] != null ? fromJsonT(json['data']) : null)
+          ? (parsedData != null ? fromJsonT(parsedData) : null)
           : fromJsonT(json),
       errors: json['errors'] != null
           ? (json['errors'] as Map<String, dynamic>).map(
@@ -31,7 +44,7 @@ class ApiResponse<T> {
               ),
             )
           : null,
-      meta: json['meta'] != null ? PaginationMeta.fromJson(json['meta']) : null,
+      meta: parsedMeta,
     );
   }
 }

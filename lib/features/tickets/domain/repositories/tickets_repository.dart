@@ -1,9 +1,10 @@
 import '../../domain/entities/ticket.dart';
 import '../../domain/entities/ticket_message.dart';
 import '../../domain/entities/ticket_category.dart';
+import '../../../../core/services/network/api_response.dart';
 
 abstract class TicketsRepository {
-  Future<List<Ticket>> getTickets({
+  Future<ApiResponse<List<Ticket>>> getTickets({
     String? status,
     int? clientId,
     int? assignedTo,

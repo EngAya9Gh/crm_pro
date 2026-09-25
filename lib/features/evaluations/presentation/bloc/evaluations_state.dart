@@ -1,6 +1,7 @@
 import '../../domain/entities/evaluation.dart';
 import '../../domain/entities/evaluation_stats.dart';
 import '../../domain/entities/evaluation_type.dart';
+import '../../../../core/services/network/api_response.dart';
 
 abstract class EvaluationsState {}
 
@@ -11,7 +12,9 @@ class EvaluationsLoading extends EvaluationsState {}
 class EvaluationsLoaded extends EvaluationsState {
   final List<Evaluation> evaluations;
   final EvaluationStats stats;
-  EvaluationsLoaded(this.evaluations, this.stats);
+  final PaginationMeta? meta;
+  final int currentPage;
+  EvaluationsLoaded(this.evaluations, this.stats, {this.meta, this.currentPage = 1});
 }
 
 class EvaluationTypesLoaded extends EvaluationsState {
