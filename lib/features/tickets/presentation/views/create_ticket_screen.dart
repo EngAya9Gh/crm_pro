@@ -206,16 +206,26 @@ class _CreateTicketViewState extends State<_CreateTicketView> {
                             });
                           },
                         ),
-                        if (selectedMain != null && selectedMain.children != null && selectedMain.children!.isNotEmpty) ...[
-                          const SizedBox(height: 16),
-                          AppDropdown<int?>(
-                            label: 'التصنيف الفرعي',
-                            value: _selectedSubCategoryId,
-                            items: [
-                              const AppDropdownItem(value: null, label: 'اختر التصنيف الفرعي'),
-                              ...selectedMain.children!.map((c) => AppDropdownItem(value: c.id, label: c.name)),
-                            ],
-                            onChanged: (val) => setState(() => _selectedSubCategoryId = val),
+                        if (_selectedCategoryId != null) ...[
+                          Builder(
+                            builder: (context) {
+                              final subCategories = categories.where((c) => c.parentId == _selectedCategoryId).toList();
+                              if (subCategories.isEmpty) return const SizedBox.shrink();
+                              return Column(
+                                children: [
+                                  const SizedBox(height: 16),
+                                  AppDropdown<int?>(
+                                    label: 'التصنيف الفرعي',
+                                    value: _selectedSubCategoryId,
+                                    items: [
+                                      const AppDropdownItem(value: null, label: 'اختر التصنيف الفرعي'),
+                                      ...subCategories.map((c) => AppDropdownItem(value: c.id, label: c.name)),
+                                    ],
+                                    onChanged: (val) => setState(() => _selectedSubCategoryId = val),
+                                  ),
+                                ],
+                              );
+                            },
                           ),
                         ]
                       ],

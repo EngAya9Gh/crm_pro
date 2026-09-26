@@ -1,5 +1,6 @@
 import '../../domain/entities/ticket_message.dart';
-import '../../../users/data/models/user_model.dart';
+import '../../../users/data/models/user_model.dart' hide UserModel;
+import '../../../users/domain/entities/user.dart';
 
 class TicketMessageModel extends TicketMessage {
   TicketMessageModel({
@@ -13,10 +14,10 @@ class TicketMessageModel extends TicketMessage {
   factory TicketMessageModel.fromJson(Map<String, dynamic> json) {
     return TicketMessageModel(
       id: json['id'],
-      content: json['content'] ?? '',
-      isInternal: json['is_internal'] ?? false,
-      user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : DateTime.now(),
+      content: json['content']?.toString() ?? '',
+      isInternal: json['is_internal'] == true || json['is_internal'] == 1,
+      user: json['user'] != null ? _MessagePartialUser.fromJson(json['user']) : null,
+      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now() : DateTime.now(),
     );
   }
 
@@ -25,5 +26,17 @@ class TicketMessageModel extends TicketMessage {
       'content': content,
       'is_internal': isInternal,
     };
+  }
+}
+
+class _MessagePartialUser extends User {
+  const _MessagePartialUser({required super.id, required super.name})
+      : super(email: '');
+
+  factory _MessagePartialUser.fromJson(Map<String, dynamic> json) {
+    return _MessagePartialUser(
+      id: json['id'] ?? 0,
+      name: json['name']?.toString() ?? 'Unknown',
+    );
   }
 }

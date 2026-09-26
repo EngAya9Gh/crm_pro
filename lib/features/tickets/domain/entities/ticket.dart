@@ -19,6 +19,8 @@ class Ticket {
   final List<TicketMessage>? messages;
   final DateTime createdAt;
   final DateTime? closedAt;
+  final Map<String, dynamic>? evaluation;
+  final String? lastMessage;
 
   Ticket({
     required this.id,
@@ -36,5 +38,48 @@ class Ticket {
     this.messages,
     required this.createdAt,
     this.closedAt,
+    this.evaluation,
+    this.lastMessage,
   });
+
+  Ticket copyWith({
+    int? id,
+    String? ticketNumber,
+    String? title,
+    String? description,
+    String? status,
+    String? priority,
+    String? source,
+    DateTime? slaDueAt,
+    Client? client,
+    User? assignedTo,
+    TicketCategory? category,
+    TicketCategory? subCategory,
+    List<TicketMessage>? messages,
+    DateTime? createdAt,
+    DateTime? closedAt,
+    Map<String, dynamic>? evaluation,
+    String? lastMessage,
+    int? assignedToId,
+  }) {
+    return Ticket(
+      id: id ?? this.id,
+      ticketNumber: ticketNumber ?? this.ticketNumber,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      status: status ?? this.status,
+      priority: priority ?? this.priority,
+      source: source ?? this.source,
+      slaDueAt: slaDueAt ?? this.slaDueAt,
+      client: client ?? this.client,
+      assignedTo: assignedTo ?? this.assignedTo,
+      category: category ?? this.category,
+      subCategory: subCategory ?? this.subCategory,
+      messages: messages ?? this.messages,
+      createdAt: createdAt ?? this.createdAt,
+      closedAt: closedAt ?? this.closedAt,
+      evaluation: evaluation ?? this.evaluation,
+      lastMessage: lastMessage ?? this.lastMessage,
+    );
+  }
 }

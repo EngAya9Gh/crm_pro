@@ -7,6 +7,8 @@ class DashboardSummary extends Equatable {
   final int totalAppointments;
   final int pendingInvoices;
   final int upcomingAppointments;
+  final int totalTickets;
+  final int totalEvaluations;
   final String userName;
 
   const DashboardSummary({
@@ -16,6 +18,8 @@ class DashboardSummary extends Equatable {
     required this.totalAppointments,
     required this.pendingInvoices,
     required this.upcomingAppointments,
+    this.totalTickets = 0,
+    this.totalEvaluations = 0,
     required this.userName,
   });
 
@@ -27,6 +31,8 @@ class DashboardSummary extends Equatable {
     totalAppointments,
     pendingInvoices,
     upcomingAppointments,
+    totalTickets,
+    totalEvaluations,
     userName,
   ];
 }

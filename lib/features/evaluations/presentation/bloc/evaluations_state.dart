@@ -14,7 +14,8 @@ class EvaluationsLoaded extends EvaluationsState {
   final EvaluationStats stats;
   final PaginationMeta? meta;
   final int currentPage;
-  EvaluationsLoaded(this.evaluations, this.stats, {this.meta, this.currentPage = 1});
+  final bool isFetchingMore;
+  EvaluationsLoaded(this.evaluations, this.stats, {this.meta, this.currentPage = 1, this.isFetchingMore = false});
 }
 
 class EvaluationTypesLoaded extends EvaluationsState {

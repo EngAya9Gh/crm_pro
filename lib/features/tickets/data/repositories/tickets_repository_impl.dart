@@ -18,6 +18,7 @@ class TicketsRepositoryImpl implements TicketsRepository {
     int? clientId,
     int? assignedTo,
     int? categoryId,
+    int? rating,
     int page = 1,
   }) async {
     final response = await remoteDataSource.getTickets(
@@ -25,6 +26,7 @@ class TicketsRepositoryImpl implements TicketsRepository {
       clientId: clientId,
       assignedTo: assignedTo,
       categoryId: categoryId,
+      rating: rating,
       page: page,
     );
     // Cast from List<TicketModel> to List<Ticket>

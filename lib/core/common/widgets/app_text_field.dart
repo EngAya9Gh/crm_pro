@@ -16,6 +16,7 @@ class AppTextField extends StatefulWidget {
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
   final void Function(String)? onFieldSubmitted;
+  final bool readOnly;
 
   const AppTextField({
     super.key,
@@ -31,6 +32,7 @@ class AppTextField extends StatefulWidget {
     this.validator,
     this.onChanged,
     this.onFieldSubmitted,
+    this.readOnly = false,
   });
 
   @override
@@ -76,6 +78,7 @@ class _AppTextFieldState extends State<AppTextField> {
           onChanged: widget.onChanged,
           onFieldSubmitted: widget.onFieldSubmitted,
           maxLines: widget.maxLines,
+          readOnly: widget.readOnly,
           style: AppTypography.bodyMedium,
           decoration: InputDecoration(
             hintText: widget.hintText,

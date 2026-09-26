@@ -23,6 +23,9 @@ class EndPoints {
   static String clientRestore(String id) => '/clients/$id/restore';
   static String clientInvoices(String id) => '/clients/$id/invoices';
   static String clientAppointments(String id) => '/clients/$id/appointments';
+  static String clientContacts(String id) => '/clients/$id/contacts';
+  static String clientContact(String clientId, String contactId) => '/clients/$clientId/contacts/$contactId';
+  static String clientMergeContact(String sourceClientId) => '/clients/$sourceClientId/merge-contact';
   static String clientProcedures(String id) => '/clients/$id/procedures';
   static String clientProcedure(String clientId, int procedureId) =>
       '/clients/$clientId/procedures/$procedureId';

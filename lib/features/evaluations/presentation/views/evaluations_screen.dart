@@ -13,6 +13,7 @@ import '../../../../core/services/di/di_container.dart';
 import '../bloc/evaluations_cubit.dart';
 import '../bloc/evaluations_state.dart';
 import '../bloc/evaluation_types_cubit.dart';
+import '../../../tickets/presentation/bloc/tickets_cubit.dart';
 import '../../domain/entities/evaluation.dart';
 import '../../domain/entities/evaluation_stats.dart';
 import '../../../clients/presentation/bloc/clients_bloc.dart';
@@ -23,6 +24,7 @@ import '../../../users/presentation/bloc/users_event.dart';
 import '../../../users/presentation/bloc/users_state.dart';
 import '../../../users/presentation/bloc/users_state.dart';
 import '../../data/models/evaluation_model.dart';
+import '../../../clients/presentation/views/client_profile_screen.dart';
 import 'package:intl/intl.dart';
 
 class _EvaluationRequest extends EvaluationModel {
@@ -72,7 +74,7 @@ class _EvaluationsScreenState extends State<EvaluationsScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<EvaluationsCubit>().getEvaluations();
+    context.read<EvaluationsCubit>().getEvaluations(fetchStats: true);
     _scrollController.addListener(_onScroll);
   }
 
@@ -105,6 +107,7 @@ class _EvaluationsScreenState extends State<EvaluationsScreen> {
       assignedUserId: _selectedAssignedUserId,
       typeId: _selectedTypeId,
       rating: _selectedRating,
+      fetchStats: true,
     );
   }
 
@@ -157,13 +160,13 @@ class _EvaluationsScreenState extends State<EvaluationsScreen> {
                   ],
                 ),
                 backgroundColor: AppColorScheme.success,
-                action: SnackBarAction(
+                action: state.message.contains('http') ? SnackBarAction(
                   label: 'نسخ الرابط',
                   textColor: Colors.white,
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: state.message));
                   },
-                ),
+                ) : null,
                 duration: const Duration(seconds: 4),
               ),
             );
@@ -207,6 +210,13 @@ class _EvaluationsScreenState extends State<EvaluationsScreen> {
                           ),
                         ),
                 ),
+                if (state.isFetchingMore)
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Center(child: AppLoader()),
+                    ),
+                  ),
               ],
             );
           }
@@ -218,16 +228,16 @@ class _EvaluationsScreenState extends State<EvaluationsScreen> {
 
   Widget _buildStatsSection(EvaluationStats stats) {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [AppColorScheme.primary, AppColorScheme.primaryDark],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: AppColorScheme.primary.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))],
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: AppColorScheme.primary.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Column(
         children: [
@@ -237,37 +247,37 @@ class _EvaluationsScreenState extends State<EvaluationsScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  AppText('متوسط التقييم العام', style: AppTypography.titleMedium.copyWith(color: Colors.white70)),
-                  const SizedBox(height: 8),
+                  AppText('متوسط التقييم', style: AppTypography.titleMedium.copyWith(color: Colors.white70, fontSize: 13)),
+                  const SizedBox(height: 4),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       AppText(
                         stats.average.toStringAsFixed(1),
-                        style: AppTypography.displayLarge.copyWith(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 44),
+                        style: AppTypography.displayLarge.copyWith(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 28),
                       ),
                       const SizedBox(width: 4),
                       const Padding(
-                        padding: EdgeInsets.only(bottom: 6),
-                        child: Icon(Icons.star, color: Colors.amber, size: 30),
+                        padding: EdgeInsets.only(bottom: 4),
+                        child: Icon(Icons.star, color: Colors.amber, size: 22),
                       ),
                     ],
                   ),
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(16)),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
                 child: Column(
                   children: [
-                    AppText(stats.total.toString(), style: AppTypography.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
-                    AppText('إجمالي التقييمات', style: AppTypography.labelSmall.copyWith(color: Colors.white)),
+                    AppText(stats.total.toString(), style: AppTypography.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                    AppText('تقييم', style: AppTypography.labelSmall.copyWith(color: Colors.white, fontSize: 11)),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
           _buildDistributionBars(stats.distribution, stats.total),
         ],
       ),
@@ -280,7 +290,7 @@ class _EvaluationsScreenState extends State<EvaluationsScreen> {
       children: [
         for (int i = 5; i >= 1; i--)
           Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: 4),
             child: Row(
               children: [
                 SizedBox(width: 16, child: AppText(i.toString(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
@@ -325,51 +335,175 @@ class _EvaluationsScreenState extends State<EvaluationsScreen> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
-        border: Border.all(color: AppColorScheme.grey200),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 5)),
+        ],
+        border: Border.all(color: Colors.amber.withOpacity(0.3), width: 1.5),
       ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: List.generate(5, (i) => Icon(
-                  i < evaluation.rating ? Icons.star_rounded : Icons.star_outline_rounded,
-                  color: Colors.amber, size: 22,
-                )),
-              ),
-              if (evaluation.type != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: AppColorScheme.surface, borderRadius: BorderRadius.circular(12)),
-                  child: AppText(evaluation.type!.name, style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.bold)),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: null,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: List.generate(5, (i) => Icon(
+                        i < evaluation.rating ? Icons.star_rounded : Icons.star_outline_rounded,
+                        color: Colors.amber, size: 28,
+                      )),
+                    ),
+                    Row(
+                      children: [
+                        if (evaluation.channel != null)
+                          Container(
+                            margin: const EdgeInsets.only(left: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100, 
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.campaign_outlined, size: 14, color: Colors.grey.shade700),
+                                const SizedBox(width: 4),
+                                AppText(
+                                  _getChannelLabel(evaluation.channel!), 
+                                  style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.bold, color: Colors.grey.shade700),
+                                ),
+                              ],
+                            ),
+                          ),
+                        if (evaluation.type != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppColorScheme.primary.withOpacity(0.1), 
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: AppColorScheme.primary.withOpacity(0.2)),
+                            ),
+                            child: AppText(
+                              evaluation.type!.name, 
+                              style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.bold, color: AppColorScheme.primary),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
                 ),
-            ],
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: AppText(
+                    evaluation.notes ?? 'العميل لم يضف أي ملاحظات.',
+                    style: TextStyle(
+                      color: evaluation.notes == null ? AppColorScheme.textMuted : AppColorScheme.textMain,
+                      height: 1.5,
+                      fontStyle: evaluation.notes == null ? FontStyle.italic : FontStyle.normal,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 14,
+                            backgroundColor: AppColorScheme.primary.withOpacity(0.1),
+                            child: const Icon(Icons.person, size: 16, color: AppColorScheme.primary),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: AppText(
+                              evaluation.client?.name ?? 'عميل مجهول', 
+                              style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.bold),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (evaluation.assignedUser != null)
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircleAvatar(
+                              radius: 12,
+                              backgroundColor: Colors.purple.shade50,
+                              child: Icon(Icons.support_agent_rounded, size: 14, color: Colors.purple.shade300),
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: AppText(
+                                evaluation.assignedUser!.name, 
+                                style: AppTypography.labelSmall.copyWith(color: Colors.purple.shade700, fontWeight: FontWeight.bold),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    Row(
+                      children: [
+                        const Icon(Icons.access_time, size: 14, color: AppColorScheme.textMuted),
+                        const SizedBox(width: 4),
+                        AppText(
+                          DateFormat('MM/dd HH:mm').format(evaluation.createdAt), 
+                          style: AppTypography.labelSmall.copyWith(color: AppColorScheme.textMuted),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-          AppText(
-            evaluation.notes ?? 'لا توجد ملاحظات',
-            style: TextStyle(color: evaluation.notes == null ? AppColorScheme.textMuted : AppColorScheme.textMain),
-          ),
-          const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(height: 1)),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStarFilterButton(BuildContext context, int? rating, int? selectedRating, ValueChanged<int?> onSelect) {
+    final isSelected = rating == selectedRating;
+    return GestureDetector(
+      onTap: () => onSelect(rating),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.amber.withOpacity(0.1) : Colors.transparent,
+          border: Border.all(color: isSelected ? Colors.amber : Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: rating == null
+            ? AppText('الكل', style: TextStyle(color: isSelected ? Colors.amber.shade700 : Colors.grey, fontWeight: FontWeight.bold))
+            : Row(
                 children: [
-                  Icon(Icons.person_outline, size: 16, color: AppColorScheme.textMuted),
+                  AppText('$rating', style: TextStyle(color: isSelected ? Colors.amber.shade700 : Colors.grey, fontWeight: FontWeight.bold)),
                   const SizedBox(width: 4),
-                  AppText(evaluation.client?.name ?? 'عميل مجهول', style: AppTypography.labelSmall),
+                  Icon(Icons.star_rounded, size: 16, color: isSelected ? Colors.amber : Colors.grey.shade400),
                 ],
               ),
-              AppText(DateFormat('yyyy/MM/dd').format(evaluation.createdAt), style: AppTypography.labelSmall),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -695,107 +829,163 @@ class _EvaluationsScreenState extends State<EvaluationsScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                 ),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: DraggableScrollableSheet(
+                  initialChildSize: 0.8,
+                  minChildSize: 0.5,
+                  maxChildSize: 0.9,
+                  expand: false,
+                  builder: (context, scrollController) {
+                    return SingleChildScrollView(
+                      controller: scrollController,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const AppText(
-                            'تصفية التقييمات',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const AppText(
+                                'تصفية التقييمات',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    tempClientId = null;
+                                    tempAssignedUserId = null;
+                                    tempTypeId = null;
+                                    tempRating = null;
+                                  });
+                                },
+                                child: const AppText('إعادة ضبط', style: TextStyle(color: AppColorScheme.error)),
+                              ),
+                            ],
                           ),
-                          TextButton(
-                            onPressed: () {
-                              setState(() {
-                                tempClientId = null;
-                                tempAssignedUserId = null;
-                                tempTypeId = null;
-                                tempRating = null;
-                              });
+                          const SizedBox(height: 20),
+                          BlocBuilder<ClientsBloc, ClientsState>(
+                            builder: (context, state) {
+                              List<AppDropdownItem<int?>> items = [
+                                const AppDropdownItem(value: null, label: 'الكل')
+                              ];
+                              if (state is ClientsLoaded) {
+                                items.addAll(state.clients.map((c) => AppDropdownItem(value: int.tryParse(c.id), label: c.name)));
+                              }
+                              return AppDropdown<int?>(
+                                label: 'العميل',
+                                value: tempClientId,
+                                items: items,
+                                onChanged: (val) => setState(() => tempClientId = val),
+                              );
                             },
-                            child: const AppText('إعادة ضبط', style: TextStyle(color: AppColorScheme.error)),
                           ),
+                          const SizedBox(height: 16),
+                          BlocBuilder<UsersBloc, UsersState>(
+                            builder: (context, state) {
+                              List<AppDropdownItem<int?>> items = [
+                                const AppDropdownItem(value: null, label: 'الكل')
+                              ];
+                              if (state.status == UsersStatus.success) {
+                                items.addAll(state.users.map((u) => AppDropdownItem(value: u.id, label: u.name)));
+                              }
+                              return AppDropdown<int?>(
+                                label: 'الموظف المسؤول',
+                                value: tempAssignedUserId,
+                                items: items,
+                                onChanged: (val) => setState(() => tempAssignedUserId = val),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          BlocBuilder<EvaluationTypesCubit, EvaluationsState>(
+                            builder: (context, state) {
+                              List<AppDropdownItem<int?>> items = [
+                                const AppDropdownItem(value: null, label: 'الكل')
+                              ];
+                              final types = context.read<EvaluationTypesCubit>().types;
+                              items.addAll(types.map((t) => AppDropdownItem(value: t.id, label: t.name)));
+                              
+                              return AppDropdown<int?>(
+                                label: 'نوع التقييم',
+                                value: tempTypeId,
+                                items: items,
+                                onChanged: (val) => setState(() => tempTypeId = val),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          const AppText('تاريخ التقييم', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () async {
+                                    // TODO: Show date picker for From
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: AppColorScheme.grey300),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.calendar_today, size: 16, color: AppColorScheme.grey600),
+                                        const SizedBox(width: 8),
+                                        AppText('من تاريخ', style: TextStyle(color: AppColorScheme.grey600)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () async {
+                                    // TODO: Show date picker for To
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: AppColorScheme.grey300),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.calendar_today, size: 16, color: AppColorScheme.grey600),
+                                        const SizedBox(width: 8),
+                                        AppText('إلى تاريخ', style: TextStyle(color: AppColorScheme.grey600)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          const AppText('عدد النجوم', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _buildStarFilterButton(context, null, tempRating, (val) => setState(() => tempRating = val)),
+                              for (int i = 5; i >= 1; i--)
+                                _buildStarFilterButton(context, i, tempRating, (val) => setState(() => tempRating = val)),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          AppElevatedButton(
+                            text: 'تطبيق الفلاتر',
+                            onPressed: () {
+                              _applyFilters(tempClientId, tempAssignedUserId, tempTypeId, tempRating);
+                              Navigator.pop(context);
+                            },
+                          ),
+                          const SizedBox(height: 24),
                         ],
                       ),
-                      const SizedBox(height: 20),
-                      BlocBuilder<ClientsBloc, ClientsState>(
-                        builder: (context, state) {
-                          List<AppDropdownItem<int?>> items = [
-                            const AppDropdownItem(value: null, label: 'الكل')
-                          ];
-                          if (state is ClientsLoaded) {
-                            items.addAll(state.clients.map((c) => AppDropdownItem(value: int.tryParse(c.id), label: c.name)));
-                          }
-                          return AppDropdown<int?>(
-                            label: 'العميل',
-                            value: tempClientId,
-                            items: items,
-                            onChanged: (val) => setState(() => tempClientId = val),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      BlocBuilder<UsersBloc, UsersState>(
-                        builder: (context, state) {
-                          List<AppDropdownItem<int?>> items = [
-                            const AppDropdownItem(value: null, label: 'الكل')
-                          ];
-                          if (state.status == UsersStatus.success) {
-                            items.addAll(state.users.map((u) => AppDropdownItem(value: u.id, label: u.name)));
-                          }
-                          return AppDropdown<int?>(
-                            label: 'الموظف المسؤول',
-                            value: tempAssignedUserId,
-                            items: items,
-                            onChanged: (val) => setState(() => tempAssignedUserId = val),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      BlocBuilder<EvaluationTypesCubit, EvaluationsState>(
-                        builder: (context, state) {
-                          List<AppDropdownItem<int?>> items = [
-                            const AppDropdownItem(value: null, label: 'الكل')
-                          ];
-                          final types = context.read<EvaluationTypesCubit>().types;
-                          items.addAll(types.map((t) => AppDropdownItem(value: t.id, label: t.name)));
-                          
-                          return AppDropdown<int?>(
-                            label: 'نوع التقييم',
-                            value: tempTypeId,
-                            items: items,
-                            onChanged: (val) => setState(() => tempTypeId = val),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      AppDropdown<int?>(
-                        label: 'عدد النجوم',
-                        value: tempRating,
-                        items: const [
-                          AppDropdownItem(value: null, label: 'الكل'),
-                          AppDropdownItem(value: 5, label: '5 نجوم'),
-                          AppDropdownItem(value: 4, label: '4 نجوم'),
-                          AppDropdownItem(value: 3, label: '3 نجوم'),
-                          AppDropdownItem(value: 2, label: 'نجمتين'),
-                          AppDropdownItem(value: 1, label: 'نجمة واحدة'),
-                        ],
-                        onChanged: (val) => setState(() => tempRating = val),
-                      ),
-                      const SizedBox(height: 24),
-                      AppElevatedButton(
-                        text: 'تطبيق الفلاتر',
-                        onPressed: () {
-                          _applyFilters(tempClientId, tempAssignedUserId, tempTypeId, tempRating);
-                          Navigator.pop(context);
-                        },
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-                  ),
+                    );
+                  }
                 ),
               );
             },
@@ -803,5 +993,16 @@ class _EvaluationsScreenState extends State<EvaluationsScreen> {
         );
       },
     );
+  }
+
+  String _getChannelLabel(String channel) {
+    const map = {
+      'whatsapp': 'واتساب',
+      'phone': 'هاتف',
+      'email': 'بريد إلكتروني',
+      'manual': 'يدوي',
+      'system': 'النظام',
+    };
+    return map[channel.toLowerCase()] ?? channel;
   }
 }

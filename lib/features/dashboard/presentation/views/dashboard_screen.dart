@@ -16,6 +16,10 @@ import 'package:crm_wakeel/features/appointments/presentation/views/appointments
 import 'package:crm_wakeel/features/stock/presentation/views/stock_check_screen.dart';
 import 'package:crm_wakeel/features/whatsapp/presentation/pages/whatsapp_inbox_screen.dart';
 import 'package:crm_wakeel/features/system_ai/presentation/views/system_ai_screen.dart';
+import 'package:crm_wakeel/features/tickets/presentation/views/tickets_screen.dart';
+import 'package:crm_wakeel/features/evaluations/presentation/views/evaluations_screen.dart';
+import 'package:crm_wakeel/features/tickets/presentation/bloc/tickets_cubit.dart';
+import 'package:crm_wakeel/features/evaluations/presentation/bloc/evaluations_cubit.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
@@ -261,6 +265,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         context.hasPermission('appointments.view') &&
         context.hasFeature('appointments');
     final bool hasInventoryView = context.hasFeature('inventory');
+    final bool hasTicketsView = context.hasFeature('tickets');
+    final bool hasEvaluationsView = context.hasFeature('evaluations');
 
     return Column(
       children: [
@@ -336,6 +342,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: 10),
         ],
+        if (hasTicketsView || hasEvaluationsView) ...[
+          Row(
+            children: [
+              if (hasTicketsView)
+                Expanded(
+                  child: DashboardStatCard(
+                    title: "التذاكر",
+                    value: state.summary?.totalTickets.toString() ?? "-",
+                    icon: Icons.confirmation_num_outlined,
+                    color: Colors.purple,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BlocProvider(
+                          create: (_) => getIt<TicketsCubit>(),
+                          child: const TicketsScreen(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              if (hasTicketsView && hasEvaluationsView)
+                const SizedBox(width: 10),
+              if (hasEvaluationsView)
+                Expanded(
+                  child: DashboardStatCard(
+                    title: "التقييمات",
+                    value: state.summary?.totalEvaluations.toString() ?? "-",
+                    icon: Icons.star_rounded,
+                    color: Colors.amber,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BlocProvider(
+                          create: (_) => getIt<EvaluationsCubit>(),
+                          child: const EvaluationsScreen(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+        ],
         if (hasInventoryView) ...[
           Row(
             children: [
@@ -353,7 +404,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
               ),
-              // const SizedBox(width: 16),
+              const SizedBox(width: 10),
               const Expanded(child: SizedBox()),
             ],
           ),

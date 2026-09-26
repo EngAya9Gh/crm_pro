@@ -7,8 +7,8 @@ import '../../../../core/services/network/api_response.dart';
 class GetTicketsUseCase {
   final TicketsRepository repository;
   GetTicketsUseCase(this.repository);
-  Future<ApiResponse<List<Ticket>>> call({String? status, int? clientId, int? assignedTo, int? categoryId, int page = 1}) {
-    return repository.getTickets(status: status, clientId: clientId, assignedTo: assignedTo, categoryId: categoryId, page: page);
+  Future<ApiResponse<List<Ticket>>> call({String? status, int? clientId, int? assignedTo, int? categoryId, int? rating, int page = 1}) {
+    return repository.getTickets(status: status, clientId: clientId, assignedTo: assignedTo, categoryId: categoryId, rating: rating, page: page);
   }
 }
 

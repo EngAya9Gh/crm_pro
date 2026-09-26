@@ -8,6 +8,8 @@ class DashboardSummaryModel extends DashboardSummary {
     required super.totalAppointments,
     required super.pendingInvoices,
     required super.upcomingAppointments,
+    super.totalTickets = 0,
+    super.totalEvaluations = 0,
     required super.userName,
   });
 
@@ -15,6 +17,8 @@ class DashboardSummaryModel extends DashboardSummary {
     final clients = json['clients'] as Map<String, dynamic>?;
     final invoices = json['invoices'] as Map<String, dynamic>?;
     final appointments = json['appointments'] as Map<String, dynamic>?;
+    final tickets = json['tickets'] as Map<String, dynamic>?;
+    final evaluations = json['evaluations'] as Map<String, dynamic>?;
 
     return DashboardSummaryModel(
       totalClients: _toInt(clients?['total']),
@@ -27,6 +31,8 @@ class DashboardSummaryModel extends DashboardSummary {
         invoices?['pending_count'] ?? 0,
       ), // Adjust based on real field
       upcomingAppointments: _toInt(appointments?['upcoming'] ?? 0),
+      totalTickets: _toInt(tickets?['total'] ?? json['total_tickets']),
+      totalEvaluations: _toInt(evaluations?['total'] ?? json['total_evaluations']),
       userName: json['user_name']?.toString() ?? '',
     );
   }

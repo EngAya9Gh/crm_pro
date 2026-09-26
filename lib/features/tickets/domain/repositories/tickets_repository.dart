@@ -9,6 +9,7 @@ abstract class TicketsRepository {
     int? clientId,
     int? assignedTo,
     int? categoryId,
+    int? rating,
     int page = 1,
   });
 

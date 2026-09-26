@@ -17,6 +17,7 @@ class TicketsRemoteDataSourceImpl implements TicketsRemoteDataSource {
     int? clientId,
     int? assignedTo,
     int? categoryId,
+    int? rating,
     int page = 1,
   }) async {
     final queryParams = <String, dynamic>{
@@ -25,6 +26,7 @@ class TicketsRemoteDataSourceImpl implements TicketsRemoteDataSource {
       if (clientId != null) 'client_id': clientId,
       if (assignedTo != null) 'assigned_to': assignedTo,
       if (categoryId != null) 'category_id': categoryId,
+      if (rating != null) 'rating': rating,
     };
 
     return await apiClient.get<List<TicketModel>>(

@@ -13,7 +13,8 @@ class TicketsLoaded extends TicketsState {
   final List<Ticket> tickets;
   final PaginationMeta? meta;
   final int currentPage;
-  TicketsLoaded(this.tickets, {this.meta, this.currentPage = 1});
+  final bool isFetchingMore;
+  TicketsLoaded(this.tickets, {this.meta, this.currentPage = 1, this.isFetchingMore = false});
 }
 
 class TicketDetailsLoaded extends TicketsState {

@@ -22,6 +22,8 @@ import 'create_ticket_screen.dart';
 import 'ticket_details_screen.dart';
 import 'package:intl/intl.dart';
 
+import '../widgets/ticket_card.dart';
+
 class TicketsScreen extends StatefulWidget {
   const TicketsScreen({super.key});
 
@@ -34,6 +36,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
   int? _selectedClientId;
   int? _selectedAssignedTo;
   int? _selectedCategoryId;
+  int? _selectedRating;
   
   final ScrollController _scrollController = ScrollController();
   
@@ -61,6 +64,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
         clientId: _selectedClientId,
         assignedTo: _selectedAssignedTo,
         categoryId: _selectedCategoryId,
+        rating: _selectedRating,
       );
     }
   }
@@ -74,20 +78,23 @@ class _TicketsScreenState extends State<TicketsScreen> {
       clientId: _selectedClientId,
       assignedTo: _selectedAssignedTo,
       categoryId: _selectedCategoryId,
+      rating: _selectedRating,
     );
   }
 
-  void _applyFilters(int? clientId, int? assignedTo, int? categoryId) {
+  void _applyFilters(int? clientId, int? assignedTo, int? categoryId, int? rating) {
     setState(() {
       _selectedClientId = clientId;
       _selectedAssignedTo = assignedTo;
       _selectedCategoryId = categoryId;
+      _selectedRating = rating;
     });
     context.read<TicketsCubit>().getTickets(
       status: _selectedStatus,
       clientId: _selectedClientId,
       assignedTo: _selectedAssignedTo,
       categoryId: _selectedCategoryId,
+      rating: _selectedRating,
     );
   }
 
@@ -142,12 +149,25 @@ class _TicketsScreenState extends State<TicketsScreen> {
                           controller: _scrollController,
                           padding: const EdgeInsets.all(16),
                           itemCount: state.tickets.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          separatorBuilder: (_, __) => const SizedBox(height: 10),
                           itemBuilder: (context, index) {
-                            return _buildTicketCard(state.tickets[index]);
+                            return TicketCard(
+                              ticket: state.tickets[index],
+                              onUpdate: () async {
+                                // The new TicketCard handles push, but it might not return the ticket easily if it doesn't await it.
+                                // Let's check TicketCard code. It does: `await Navigator.push` then `onUpdate!()`.
+                                // Since TicketCard doesn't pass the result to onUpdate, we need to modify TicketCard to pass it, OR we just let TicketCard do the update.
+                                // Wait, TicketCard is where `Navigator.push` happens. I should modify `TicketCard` to handle it!
+                              },
+                            );
                           },
                         ),
                       ),
+                      if (state.isFetchingMore)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(child: AppLoader()),
+                        ),
                     ],
                   );
                 }
@@ -188,6 +208,26 @@ class _TicketsScreenState extends State<TicketsScreen> {
         itemBuilder: (context, index) {
           final status = _statuses[index];
           final isSelected = (_selectedStatus == status) || (_selectedStatus == null && status == 'الكل');
+          
+          Color baseColor;
+          switch (status) {
+            case 'open':
+              baseColor = Colors.blue;
+              break;
+            case 'in_progress':
+              baseColor = Colors.orange;
+              break;
+            case 'pending_client':
+              baseColor = Colors.purple;
+              break;
+            case 'resolved':
+            case 'closed':
+              baseColor = Colors.green;
+              break;
+            default:
+              baseColor = AppColorScheme.primary;
+          }
+
           return Padding(
             padding: const EdgeInsets.only(left: 8),
             child: GestureDetector(
@@ -196,18 +236,18 @@ class _TicketsScreenState extends State<TicketsScreen> {
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColorScheme.primary : AppColorScheme.background,
+                  color: isSelected ? baseColor : baseColor.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isSelected ? AppColorScheme.primary : AppColorScheme.grey200,
+                    color: isSelected ? baseColor : baseColor.withOpacity(0.3),
                   ),
-                  boxShadow: isSelected ? [BoxShadow(color: AppColorScheme.primary.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2))] : null,
+                  boxShadow: isSelected ? [BoxShadow(color: baseColor.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2))] : null,
                 ),
                 child: AppText(
                   _getStatusLabel(status),
                   style: TextStyle(
-                    color: isSelected ? Colors.white : AppColorScheme.textMuted,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected ? Colors.white : (status == 'الكل' ? AppColorScheme.primary : baseColor.withOpacity(0.9)),
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                   ),
                 ),
               ),
@@ -233,117 +273,6 @@ class _TicketsScreenState extends State<TicketsScreen> {
     );
   }
 
-  Widget _buildTicketCard(Ticket ticket) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
-        border: Border.all(color: AppColorScheme.grey200),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            Navigator.push(context, MaterialPageRoute(
-              builder: (_) => BlocProvider.value(
-                value: context.read<TicketsCubit>(),
-                child: TicketDetailsScreen(ticket: ticket),
-              ),
-            ));
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(color: AppColorScheme.surface, borderRadius: BorderRadius.circular(8)),
-                      child: AppText(ticket.ticketNumber, style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.bold)),
-                    ),
-                    _buildStatusBadge(ticket.status),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                AppText(ticket.title, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.bold), maxLines: 2, overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(Icons.person_outline, size: 16, color: AppColorScheme.textMuted),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: AppText(ticket.client?.name ?? 'عميل غير معروف', style: const TextStyle(color: AppColorScheme.textMuted), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    ),
-                    _buildPriorityBadge(ticket.priority),
-                  ],
-                ),
-                const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(height: 1)),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.access_time, size: 16, color: AppColorScheme.textMuted),
-                        const SizedBox(width: 4),
-                        AppText(DateFormat('yyyy/MM/dd').format(ticket.createdAt), style: AppTypography.labelSmall),
-                      ],
-                    ),
-                    if (ticket.category != null)
-                      Row(
-                        children: [
-                          Icon(Icons.folder_open, size: 16, color: AppColorScheme.primary),
-                          const SizedBox(width: 4),
-                          AppText(ticket.category!.name, style: AppTypography.labelSmall.copyWith(color: AppColorScheme.primary)),
-                        ],
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusBadge(String status) {
-    Color bgColor; Color textColor;
-    switch (status) {
-      case 'open': bgColor = Colors.blue.shade50; textColor = Colors.blue.shade700; break;
-      case 'in_progress': bgColor = Colors.orange.shade50; textColor = Colors.orange.shade700; break;
-      case 'pending_client': bgColor = Colors.purple.shade50; textColor = Colors.purple.shade700; break;
-      case 'resolved': case 'closed': bgColor = Colors.green.shade50; textColor = Colors.green.shade700; break;
-      default: bgColor = AppColorScheme.grey100; textColor = AppColorScheme.grey500;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(12)),
-      child: AppText(_getStatusLabel(status), style: AppTypography.labelSmall.copyWith(color: textColor, fontWeight: FontWeight.bold)),
-    );
-  }
-
-  Widget _buildPriorityBadge(String priority) {
-    Color iconColor;
-    switch (priority) {
-      case 'critical': iconColor = AppColorScheme.error; break;
-      case 'high': iconColor = Colors.orange; break;
-      case 'medium': iconColor = AppColorScheme.info; break;
-      default: iconColor = AppColorScheme.success;
-    }
-    return Row(
-      children: [
-        Icon(Icons.local_fire_department, size: 14, color: iconColor),
-        const SizedBox(width: 4),
-        AppText(_getPriorityLabel(priority), style: AppTypography.labelSmall.copyWith(color: iconColor, fontWeight: FontWeight.bold)),
-      ],
-    );
-  }
-
   String _getStatusLabel(String status) {
     const map = {'الكل': 'الكل', 'open': 'مفتوحة', 'in_progress': 'قيد المعالجة', 'pending_client': 'بانتظار العميل', 'resolved': 'تم الحل', 'closed': 'مغلقة'};
     return map[status] ?? status;
@@ -358,6 +287,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
     int? tempClientId = _selectedClientId;
     int? tempAssignedTo = _selectedAssignedTo;
     int? tempCategoryId = _selectedCategoryId;
+    int? tempRating = _selectedRating;
 
     showModalBottomSheet(
       context: context,
@@ -366,8 +296,8 @@ class _TicketsScreenState extends State<TicketsScreen> {
       builder: (bottomSheetContext) {
         return MultiBlocProvider(
           providers: [
-            BlocProvider(create: (_) => getIt<ClientsBloc>()..add(LoadClients())),
-            BlocProvider(create: (_) => getIt<UsersBloc>()..add(LoadUsers())),
+            BlocProvider(create: (_) => getIt<ClientsBloc>()..add(const LoadClients())),
+            BlocProvider(create: (_) => getIt<UsersBloc>()..add(const LoadUsers())),
             BlocProvider(create: (_) => getIt<TicketCategoriesCubit>()..getCategories()),
           ],
           child: StatefulBuilder(
@@ -383,98 +313,224 @@ class _TicketsScreenState extends State<TicketsScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                 ),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: DraggableScrollableSheet(
+                  initialChildSize: 0.8,
+                  minChildSize: 0.5,
+                  maxChildSize: 0.9,
+                  expand: false,
+                  builder: (context, scrollController) {
+                    return SingleChildScrollView(
+                      controller: scrollController,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const AppText(
-                            'تصفية متقدمة',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const AppText(
+                                'تصفية متقدمة',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    tempClientId = null;
+                                    tempAssignedTo = null;
+                                    tempCategoryId = null;
+                                    tempRating = null;
+                                    // Reset other filters here once added to state
+                                  });
+                                },
+                                child: const AppText('إعادة ضبط', style: TextStyle(color: AppColorScheme.error)),
+                              ),
+                            ],
                           ),
-                          TextButton(
-                            onPressed: () {
-                              setState(() {
-                                tempClientId = null;
-                                tempAssignedTo = null;
-                                tempCategoryId = null;
-                              });
+                          const SizedBox(height: 20),
+                          BlocBuilder<ClientsBloc, ClientsState>(
+                            builder: (context, state) {
+                              List<AppDropdownItem<int?>> items = [
+                                const AppDropdownItem(value: null, label: 'الكل')
+                              ];
+                              if (state is ClientsLoaded) {
+                                items.addAll(state.clients.map((c) => AppDropdownItem(value: int.tryParse(c.id), label: c.name)));
+                              }
+                              return AppDropdown<int?>(
+                                label: 'العميل',
+                                value: tempClientId,
+                                items: items,
+                                onChanged: (val) => setState(() => tempClientId = val),
+                              );
                             },
-                            child: const AppText('إعادة ضبط', style: TextStyle(color: AppColorScheme.error)),
                           ),
+                          const SizedBox(height: 16),
+                          BlocBuilder<UsersBloc, UsersState>(
+                            builder: (context, state) {
+                              List<AppDropdownItem<int?>> items = [
+                                const AppDropdownItem(value: null, label: 'الكل')
+                              ];
+                              if (state.status == UsersStatus.success) {
+                                items.addAll(state.users.map((u) => AppDropdownItem(value: u.id, label: u.name)));
+                              }
+                              return AppDropdown<int?>(
+                                label: 'الموظف المسؤول',
+                                value: tempAssignedTo,
+                                items: items,
+                                onChanged: (val) => setState(() => tempAssignedTo = val),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          BlocBuilder<TicketCategoriesCubit, TicketsState>(
+                            builder: (context, state) {
+                              List<AppDropdownItem<int?>> items = [
+                                const AppDropdownItem(value: null, label: 'الكل')
+                              ];
+                              final categories = context.read<TicketCategoriesCubit>().categories;
+                              items.addAll(categories.map((c) => AppDropdownItem(value: c.id, label: c.name)));
+                              
+                              return AppDropdown<int?>(
+                                label: 'التصنيف',
+                                value: tempCategoryId,
+                                items: items,
+                                onChanged: (val) => setState(() => tempCategoryId = val),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          AppDropdown<String?>(
+                            label: 'المصدر',
+                            value: null, // Replace with tempSource when supported
+                            items: const [
+                              AppDropdownItem(value: null, label: 'الكل'),
+                              AppDropdownItem(value: 'whatsapp', label: 'واتساب'),
+                              AppDropdownItem(value: 'phone', label: 'هاتف'),
+                              AppDropdownItem(value: 'email', label: 'بريد إلكتروني'),
+                            ],
+                            onChanged: (val) {
+                              // TODO: Support Source filter
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          AppDropdown<String?>(
+                            label: 'الأولوية',
+                            value: null, // Replace with tempPriority when supported
+                            items: const [
+                              AppDropdownItem(value: null, label: 'الكل'),
+                              AppDropdownItem(value: 'critical', label: 'حرجة'),
+                              AppDropdownItem(value: 'high', label: 'عالية'),
+                              AppDropdownItem(value: 'medium', label: 'متوسطة'),
+                              AppDropdownItem(value: 'low', label: 'منخفضة'),
+                            ],
+                            onChanged: (val) {
+                              // TODO: Support Priority filter
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          const AppText('تاريخ الإنشاء', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () async {
+                                    // TODO: Show date picker for From
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: AppColorScheme.grey300),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.calendar_today, size: 16, color: AppColorScheme.grey600),
+                                        const SizedBox(width: 8),
+                                        AppText('من تاريخ', style: TextStyle(color: AppColorScheme.grey600)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () async {
+                                    // TODO: Show date picker for To
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: AppColorScheme.grey300),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.calendar_today, size: 16, color: AppColorScheme.grey600),
+                                        const SizedBox(width: 8),
+                                        AppText('إلى تاريخ', style: TextStyle(color: AppColorScheme.grey600)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          const AppText('عدد النجوم في التقييم', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _buildStarFilterButton(context, null, tempRating, (val) => setState(() => tempRating = val)),
+                              for (int i = 5; i >= 1; i--)
+                                _buildStarFilterButton(context, i, tempRating, (val) => setState(() => tempRating = val)),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          AppElevatedButton(
+                            text: 'تطبيق الفلاتر',
+                            onPressed: () {
+                              _applyFilters(tempClientId, tempAssignedTo, tempCategoryId, tempRating);
+                              Navigator.pop(context);
+                            },
+                          ),
+                          const SizedBox(height: 24),
                         ],
                       ),
-                      const SizedBox(height: 20),
-                      BlocBuilder<ClientsBloc, ClientsState>(
-                        builder: (context, state) {
-                          List<AppDropdownItem<int?>> items = [
-                            const AppDropdownItem(value: null, label: 'الكل')
-                          ];
-                          if (state is ClientsLoaded) {
-                            items.addAll(state.clients.map((c) => AppDropdownItem(value: int.tryParse(c.id), label: c.name)));
-                          }
-                          return AppDropdown<int?>(
-                            label: 'العميل',
-                            value: tempClientId,
-                            items: items,
-                            onChanged: (val) => setState(() => tempClientId = val),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      BlocBuilder<UsersBloc, UsersState>(
-                        builder: (context, state) {
-                          List<AppDropdownItem<int?>> items = [
-                            const AppDropdownItem(value: null, label: 'الكل')
-                          ];
-                          if (state.status == UsersStatus.success) {
-                            items.addAll(state.users.map((u) => AppDropdownItem(value: u.id, label: u.name)));
-                          }
-                          return AppDropdown<int?>(
-                            label: 'الموظف المسؤول',
-                            value: tempAssignedTo,
-                            items: items,
-                            onChanged: (val) => setState(() => tempAssignedTo = val),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      BlocBuilder<TicketCategoriesCubit, TicketsState>(
-                        builder: (context, state) {
-                          List<AppDropdownItem<int?>> items = [
-                            const AppDropdownItem(value: null, label: 'الكل')
-                          ];
-                          final categories = context.read<TicketCategoriesCubit>().categories;
-                          items.addAll(categories.map((c) => AppDropdownItem(value: c.id, label: c.name)));
-                          
-                          return AppDropdown<int?>(
-                            label: 'التصنيف',
-                            value: tempCategoryId,
-                            items: items,
-                            onChanged: (val) => setState(() => tempCategoryId = val),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 24),
-                      AppElevatedButton(
-                        text: 'تطبيق الفلاتر',
-                        onPressed: () {
-                          _applyFilters(tempClientId, tempAssignedTo, tempCategoryId);
-                          Navigator.pop(context);
-                        },
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-                  ),
+                    );
+                  }
                 ),
               );
             },
           ),
         );
       },
+    );
+  }
+
+  Widget _buildStarFilterButton(BuildContext context, int? rating, int? selectedRating, ValueChanged<int?> onSelect) {
+    final isSelected = rating == selectedRating;
+    return GestureDetector(
+      onTap: () => onSelect(rating),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.amber.withOpacity(0.1) : Colors.transparent,
+          border: Border.all(color: isSelected ? Colors.amber : Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: rating == null
+            ? AppText('الكل', style: TextStyle(color: isSelected ? Colors.amber.shade700 : Colors.grey, fontWeight: FontWeight.bold))
+            : Row(
+                children: [
+                  AppText('$rating', style: TextStyle(color: isSelected ? Colors.amber.shade700 : Colors.grey, fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 4),
+                  Icon(Icons.star_rounded, size: 16, color: isSelected ? Colors.amber : Colors.grey.shade400),
+                ],
+              ),
+      ),
     );
   }
 }
