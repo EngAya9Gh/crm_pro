@@ -1,9 +1,9 @@
 import '../../domain/entities/client_contact.dart';
 
 abstract class ClientContactsRepository {
-  Future<List<ClientContact>> getContacts(int clientId);
-  Future<ClientContact> addContact(int clientId, Map<String, dynamic> data);
-  Future<ClientContact> updateContact(int clientId, int contactId, Map<String, dynamic> data);
-  Future<void> deleteContact(int clientId, int contactId);
-  Future<void> mergeContact(int sourceClientId, int contactId);
+  Future<List<ClientContact>> getContacts(String clientId);
+  Future<ClientContact> addContact(String clientId, Map<String, dynamic> data);
+  Future<ClientContact> updateContact(String clientId, int contactId, Map<String, dynamic> data);
+  Future<void> deleteContact(String clientId, int contactId);
+  Future<void> mergeContact(String sourceClientId, String targetClientId, int contactId);
 }

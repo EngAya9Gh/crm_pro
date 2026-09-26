@@ -12,14 +12,31 @@ class ClientContactModel extends ClientContact {
   });
 
   factory ClientContactModel.fromJson(Map<String, dynamic> json) {
+    int parsedId = 0;
+    if (json['id'] != null) {
+      if (json['id'] is int) parsedId = json['id'];
+      else if (json['id'] is String) parsedId = int.tryParse(json['id']) ?? 0;
+    }
+
+    bool parsedIsPrimary = false;
+    if (json['is_primary'] != null) {
+      if (json['is_primary'] is bool) {
+        parsedIsPrimary = json['is_primary'];
+      } else if (json['is_primary'] is int) {
+        parsedIsPrimary = json['is_primary'] == 1;
+      } else if (json['is_primary'] is String) {
+        parsedIsPrimary = json['is_primary'] == '1' || json['is_primary'] == 'true';
+      }
+    }
+
     return ClientContactModel(
-      id: json['id'] as int,
-      clientId: json['client_id'] as int,
-      name: json['name'] as String,
-      phone: json['phone'] as String,
-      email: json['email'] as String?,
-      position: json['position'] as String?,
-      isPrimary: (json['is_primary'] as bool?) ?? false,
+      id: parsedId,
+      clientId: json['client_id']?.toString() ?? '',
+      name: json['name']?.toString() ?? 'غير معروف',
+      phone: json['phone']?.toString() ?? '',
+      email: json['email']?.toString(),
+      position: json['position']?.toString(),
+      isPrimary: parsedIsPrimary,
     );
   }
 

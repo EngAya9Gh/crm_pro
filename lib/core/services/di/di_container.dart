@@ -63,6 +63,13 @@ import '../../../features/clients/domain/usecases/export_clients_usecase.dart';
 import '../../../features/clients/domain/usecases/get_client_invoices_usecase.dart';
 import '../../../features/clients/domain/usecases/get_client_appointments_usecase.dart';
 import '../../../features/clients/domain/usecases/get_client_files_usecase.dart';
+import '../../../features/clients/data/datasources/client_contacts_remote_datasource.dart';
+import '../../../features/clients/domain/repositories/client_contacts_repository.dart';
+import '../../../features/clients/data/repositories/client_contacts_repository_impl.dart';
+import '../../../features/clients/domain/usecases/client_contacts_usecases.dart';
+import '../../../features/clients/presentation/bloc/client_contacts_cubit.dart';
+import '../../../features/clients/presentation/bloc/global_contacts_cubit.dart';
+import '../../services/constants_service.dart';
 import '../../../features/clients/presentation/bloc/clients_bloc.dart';
 import '../../../features/clients/presentation/bloc/cubits/client_invoices_cubit.dart';
 import '../../../features/clients/presentation/bloc/cubits/client_appointments_cubit.dart';
@@ -271,9 +278,16 @@ Future<void> initDi() async {
     () => ClientsRemoteDataSourceImpl(apiClient: getIt()),
   );
 
+  getIt.registerLazySingleton<ClientContactsRemoteDataSource>(
+    () => ClientContactsRemoteDataSourceImpl(apiClient: getIt()),
+  );
+
   // Repositories
   getIt.registerLazySingleton<ClientsRepository>(
     () => ClientsRepositoryImpl(remoteDataSource: getIt()),
+  );
+  getIt.registerLazySingleton<ClientContactsRepository>(
+    () => ClientContactsRepositoryImpl(remoteDataSource: getIt()),
   );
 
   // Use Cases
@@ -308,6 +322,13 @@ Future<void> initDi() async {
   getIt.registerLazySingleton(() => AddProcedureUseCase(getIt()));
   getIt.registerLazySingleton(() => UpdateProcedureUseCase(getIt()));
   getIt.registerLazySingleton(() => DeleteProcedureUseCase(getIt()));
+
+  // Client Contacts Use Cases
+  getIt.registerLazySingleton(() => GetClientContactsUseCase(getIt()));
+  getIt.registerLazySingleton(() => AddClientContactUseCase(getIt()));
+  getIt.registerLazySingleton(() => UpdateClientContactUseCase(getIt()));
+  getIt.registerLazySingleton(() => DeleteClientContactUseCase(getIt()));
+  getIt.registerLazySingleton(() => MergeClientContactUseCase(getIt()));
 
   // Blocs / Cubits
   getIt.registerFactory(
@@ -348,6 +369,23 @@ Future<void> initDi() async {
     ),
   );
 
+  getIt.registerFactory(
+    () => ClientContactsCubit(
+      getContactsUseCase: getIt(),
+      addContactUseCase: getIt(),
+      updateContactUseCase: getIt(),
+      deleteContactUseCase: getIt(),
+      mergeContactUseCase: getIt(),
+    ),
+  );
+
+  getIt.registerFactory(
+    () => GlobalContactsCubit(getIt()),
+  );
+
+  getIt.registerLazySingleton(
+    () => ConstantsService(apiClient: getIt()),
+  );
   // --- Client AI Agent Feature ---
   getIt.registerLazySingleton<ClientAiRemoteDataSource>(
     () => ClientAiRemoteDataSourceImpl(apiClient: getIt()),

@@ -3,6 +3,10 @@ class EndPoints {
   static const String baseUrl = 'https://app.wakeel.cc/api/v1';
   //honeydew-sheep-602146.hostingersite.com
 
+  // ─── Global ───
+  static const String globalContacts = '/contacts';
+  static const String constants = '/constants';
+
   // Auth
   static const String login = '/auth/login';
   static const String refresh = '/auth/refresh';

@@ -6,6 +6,8 @@ import '../../domain/use_cases/get_me_use_case.dart';
 import '../../domain/use_cases/forgot_password_use_case.dart';
 import '../../domain/use_cases/reset_password_use_case.dart';
 import '../../domain/use_cases/logout_use_case.dart';
+import '../../../../core/services/constants_service.dart';
+import '../../../../core/services/di/di_container.dart';
 
 // States
 abstract class AuthState extends Equatable {
@@ -61,7 +63,10 @@ class AuthCubit extends Cubit<AuthState> {
     final result = await getMeUseCase();
     result.fold(
       (failure) => emit(AuthUnauthenticated()),
-      (user) => emit(AuthAuthenticated(user)),
+      (user) async {
+        await getIt<ConstantsService>().fetchConstants();
+        emit(AuthAuthenticated(user));
+      },
     );
   }
 
@@ -72,7 +77,10 @@ class AuthCubit extends Cubit<AuthState> {
     );
     result.fold(
       (failure) => emit(AuthFailure(failure)),
-      (user) => emit(AuthAuthenticated(user)),
+      (user) async {
+        await getIt<ConstantsService>().fetchConstants();
+        emit(AuthAuthenticated(user));
+      },
     );
   }
 

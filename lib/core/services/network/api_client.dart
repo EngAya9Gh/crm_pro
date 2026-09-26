@@ -14,6 +14,8 @@ class ApiClient {
   bool _isRefreshing = false;
   Completer<void>? _refreshCompleter;
 
+  Dio get dio => _dio;
+
   ApiClient({required Dio dio, required TokenStorage tokenStorage})
     : _dio = dio,
       _tokenStorage = tokenStorage {

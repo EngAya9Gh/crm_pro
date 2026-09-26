@@ -1,6 +1,6 @@
 class ClientContact {
   final int id;
-  final int clientId;
+  final String clientId;
   final String name;
   final String phone;
   final String? email;
@@ -19,7 +19,7 @@ class ClientContact {
 
   ClientContact copyWith({
     int? id,
-    int? clientId,
+    String? clientId,
     String? name,
     String? phone,
     String? email,

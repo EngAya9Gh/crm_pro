@@ -13,6 +13,7 @@ import '../widgets/client_info_tab.dart';
 import '../widgets/client_invoices_tab.dart';
 import '../widgets/client_files_tab.dart';
 import '../widgets/client_timeline_tab.dart';
+import '../widgets/client_contacts_tab.dart';
 
 import '../widgets/client_procedures_tab.dart';
 import '../widgets/client_tickets_tab.dart';
@@ -155,7 +156,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
           }
 
           return DefaultTabController(
-            length: 10,
+            length: 11,
             child: AppScaffold(
               backgroundColor: AppColorScheme.surface,
               title: currentClient.name,
@@ -240,6 +241,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                   Tab(text: AppStrings.clientComments),
                   Tab(text: AppStrings.clientInvoices),
                   Tab(text: AppStrings.clientAppointments),
+                  Tab(text: 'جهات الاتصال'),
                   Tab(text: 'الملفات'),
                   Tab(text: 'الإجراءات'),
                   Tab(text: AppStrings.tickets),
@@ -267,6 +269,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                       clientId: currentClient.id,
                       initialAppointments: currentClient.appointments,
                     ),
+                    ClientContactsTab(clientId: currentClient.id),
                     ClientFilesTab(clientId: currentClient.id, initialFiles: currentClient.files),
                     ClientProceduresTab(clientId: currentClient.id),
                     ClientTicketsTab(clientId: currentClient.id),

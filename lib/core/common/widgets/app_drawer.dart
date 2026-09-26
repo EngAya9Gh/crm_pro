@@ -10,6 +10,7 @@ import 'package:crm_wakeel/features/clients/presentation/views/clients_screen.da
 import 'package:crm_wakeel/features/clients/presentation/views/clients_stats_screen.dart';
 import 'package:crm_wakeel/features/clients/presentation/views/clients_kpi_screen.dart';
 import 'package:crm_wakeel/features/invoices/presentation/views/invoices_screen.dart';
+import 'package:crm_wakeel/features/clients/presentation/views/global_contacts_screen.dart';
 import 'package:crm_wakeel/features/appointments/presentation/views/appointments_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crm_wakeel/core/services/di/di_container.dart';
@@ -18,9 +19,7 @@ import 'package:crm_wakeel/features/evaluations/presentation/bloc/evaluations_cu
 import 'package:crm_wakeel/features/tickets/presentation/views/tickets_screen.dart';
 import 'package:crm_wakeel/features/evaluations/presentation/views/evaluations_screen.dart';
 import 'package:crm_wakeel/features/settings/presentation/views/settings_screen.dart';
-import 'package:crm_wakeel/features/settings/presentation/views/roles_screen.dart';
 import 'package:crm_wakeel/core/utils/permission_extension.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crm_wakeel/features/auth/presentation/bloc/auth_cubit.dart';
 import 'package:crm_wakeel/features/auth/presentation/views/login_screen.dart';
 
@@ -229,6 +228,11 @@ class AppDrawer extends StatelessWidget {
               context,
               title: 'مؤشرات الأداء',
               destination: const ClientsKPIScreen(),
+            ),
+            _buildSubMenuItem(
+              context,
+              title: 'جهات الاتصال',
+              destination: const GlobalContactsScreen(),
             ),
           ],
         ),
