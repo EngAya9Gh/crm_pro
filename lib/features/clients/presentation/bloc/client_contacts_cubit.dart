@@ -83,9 +83,12 @@ class ClientContactsCubit extends Cubit<ClientContactsState> {
     emit(ClientContactsOperationInProgress());
     try {
       await mergeContactUseCase(sourceClientId, targetClientId, contactId);
+      _contacts.removeWhere((c) => c.id == contactId);
       emit(ClientContactsOperationSuccess('تم دمج جهة الاتصال بنجاح'));
+      emit(ClientContactsLoaded(List.from(_contacts)));
     } catch (e) {
       emit(ClientContactsError(e.toString()));
+      emit(ClientContactsLoaded(List.from(_contacts)));
     }
   }
 }

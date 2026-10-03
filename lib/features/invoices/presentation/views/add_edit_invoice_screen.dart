@@ -14,11 +14,34 @@ import '../../../settings/presentation/bloc/lookups_bloc.dart';
 import '../../../settings/presentation/bloc/lookups_event.dart';
 import '../../../settings/presentation/bloc/lookups_state.dart';
 import '../../../../core/services/di/di_container.dart';
+import 'package:dropdown_search/dropdown_search.dart';
+import '../../../../core/services/network/api_client.dart';
+import '../../../../core/utils/end_points.dart';
+
+class InvoiceClientOption {
+  final int id;
+  final String name;
+
+  InvoiceClientOption({required this.id, required this.name});
+  
+  @override
+  bool operator ==(Object other) => identical(this, other) || other is InvoiceClientOption && runtimeType == other.runtimeType && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
+}
 
 class AddEditInvoiceScreen extends StatefulWidget {
   final int? invoiceId;
+  final int? preSelectedClientId;
+  final String? preSelectedClientName;
 
-  const AddEditInvoiceScreen({super.key, this.invoiceId});
+  const AddEditInvoiceScreen({
+    super.key,
+    this.invoiceId,
+    this.preSelectedClientId,
+    this.preSelectedClientName,
+  });
 
   @override
   State<AddEditInvoiceScreen> createState() => _AddEditInvoiceScreenState();
@@ -28,6 +51,7 @@ class _AddEditInvoiceScreenState extends State<AddEditInvoiceScreen> {
   final _formKey = GlobalKey<FormState>();
 
   int? _selectedClientId;
+  String? _selectedClientName;
   int? _selectedEmployeeId;
   final _notesController = TextEditingController();
   final _taxRateController = TextEditingController(text: '15');
@@ -47,6 +71,11 @@ class _AddEditInvoiceScreenState extends State<AddEditInvoiceScreen> {
     super.initState();
     context.read<InvoicesBloc>().add(const GetInvoiceClientsEvent());
     context.read<InvoicesBloc>().add(GetInvoiceProductsEvent());
+
+    if (widget.preSelectedClientId != null) {
+      _selectedClientId = widget.preSelectedClientId;
+      _selectedClientName = widget.preSelectedClientName;
+    }
 
     if (isEdit) {
       context.read<InvoicesBloc>().add(
@@ -78,6 +107,31 @@ class _AddEditInvoiceScreenState extends State<AddEditInvoiceScreen> {
     setState(() {
       _items.removeAt(index);
     });
+  }
+
+  Future<List<InvoiceClientOption>> _searchClients(String filter) async {
+    try {
+      final apiClient = getIt<ApiClient>();
+      final response = await apiClient.dio.get(EndPoints.clients, queryParameters: {
+        'search': filter,
+        'per_page': 20,
+      });
+      final data = response.data['data'];
+      List list = [];
+      if (data is List) {
+        list = data;
+      } else if (data is Map && data.containsKey('data')) {
+        list = data['data'];
+      }
+
+      return list.map((e) => InvoiceClientOption(
+        id: e['id'] as int,
+        name: e['name'] as String? ?? 'بدون اسم',
+      )).toList();
+    } catch (e) {
+      debugPrint('Error fetching clients: $e');
+    }
+    return [];
   }
 
   void _submit() {
@@ -227,59 +281,50 @@ class _AddEditInvoiceScreenState extends State<AddEditInvoiceScreen> {
                   _buildSection(
                     title: 'بيانات العميل والفاتورة',
                     children: [
-                      if (state.isClientsLoading)
-                        const LinearProgressIndicator()
-                      else
-                        AppDropdown<int>(
-                          label: 'العميل',
-                          hint: 'اختر العميل',
-                          value: _selectedClientId,
-                          legacyItems: () {
-                            final items = state.clientList.map((client) {
-                              return DropdownMenuItem<int>(
-                                value: client.id,
-                                child: AppText(client.name),
-                              );
-                            }).toList();
-
-                            // If editing and selected client is not in the fetched list, add it temporarily
-                            if (isEdit &&
-                                _selectedClientId != null &&
-                                !state.clientList.any(
-                                  (c) => c.id == _selectedClientId,
-                                )) {
-                              items.add(
-                                DropdownMenuItem<int>(
-                                  value: _selectedClientId,
-                                  child: AppText(
-                                    state.invoiceDetail?.clientName ??
-                                        'غير معروف',
-                                  ),
+                      if (widget.preSelectedClientId == null) ...[
+                        if (state.isClientsLoading)
+                          const LinearProgressIndicator()
+                        else
+                          DropdownSearch<InvoiceClientOption>(
+                            items: (filter, _) => _searchClients(filter),
+                            compareFn: (i1, i2) => i1.id == i2.id,
+                            itemAsString: (InvoiceClientOption c) => c.name,
+                            selectedItem: _selectedClientId != null 
+                                ? InvoiceClientOption(id: _selectedClientId!, name: _selectedClientName ?? state.invoiceDetail?.clientName ?? 'غير معروف')
+                                : null,
+                            onSelected: (val) {
+                              setState(() {
+                                _selectedClientId = val?.id;
+                                _selectedClientName = val?.name;
+                              });
+                            },
+                            popupProps: PopupProps.menu(
+                              showSearchBox: true,
+                              searchFieldProps: const TextFieldProps(
+                                decoration: InputDecoration(
+                                  hintText: 'ابحث عن عميل...',
+                                  prefixIcon: Icon(Icons.search),
+                                  border: OutlineInputBorder(),
                                 ),
-                              );
-                            }
-                            return items;
-                          }(),
-                          itemLabel: (id) {
-                            if (isEdit &&
-                                id == _selectedClientId &&
-                                !state.clientList.any((c) => c.id == id)) {
-                              return state.invoiceDetail?.clientName ??
-                                  'غير معروف';
-                            }
-                            final client = state.clientList
-                                .where((c) => c.id == id)
-                                .firstOrNull;
-                            return client?.name ?? '';
-                          },
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedClientId = value;
-                            });
-                          },
-                          validator: (value) => value == null ? 'مطلوب' : null,
-                        ),
-                      const SizedBox(height: 16),
+                              ),
+                            ),
+                            decoratorProps: const DropDownDecoratorProps(
+                              decoration: InputDecoration(
+                                labelText: 'العميل',
+                                hintText: 'اختر العميل',
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                              ),
+                            ),
+                            validator: (val) {
+                              if (val == null) {
+                                return 'الرجاء اختيار العميل';
+                              }
+                              return null;
+                            },
+                          ),
+                        const SizedBox(height: 16),
+                      ],
                       BlocBuilder<LookupsBloc, LookupsState>(
                         builder: (context, lookupsState) {
                           if (lookupsState is LookupsLoading) {

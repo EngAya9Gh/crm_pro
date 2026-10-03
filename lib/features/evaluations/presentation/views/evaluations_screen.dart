@@ -419,32 +419,30 @@ class _EvaluationsScreenState extends State<EvaluationsScreen> {
                 ),
                 const SizedBox(height: 16),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    CircleAvatar(
+                      radius: 14,
+                      backgroundColor: AppColorScheme.primary.withValues(alpha: 0.1),
+                      child: const Icon(Icons.person, size: 16, color: AppColorScheme.primary),
+                    ),
+                    const SizedBox(width: 8),
                     Expanded(
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 14,
-                            backgroundColor: AppColorScheme.primary.withOpacity(0.1),
-                            child: const Icon(Icons.person, size: 16, color: AppColorScheme.primary),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: AppText(
-                              evaluation.client?.name ?? 'عميل مجهول', 
-                              style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.bold),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
+                      child: AppText(
+                        evaluation.client?.name ?? 'عميل مجهول', 
+                        style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.bold, fontSize: 14),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
                     if (evaluation.assignedUser != null)
                       Expanded(
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             CircleAvatar(
                               radius: 12,
@@ -462,7 +460,9 @@ class _EvaluationsScreenState extends State<EvaluationsScreen> {
                             ),
                           ],
                         ),
-                      ),
+                      )
+                    else
+                      const Spacer(),
                     Row(
                       children: [
                         const Icon(Icons.access_time, size: 14, color: AppColorScheme.textMuted),

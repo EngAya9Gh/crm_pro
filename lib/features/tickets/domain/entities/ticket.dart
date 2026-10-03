@@ -21,6 +21,7 @@ class Ticket {
   final DateTime? closedAt;
   final Map<String, dynamic>? evaluation;
   final String? lastMessage;
+  final bool hasWhatsappChat;
 
   Ticket({
     required this.id,
@@ -40,6 +41,7 @@ class Ticket {
     this.closedAt,
     this.evaluation,
     this.lastMessage,
+    this.hasWhatsappChat = false,
   });
 
   Ticket copyWith({
@@ -61,6 +63,7 @@ class Ticket {
     Map<String, dynamic>? evaluation,
     String? lastMessage,
     int? assignedToId,
+    bool? hasWhatsappChat,
   }) {
     return Ticket(
       id: id ?? this.id,
@@ -80,6 +83,7 @@ class Ticket {
       closedAt: closedAt ?? this.closedAt,
       evaluation: evaluation ?? this.evaluation,
       lastMessage: lastMessage ?? this.lastMessage,
+      hasWhatsappChat: hasWhatsappChat ?? this.hasWhatsappChat,
     );
   }
 }

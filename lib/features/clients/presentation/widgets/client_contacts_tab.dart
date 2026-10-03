@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'merge_contact_dialog.dart';
 import '../../../../core/config/theme/color_scheme.dart';
 import '../../../../core/common/widgets/app_text.dart';
 import '../../../../core/common/widgets/app_text_field.dart';
@@ -52,10 +53,7 @@ class _ClientContactsTabState extends State<ClientContactsTab> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  AppTextField(
-                    controller: nameCtrl,
-                    hintText: 'الاسم',
-                  ),
+                  AppTextField(controller: nameCtrl, hintText: 'الاسم'),
                   const SizedBox(height: 12),
                   AppTextField(
                     controller: phoneCtrl,
@@ -97,9 +95,12 @@ class _ClientContactsTabState extends State<ClientContactsTab> {
               AppElevatedButton(
                 text: isEditing ? 'تعديل' : 'إضافة',
                 onPressed: () {
-                  if (nameCtrl.text.trim().isEmpty || phoneCtrl.text.trim().isEmpty) {
+                  if (nameCtrl.text.trim().isEmpty ||
+                      phoneCtrl.text.trim().isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('الرجاء إدخال الاسم ورقم الهاتف')),
+                      const SnackBar(
+                        content: Text('الرجاء إدخال الاسم ورقم الهاتف'),
+                      ),
                     );
                     return;
                   }
@@ -107,8 +108,12 @@ class _ClientContactsTabState extends State<ClientContactsTab> {
                   final data = {
                     'name': nameCtrl.text.trim(),
                     'phone': phoneCtrl.text.trim(),
-                    'email': emailCtrl.text.trim().isEmpty ? null : emailCtrl.text.trim(),
-                    'position': positionCtrl.text.trim().isEmpty ? null : positionCtrl.text.trim(),
+                    'email': emailCtrl.text.trim().isEmpty
+                        ? null
+                        : emailCtrl.text.trim(),
+                    'position': positionCtrl.text.trim().isEmpty
+                        ? null
+                        : positionCtrl.text.trim(),
                     'is_primary': isPrimary,
                   };
 
@@ -153,6 +158,19 @@ class _ClientContactsTabState extends State<ClientContactsTab> {
     );
   }
 
+  void _showMergeDialog(ClientContact contact) {
+    showDialog(
+      context: context,
+      builder: (_) => BlocProvider.value(
+        value: _cubit,
+        child: MergeContactDialog(
+          contact: contact,
+          sourceClientId: widget.clientId,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
@@ -160,17 +178,18 @@ class _ClientContactsTabState extends State<ClientContactsTab> {
       child: BlocConsumer<ClientContactsCubit, ClientContactsState>(
         listener: (context, state) {
           if (state is ClientContactsOperationSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: AppText(state.message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: AppText(state.message)));
           } else if (state is ClientContactsError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: AppText(state.message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: AppText(state.message)));
           }
         },
         builder: (context, state) {
-          if (state is ClientContactsInitial || state is ClientContactsLoading) {
+          if (state is ClientContactsInitial ||
+              state is ClientContactsLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -197,119 +216,179 @@ class _ClientContactsTabState extends State<ClientContactsTab> {
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final contact = contacts[index];
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
+                    return Card(
+                      elevation: 2,
+                      margin: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColorScheme.grey200),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.02),
-                            blurRadius: 5,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
                       ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        title: Row(
-                          children: [
-                            AppText(
-                              contact.name,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            if (contact.isPrimary) ...[
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: AppColorScheme.primary.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: const AppText(
-                                  'الأساسي',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: AppColorScheme.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ]
-                          ],
-                        ),
-                        subtitle: Column(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const SizedBox(height: 6),
                             Row(
                               children: [
-                                const Icon(Icons.phone_outlined, size: 14, color: AppColorScheme.textMuted),
-                                const SizedBox(width: 6),
-                                AppText(
-                                  contact.phone,
-                                  style: const TextStyle(color: AppColorScheme.textMuted, fontSize: 13),
+                                CircleAvatar(
+                                  backgroundColor: AppColorScheme.primary
+                                      .withValues(alpha: 0.1),
+                                  child: AppText(
+                                    contact.name.isNotEmpty
+                                        ? contact.name[0].toUpperCase()
+                                        : '؟',
+                                    style: const TextStyle(
+                                      color: AppColorScheme.primary,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      AppText(
+                                        contact.name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      if (contact.position != null &&
+                                          contact.position!.isNotEmpty)
+                                        Container(
+                                          margin: const EdgeInsets.only(top: 4),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: AppColorScheme.grey200,
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
+                                          ),
+                                          child: AppText(
+                                            contact.position!,
+                                            style: const TextStyle(
+                                              color:
+                                                  AppColorScheme.textMuted,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                if (contact.isPrimary)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColorScheme.primary.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: const AppText(
+                                      'أساسي',
+                                      style: TextStyle(
+                                        color: AppColorScheme.primary,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                PopupMenuButton<String>(
+                                  icon: const Icon(
+                                    Icons.more_vert,
+                                    color: AppColorScheme.grey600,
+                                  ),
+                                  onSelected: (value) {
+                                    if (value == 'edit') {
+                                      _showAddEditDialog(contact);
+                                    } else if (value == 'delete') {
+                                      _confirmDelete(contact.id);
+                                    } else if (value == 'merge') {
+                                      _showMergeDialog(contact);
+                                    }
+                                  },
+                                  itemBuilder: (_) => [
+                                    const PopupMenuItem(
+                                      value: 'edit',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.edit_outlined, size: 18),
+                                          SizedBox(width: 8),
+                                          Text('تعديل'),
+                                        ],
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'merge',
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.merge_type_outlined,
+                                            size: 18,
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text('دمج مع عميل آخر'),
+                                        ],
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'delete',
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.delete_outline,
+                                            size: 18,
+                                            color: AppColorScheme.error,
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            'حذف',
+                                            style: TextStyle(
+                                              color: AppColorScheme.error,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                            if (contact.email != null && contact.email!.isNotEmpty) ...[
-                              const SizedBox(height: 4),
+                            const Divider(height: 24),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.phone,
+                                  size: 16,
+                                  color: AppColorScheme.textMuted,
+                                ),
+                                const SizedBox(width: 8),
+                                AppText(contact.phone),
+                              ],
+                            ),
+                            if (contact.email != null &&
+                                contact.email!.isNotEmpty) ...[
+                              const SizedBox(height: 8),
                               Row(
                                 children: [
-                                  const Icon(Icons.email_outlined, size: 14, color: AppColorScheme.textMuted),
-                                  const SizedBox(width: 6),
-                                  AppText(
-                                    contact.email!,
-                                    style: const TextStyle(color: AppColorScheme.textMuted, fontSize: 13),
+                                  const Icon(
+                                    Icons.email,
+                                    size: 16,
+                                    color: AppColorScheme.textMuted,
                                   ),
+                                  const SizedBox(width: 8),
+                                  AppText(contact.email!),
                                 ],
                               ),
                             ],
-                            if (contact.position != null && contact.position!.isNotEmpty) ...[
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(Icons.work_outline, size: 14, color: AppColorScheme.textMuted),
-                                  const SizedBox(width: 6),
-                                  AppText(
-                                    contact.position!,
-                                    style: const TextStyle(color: AppColorScheme.textMuted, fontSize: 13),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ],
-                        ),
-                        trailing: PopupMenuButton<String>(
-                          icon: const Icon(Icons.more_vert, color: AppColorScheme.grey600),
-                          onSelected: (value) {
-                            if (value == 'edit') {
-                              _showAddEditDialog(contact);
-                            } else if (value == 'delete') {
-                              _confirmDelete(contact.id);
-                            }
-                          },
-                          itemBuilder: (_) => [
-                            const PopupMenuItem(
-                              value: 'edit',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.edit_outlined, size: 18),
-                                  SizedBox(width: 8),
-                                  Text('تعديل'),
-                                ],
-                              ),
-                            ),
-                            const PopupMenuItem(
-                              value: 'delete',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.delete_outline, size: 18, color: AppColorScheme.error),
-                                  SizedBox(width: 8),
-                                  Text('حذف', style: TextStyle(color: AppColorScheme.error)),
-                                ],
-                              ),
-                            ),
                           ],
                         ),
                       ),

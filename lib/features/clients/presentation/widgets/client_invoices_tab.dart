@@ -8,6 +8,7 @@ import '../../../../features/invoices/domain/entities/invoice.dart';
 import '../bloc/cubits/client_invoices_cubit.dart';
 import '../../../../features/invoices/presentation/widgets/invoice_card.dart';
 import '../../../../features/invoices/presentation/views/invoice_details_screen.dart';
+import '../../../../features/invoices/presentation/views/add_edit_invoice_screen.dart';
 import '../../../../features/invoices/presentation/bloc/invoices_bloc.dart';
 
 class ClientInvoicesTab extends StatelessWidget {
@@ -72,9 +73,42 @@ class _ClientInvoicesViewState extends State<_ClientInvoicesView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ClientInvoicesCubit, ClientInvoicesState>(
-      builder: (context, state) {
-        List<Invoice> invoices = widget.initialInvoices ?? [];
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      floatingActionButton: BlocBuilder<ClientInvoicesCubit, ClientInvoicesState>(
+        builder: (context, state) {
+          String? clientName;
+          if (state is ClientInvoicesLoaded && state.invoices.isNotEmpty) {
+            clientName = state.invoices.first.clientName;
+          } else if (widget.initialInvoices != null && widget.initialInvoices!.isNotEmpty) {
+            clientName = widget.initialInvoices!.first.clientName;
+          }
+
+          return FloatingActionButton(
+            heroTag: 'add_client_invoice_${widget.clientId}',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => BlocProvider(
+                    create: (context) => getIt<InvoicesBloc>(),
+                    child: AddEditInvoiceScreen(
+                      preSelectedClientId: int.tryParse(widget.clientId),
+                      preSelectedClientName: clientName,
+                    ),
+                  ),
+                ),
+              ).then((_) {
+                context.read<ClientInvoicesCubit>().loadInvoices(widget.clientId, refresh: true);
+              });
+            },
+            child: const Icon(Icons.add),
+          );
+        },
+      ),
+      body: BlocBuilder<ClientInvoicesCubit, ClientInvoicesState>(
+        builder: (context, state) {
+          List<Invoice> invoices = widget.initialInvoices ?? [];
         bool isLoading = false;
 
         if (state is ClientInvoicesLoading) {
@@ -192,6 +226,7 @@ class _ClientInvoicesViewState extends State<_ClientInvoicesView> {
           ),
         );
       },
+      ),
     );
   }
 }
